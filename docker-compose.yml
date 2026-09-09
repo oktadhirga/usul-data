@@ -1,0 +1,43 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: usul_data_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: usul_data
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: usul_data_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: mysql://root:root@mysql:3306/usul_data
+    depends_on:
+      - mysql
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: usul_data_web
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      PORT: 5173
+      PUBLIC_API_URL: http://localhost:3000
+    depends_on:
+      - api
+
+volumes:
+  mysql_data:
