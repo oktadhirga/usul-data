@@ -1,26 +1,33 @@
-# Fitur Autentikasi dan Manajemen User
+# Fitur Data Pegawai
 
-Tugas ini bertujuan untuk mengimplementasikan fitur login user dan manajemen akun dengan sistem role-based access control (RBAC). Berikut adalah rincian kebutuhan fitur:
+Tugas ini adalah untuk mengimplementasikan fitur manajemen data pegawai, meliputi penambahan skema database, API endpoint, dan antarmuka pengguna (UI).
 
-## 1. Skema Database (Tabel Users)
-- Perbarui skema tabel `users` dengan kolom berikut:
-  - `id` primary key autoincrement
-  - `username` (string, unique)
-  - `password_hash` (string)
-  - `role` (enum/string: 'Admin', 'AdminOPD')
-  - `kode_unor` (string, nullable - berisi kode unit kerja/OPD terkait)
+## 1. Skema Database
 
-## 2. Autentikasi
-- Buat endpoint `POST /api/auth/login`: Menerima kredensial, verifikasi password, dan mengembalikan token JWT / Session.
-- Buat endpoint `POST /api/auth/logout`: Membersihkan sesi/token.
+Tambahkan skema tabel berikut:
 
-## 3. Middleware Keamanan & Scoping
-- **Auth Middleware & Role Guard**: Middleware untuk memastikan user sudah login dan memiliki role yang diizinkan untuk mengakses endpoint tertentu.
-- **Middleware `resolveUnorScope`**: Middleware yang secara otomatis menyematkan `kode_unor` dari user yang login ke dalam context request untuk keperluan filter data (scoping) khusus role 'AdminOPD'.
+### Tabel `unor` (Unit Organisasi)
+- `id` (primary key, autoincrement)
+- `kode_unor` (string, unique)
+- `nama_unor` (string)
 
-## 4. Manajemen Akun (Khusus Role 'Admin')
-- Sediakan endpoint CRUD akun untuk Admin Pusat.
-- Fitur utama: Membuat akun untuk 'AdminOPD' dan melakukan penugasan (assign) nilai `kode_unor` kepada akun tersebut.
+### Tabel `pegawai`
+- `id` (primary key, autoincrement)
+- `NIP` (string, unique)
+- `nama` (string)
+- `jabatan` (string)
+- `kode_unor` (string, foreign key mengarah ke `unor.kode_unor`)
 
-## 5. Fitur Profil
-- Endpoint ganti password untuk pengguna yang sedang login.
+## 2. API Endpoints
+
+Buat endpoint berikut:
+- **List Pegawai**: Mengambil daftar pegawai. Pastikan ada implementasi filter berdasarkan `kode_unor` sesuai role user yang mengakses (Admin vs AdminOPD).
+- **Detail Pegawai**: Mengambil detail lengkap dari seorang pegawai.
+
+## 3. User Interface (UI)
+
+Buat antarmuka (menggunakan SvelteKit dan komponen UI yang sudah ada):
+- **Halaman Daftar Pegawai**: Tampilan tabel yang memuat daftar pegawai pada suatu unor.
+- **Halaman Detail Pegawai**: Tampilan untuk melihat seluruh kategori data dari satu pegawai secara spesifik.
+
+Jangan mengubah kode/fitur lain yang tidak bersangkutan dengan pengerjaan fitur ini.

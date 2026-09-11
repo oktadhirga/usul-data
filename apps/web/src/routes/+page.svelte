@@ -1,91 +1,238 @@
 <script lang="ts">
-	const features = [
-		{
-			title: 'Fitur Data Kepegawaian (Issue #4)',
-			badge: 'Baru!',
-			desc: 'Manajemen aparatur sipil negara per Unit Organisasi (UNOR) dengan kontrol RBAC scoping ketat dan halaman profil pegawai.',
-			link: '/pegawai',
-			cta: 'Buka Daftar Pegawai →'
-		},
-		{
-			title: 'Master Unit Organisasi (UNOR)',
-			badge: 'Master',
-			desc: 'Pengelolaan data unit organisasi induk dan perangkat daerah untuk klasifikasi pegawai pemerintah.',
-			link: '/unor',
-			cta: 'Lihat Master UNOR →'
-		},
-		{
-			title: 'Autentikasi & RBAC (Issue #2)',
-			badge: 'Auth',
-			desc: 'Sistem login berbasis JWT, role guard Admin & AdminOPD, serta middleware scoping otomatis resolveUnorScope.',
-			link: 'http://localhost:3000/health',
-			cta: 'Cek API Backend →'
-		},
-		{
-			title: 'Drizzle ORM & MySQL',
-			badge: 'Database',
-			desc: 'Skema relasional otomatis, type-safe migrations, dan foreign key cascade antara unor dan pegawai.',
-			link: 'https://github.com/oktadhirga/usul-data/issues/4',
-			cta: 'GitHub Issue #4 →'
+	import { onMount } from 'svelte';
+	import { authState } from '$lib/stores/auth.svelte';
+	import { fetchScopedData, type ScopedDataResponse } from '$lib/api/users';
+	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Button } from '$lib/components/ui/button';
+	import {
+		Shield,
+		Building2,
+		Users,
+		Briefcase,
+		KeyRound,
+		CheckCircle2,
+		AlertCircle,
+		RefreshCw,
+		ArrowRight
+	} from 'lucide-svelte';
+
+	let scopedInfo = $state<ScopedDataResponse | null>(null);
+	let isLoadingScope = $state(false);
+
+	async function loadScope() {
+		isLoadingScope = true;
+		scopedInfo = await fetchScopedData();
+		isLoadingScope = false;
+	}
+
+	onMount(() => {
+		if (authState.isAuthenticated) {
+			loadScope();
 		}
-	];
+	});
+
+	$effect(() => {
+		if (authState.isAuthenticated && !scopedInfo && !isLoadingScope) {
+			loadScope();
+		}
+	});
 </script>
 
-<div class="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-12">
-	<!-- Hero Section -->
-	<div class="text-center space-y-4 max-w-3xl mx-auto">
-		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 shadow-sm">
-			<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-			Modul Data Kepegawaian Aktif
-		</div>
-		<h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
-			Sistem Pengelolaan <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Data Kepegawaian</span>
-		</h1>
-		<p class="text-slate-400 text-base sm:text-lg">
-			Platform type-safe terintegrasi untuk pengelolaan data aparatur sipil per Unit Organisasi (UNOR), verifikasi usul data, dan pembatasan wewenang berjenjang.
-		</p>
+<svelte:head>
+	<title>Dashboard - Usul Data</title>
+</svelte:head>
 
-		<div class="flex flex-wrap items-center justify-center gap-4 pt-3">
-			<a
-				href="/pegawai"
-				class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm text-white transition shadow-lg shadow-indigo-600/30 flex items-center gap-2"
-			>
-				<span>Jelajahi Data Pegawai</span>
-				<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-				</svg>
-			</a>
-			<a
-				href="/unor"
-				class="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 font-semibold text-sm text-slate-200 border border-slate-800 transition"
-			>
-				Daftar Master UNOR
-			</a>
-		</div>
-	</div>
-
-	<!-- Features Grid -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-		{#each features as f}
-			<div class="p-6 rounded-2xl bg-slate-900/70 border border-slate-800/80 hover:border-slate-700 transition shadow-sm space-y-3 flex flex-col justify-between">
-				<div>
-					<div class="flex items-center justify-between mb-2">
-						<h3 class="font-bold text-slate-100 text-lg">{f.title}</h3>
-						<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-950 text-indigo-400 border border-indigo-800">
-							{f.badge}
-						</span>
-					</div>
-					<p class="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
-				</div>
-				<div class="pt-2 border-t border-slate-800/80">
-					<a
-						href={f.link}
-						class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 transition"
-					>
-						{f.cta}
-					</a>
-				</div>
+<div class="space-y-6 max-w-6xl mx-auto">
+	<!-- Welcome Banner -->
+	<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-900/50 via-slate-900 to-slate-900 border border-indigo-500/20 p-6 md:p-8 shadow-lg">
+		<div class="relative z-10 space-y-2">
+			<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold">
+				<Shield class="h-3.5 w-3.5" />
+				<span>Role-Based Access Control Aktif</span>
 			</div>
-		{/each}
+			<h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight">
+				Halo, {authState.user?.username || 'Pengguna'}!
+			</h2>
+			<p class="text-slate-400 text-sm max-w-2xl">
+				Selamat datang di portal Usul Data Kepegawaian. Hak akses Anda terkonfigurasi sebagai
+				<span class="font-semibold text-slate-200">{authState.isAdmin ? 'Administrator Pusat' : 'Administrator OPD'}</span>.
+			</p>
+		</div>
 	</div>
+
+	<!-- Overview Stats Grid -->
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+		<!-- Role Info Card -->
+		<Card class="border-slate-800 bg-slate-900/70">
+			<CardHeader class="flex flex-row items-center justify-between pb-2">
+				<CardTitle class="text-sm font-medium text-slate-400">Tipe Peran Akun</CardTitle>
+				<Shield class="h-4 w-4 text-indigo-400" />
+			</CardHeader>
+			<CardContent class="space-y-1">
+				<div class="text-2xl font-bold text-white">
+					{authState.user?.role || '-'}
+				</div>
+				<p class="text-xs text-slate-500">
+					{authState.isAdmin ? 'Akses penuh ke semua unit organisasi & modul' : 'Dibatasi pada lingkup unit kerja Anda'}
+				</p>
+			</CardContent>
+		</Card>
+
+		<!-- UNOR Scope Card -->
+		<Card class="border-slate-800 bg-slate-900/70">
+			<CardHeader class="flex flex-row items-center justify-between pb-2">
+				<CardTitle class="text-sm font-medium text-slate-400">Kode Unit Organisasi</CardTitle>
+				<Building2 class="h-4 w-4 text-emerald-400" />
+			</CardHeader>
+			<CardContent class="space-y-1">
+				<div class="text-2xl font-bold text-white truncate">
+					{authState.user?.kodeUnor || (authState.isAdmin ? 'Semua Unit (Pusat)' : 'Belum Ditugaskan')}
+				</div>
+				<p class="text-xs text-slate-500">
+					{authState.user?.kodeUnor ? 'Scope data aktif untuk OPD terkait' : 'Tidak ada pembatasan unit organisasi'}
+				</p>
+			</CardContent>
+		</Card>
+
+		<!-- Quick Actions Card -->
+		<Card class="border-slate-800 bg-slate-900/70">
+			<CardHeader class="flex flex-row items-center justify-between pb-2">
+				<CardTitle class="text-sm font-medium text-slate-400">Pintasan Cepat</CardTitle>
+				<Briefcase class="h-4 w-4 text-indigo-400" />
+			</CardHeader>
+			<CardContent class="space-y-2">
+				<a
+					href="/pegawai"
+					class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 transition"
+				>
+					<span>Kelola Data Pegawai</span>
+					<ArrowRight class="h-3.5 w-3.5 text-indigo-400" />
+				</a>
+				<a
+					href="/unor"
+					class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 transition"
+				>
+					<span>Daftar Master UNOR</span>
+					<ArrowRight class="h-3.5 w-3.5 text-emerald-400" />
+				</a>
+			</CardContent>
+		</Card>
+	</div>
+
+	<!-- Module Quick Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+		<Card class="border-slate-800 bg-slate-900/50 hover:border-slate-700 transition">
+			<CardHeader>
+				<div class="flex items-center justify-between">
+					<CardTitle class="text-lg text-white flex items-center gap-2">
+						<Briefcase class="h-5 w-5 text-indigo-400" />
+						<span>Modul Data Pegawai</span>
+					</CardTitle>
+					<Badge variant="default" class="text-xs">Aktif</Badge>
+				</div>
+				<CardDescription>
+					Pengelolaan data aparatur sipil per Unit Organisasi (UNOR) dengan filter otorisasi peran berjenjang dan halaman profil pegawai.
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="pt-0">
+				<Button href="/pegawai" class="w-full sm:w-auto text-xs" size="sm">
+					Buka Daftar Pegawai <ArrowRight class="ml-1.5 h-3.5 w-3.5" />
+				</Button>
+			</CardContent>
+		</Card>
+
+		<Card class="border-slate-800 bg-slate-900/50 hover:border-slate-700 transition">
+			<CardHeader>
+				<div class="flex items-center justify-between">
+					<CardTitle class="text-lg text-white flex items-center gap-2">
+						<Building2 class="h-5 w-5 text-emerald-400" />
+						<span>Master Unit Organisasi (UNOR)</span>
+					</CardTitle>
+					<Badge variant="secondary" class="text-xs">Referensi</Badge>
+				</div>
+				<CardDescription>
+					Daftar unit organisasi induk dan satuan kerja perangkat daerah (OPD) sebagai referensi penempatan aparatur.
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="pt-0">
+				<Button href="/unor" variant="outline" class="w-full sm:w-auto text-xs" size="sm">
+					Lihat Master UNOR <ArrowRight class="ml-1.5 h-3.5 w-3.5" />
+				</Button>
+			</CardContent>
+		</Card>
+	</div>
+
+	<!-- Scoping Verification Section -->
+	<Card class="border-slate-800 bg-slate-900/60">
+		<CardHeader class="flex flex-row items-center justify-between">
+			<div>
+				<CardTitle class="text-base text-white flex items-center gap-2">
+					<Shield class="h-4 w-4 text-indigo-400" />
+					<span>Verifikasi Scoping Hak Akses (resolveUnorScope)</span>
+				</CardTitle>
+				<CardDescription class="text-xs">
+					Status evaluasi backend atas token otentikasi Anda pada endpoint terproteksi <code>/api/scoped-data</code>.
+				</CardDescription>
+			</div>
+			<Button
+				variant="outline"
+				size="sm"
+				class="h-8 gap-1.5 text-xs"
+				onclick={loadScope}
+				disabled={isLoadingScope}
+			>
+				<RefreshCw class={`h-3.5 w-3.5 ${isLoadingScope ? 'animate-spin' : ''}`} />
+				<span>Perbarui</span>
+			</Button>
+		</CardHeader>
+
+		<CardContent>
+			{#if isLoadingScope}
+				<div class="py-6 text-center text-xs text-slate-500">Memuat status scoping...</div>
+			{:else if scopedInfo}
+				<div class="rounded-xl border border-slate-800/80 bg-slate-950/60 p-4 space-y-3">
+					<div class="flex items-center justify-between flex-wrap gap-2">
+						<div class="flex items-center gap-2">
+							{#if scopedInfo.success}
+								<CheckCircle2 class="h-4 w-4 text-emerald-400" />
+								<span class="text-xs font-semibold text-emerald-400">Scoping Sukses</span>
+							{:else}
+								<AlertCircle class="h-4 w-4 text-rose-400" />
+								<span class="text-xs font-semibold text-rose-400">Scoping Gagal</span>
+							{/if}
+						</div>
+						<div class="flex items-center gap-2">
+							<Badge variant={scopedInfo.isRestricted ? 'secondary' : 'default'} class="text-xs">
+								{scopedInfo.isRestricted ? 'Data Terfilter (OPD)' : 'Akses Global (Pusat)'}
+							</Badge>
+						</div>
+					</div>
+
+					<p class="text-sm text-slate-300 font-medium">
+						{scopedInfo.message || 'Pengecekan scope berhasil.'}
+					</p>
+
+					<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-2 border-t border-slate-800/60">
+						<div>
+							<span class="text-slate-500 block">Role Terverifikasi:</span>
+							<span class="font-mono text-slate-300">{scopedInfo.userRole || '-'}</span>
+						</div>
+						<div>
+							<span class="text-slate-500 block">Kode UNOR Pengguna:</span>
+							<span class="font-mono text-slate-300">{scopedInfo.userKodeUnor || '(None)'}</span>
+						</div>
+						<div>
+							<span class="text-slate-500 block">Scope UNOR Aktif:</span>
+							<span class="font-mono text-slate-300">{scopedInfo.scopeUnor || '(Global)'}</span>
+						</div>
+					</div>
+				</div>
+			{:else}
+				<div class="py-4 text-center text-xs text-slate-500">
+					Klik tombol "Perbarui" untuk memeriksa status scoping.
+				</div>
+			{/if}
+		</CardContent>
+	</Card>
 </div>

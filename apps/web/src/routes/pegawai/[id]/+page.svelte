@@ -1,297 +1,299 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { fetchPegawaiById, deletePegawai, getActiveUser } from '$lib/api';
-	import type { Pegawai, UserProfile } from '$lib/types/kepegawaian';
+	import { goto } from '$app/navigation';
+	import { authState } from '$lib/stores/auth.svelte';
+	import {
+		fetchPegawaiDetail,
+		deletePegawai,
+		type PegawaiItem
+	} from '$lib/api/pegawai';
+	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
+	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
+	import { Dialog } from '$lib/components/ui/dialog';
+	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
+	import {
+		ArrowLeft,
+		Briefcase,
+		Building2,
+		ShieldAlert,
+		Trash2,
+		Pencil,
+		IdCard,
+		CheckCircle2,
+		AlertCircle,
+		Loader2,
+		Calendar,
+		UserCheck
+	} from 'lucide-svelte';
 
-	const employeeId = Number(page.params.id);
+	const employeeId = page.params.id;
 
-	let activeUser = $state<UserProfile>(getActiveUser());
-	let pegawai = $state<Pegawai | null>(null);
-	let isLoading = $state<boolean>(true);
-	let errorMessage = $state<string>('');
-	let isForbidden = $state<boolean>(false);
-	let showDeleteConfirm = $state<boolean>(false);
+	let pegawai = $state<PegawaiItem | null>(null);
+	let isLoading = $state(true);
+	let errorMessage = $state('');
+	let isForbidden = $state(false);
+	let isDeleteOpen = $state(false);
+	let isDeleting = $state(false);
 
 	async function loadDetail() {
 		isLoading = true;
 		errorMessage = '';
 		isForbidden = false;
-		activeUser = getActiveUser();
 
-		try {
-			const data = await fetchPegawaiById(employeeId);
-			if (!data) {
-				errorMessage = 'Data pegawai dengan ID ini tidak ditemukan.';
-			} else {
-				pegawai = data;
-			}
-		} catch (err: any) {
-			if (err.message?.includes('Forbidden')) {
+		const res = await fetchPegawaiDetail(employeeId);
+		isLoading = false;
+
+		if (res.success && res.data) {
+			pegawai = res.data;
+		} else {
+			if (res.message?.includes('Forbidden') || res.message?.includes('hak akses')) {
 				isForbidden = true;
-				errorMessage = 'Akses Ditolak: Anda tidak memiliki hak akses untuk melihat data pegawai dari Unit Organisasi lain.';
+				errorMessage = 'Akses Ditolak: Anda tidak memiliki wewenang untuk melihat data pegawai dari Unit Organisasi lain.';
 			} else {
-				errorMessage = err.message || 'Gagal memuat data detail pegawai.';
+				errorMessage = res.message || 'Data pegawai tidak ditemukan.';
 			}
-		} finally {
-			isLoading = false;
 		}
 	}
 
 	onMount(() => {
 		loadDetail();
-
-		const handleUserChange = () => {
-			activeUser = getActiveUser();
-			loadDetail();
-		};
-
-		window.addEventListener('user-changed', handleUserChange);
-		return () => {
-			window.removeEventListener('user-changed', handleUserChange);
-		};
 	});
 
 	async function handleDelete() {
 		if (!pegawai) return;
-		try {
-			const res = await deletePegawai(pegawai.id);
-			if (res.success) {
-				window.location.href = '/pegawai';
-			} else {
-				errorMessage = res.message || 'Gagal menghapus pegawai';
-			}
-		} catch (err: any) {
-			errorMessage = err.message || 'Terjadi kesalahan saat menghapus pegawai';
+		isDeleting = true;
+		const res = await deletePegawai(pegawai.id);
+		isDeleting = false;
+		if (res.success) {
+			goto('/pegawai');
+		} else {
+			errorMessage = res.message || 'Gagal menghapus data pegawai.';
+			isDeleteOpen = false;
 		}
 	}
 </script>
 
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-	<!-- Breadcrumbs & Navigation -->
-	<div class="flex items-center justify-between">
-		<nav class="flex items-center gap-2 text-xs text-slate-400">
-			<a href="/" class="hover:text-white transition">Beranda</a>
-			<span>/</span>
-			<a href="/pegawai" class="hover:text-white transition">Data Pegawai</a>
-			<span>/</span>
-			<span class="text-slate-200 font-medium">Detail Pegawai</span>
-		</nav>
+<svelte:head>
+	<title>Detail Pegawai {pegawai?.nama ? `- ${pegawai.nama}` : ''} - Usul Data</title>
+</svelte:head>
 
-		<a
+<div class="space-y-6 max-w-4xl mx-auto">
+	<!-- Top Navigation -->
+	<div class="flex items-center justify-between">
+		<Button
 			href="/pegawai"
-			class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-medium transition cursor-pointer"
+			variant="outline"
+			size="sm"
+			class="gap-1.5 text-xs h-9 text-slate-300 hover:text-white"
 		>
-			<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-			</svg>
-			Kembali ke Daftar
-		</a>
+			<ArrowLeft class="h-4 w-4" />
+			<span>Kembali ke Daftar Pegawai</span>
+		</Button>
+
+		{#if pegawai}
+			<div class="flex items-center gap-2">
+				<Button
+					variant="destructive"
+					size="sm"
+					class="gap-1.5 text-xs h-9"
+					onclick={() => isDeleteOpen = true}
+				>
+					<Trash2 class="h-3.5 w-3.5" />
+					<span>Hapus Pegawai</span>
+				</Button>
+			</div>
+		{/if}
 	</div>
 
 	{#if isLoading}
-		<div class="py-24 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-			<div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-			<span class="text-sm">Memuat detail pegawai...</span>
-		</div>
-	{:else if isForbidden}
-		<div class="p-8 rounded-2xl bg-rose-950/40 border border-rose-800/80 text-center space-y-4 shadow-xl">
-			<div class="w-14 h-14 rounded-full bg-rose-950 flex items-center justify-center text-rose-400 mx-auto border border-rose-800">
-				<svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-				</svg>
+		<Card class="border-slate-800 bg-slate-900/40 py-16">
+			<div class="flex flex-col items-center justify-center text-slate-400 gap-2">
+				<Loader2 class="h-7 w-7 animate-spin text-indigo-400" />
+				<span class="text-xs">Memuat detail data pegawai...</span>
 			</div>
-			<div class="max-w-md mx-auto space-y-2">
-				<h2 class="text-xl font-bold text-white">403 - Akses Ditolak</h2>
-				<p class="text-sm text-rose-300">
+		</Card>
+	{:else if isForbidden}
+		<Card class="border-rose-900/50 bg-rose-950/20 p-8 text-center space-y-4">
+			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-rose-950 border border-rose-800 mx-auto text-rose-400">
+				<ShieldAlert class="h-6 w-6" />
+			</div>
+			<div class="space-y-1">
+				<h2 class="text-lg font-bold text-white">403 - Akses Ditolak (Scoping Restricted)</h2>
+				<p class="text-xs text-rose-300 max-w-md mx-auto leading-relaxed">
 					{errorMessage}
 				</p>
-				<p class="text-xs text-slate-400">
-					Akun Anda ({activeUser.username}) memiliki pembatasan Unit Organisasi ke <span class="font-mono text-slate-200">{activeUser.kodeUnor}</span>.
+			</div>
+			<div>
+				<Button href="/pegawai" variant="secondary" size="sm" class="text-xs">
+					Kembali ke Daftar Unit Organisasi Anda
+				</Button>
+			</div>
+		</Card>
+	{:else if errorMessage || !pegawai}
+		<Card class="border-slate-800 bg-slate-900/40 p-8 text-center space-y-4">
+			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800 border border-slate-700 mx-auto text-slate-400">
+				<AlertCircle class="h-6 w-6" />
+			</div>
+			<div class="space-y-1">
+				<h2 class="text-base font-semibold text-white">Data Tidak Ditemukan</h2>
+				<p class="text-xs text-slate-400 max-w-sm mx-auto">
+					{errorMessage || 'Pegawai dengan ID yang diminta tidak terdaftar pada sistem.'}
 				</p>
 			</div>
-			<div class="pt-2">
-				<a
-					href="/pegawai"
-					class="inline-block px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition"
-				>
-					Kembali ke Daftar Pegawai Unit Anda
-				</a>
+			<div>
+				<Button href="/pegawai" variant="outline" size="sm" class="text-xs">
+					Kembali ke Daftar Pegawai
+				</Button>
 			</div>
-		</div>
-	{:else if errorMessage || !pegawai}
-		<div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-4">
-			<h2 class="text-lg font-bold text-slate-200">{errorMessage || 'Data tidak ditemukan'}</h2>
-			<a href="/pegawai" class="inline-block px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-medium">
-				Kembali ke Daftar Pegawai
-			</a>
-		</div>
+		</Card>
 	{:else}
-		<!-- Main Profile Hero Card -->
-		<div class="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800/80 shadow-2xl relative overflow-hidden">
-			<div class="absolute -right-16 -top-16 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
-			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-				<div class="flex items-center gap-5">
-					<div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-700 to-cyan-500 border-2 border-indigo-400/30 flex items-center justify-center font-extrabold text-2xl text-white shadow-xl shadow-indigo-600/20">
-						{pegawai.nama.charAt(0)}
+		<!-- Main Profile Header Card -->
+		<Card class="border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 overflow-hidden">
+			<CardContent class="p-6 md:p-8">
+				<div class="flex flex-col md:flex-row md:items-center gap-6">
+					<!-- Large Avatar Letter -->
+					<div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/20 border-2 border-indigo-500/40 text-indigo-400 font-extrabold text-3xl shadow-inner">
+						{pegawai.nama.charAt(0).toUpperCase()}
 					</div>
-					<div class="space-y-1">
-						<div class="flex items-center gap-2">
-							<span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-indigo-950/80 text-indigo-300 border border-indigo-800/60">
-								NIP: {pegawai.nip}
-							</span>
-							<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
-								Aktif
-							</span>
+
+					<div class="space-y-2 flex-1">
+						<div class="flex flex-wrap items-center gap-2">
+							<Badge variant="default" class="text-xs">
+								Aparatur Sipil Aktif
+							</Badge>
+							<Badge variant="outline" class="font-mono text-xs bg-slate-900 text-slate-300 border-slate-700">
+								ID #{pegawai.id}
+							</Badge>
 						</div>
-						<h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+
+						<h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">
 							{pegawai.nama}
 						</h1>
-						<p class="text-slate-400 text-sm font-medium">
+
+						<p class="text-sm font-medium text-indigo-300">
 							{pegawai.jabatan}
 						</p>
 					</div>
 				</div>
+			</CardContent>
+		</Card>
 
-				<div class="flex items-center gap-3">
-					<button
-						type="button"
-						class="px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/30 text-rose-300 text-xs font-semibold transition cursor-pointer"
-						onclick={() => (showDeleteConfirm = true)}
-					>
-						Hapus Pegawai
-					</button>
-				</div>
-			</div>
-		</div>
+		<!-- Details Information Sections -->
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+			<!-- Identitas Pegawai Card -->
+			<Card class="border-slate-800 bg-slate-900/60">
+				<CardHeader class="pb-3 border-b border-slate-800/80">
+					<CardTitle class="text-sm font-semibold text-white flex items-center gap-2">
+						<IdCard class="h-4 w-4 text-indigo-400" />
+						<span>Identitas Pegawai</span>
+					</CardTitle>
+					<CardDescription class="text-xs">Nomor identitas dan data administratif.</CardDescription>
+				</CardHeader>
+				<CardContent class="pt-4 space-y-4 text-xs">
+					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
+						<span class="text-slate-400">Nomor Induk Pegawai (NIP):</span>
+						<span class="font-mono font-semibold text-white">{pegawai.nip}</span>
+					</div>
+					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
+						<span class="text-slate-400">Nama Lengkap:</span>
+						<span class="font-medium text-slate-200">{pegawai.nama}</span>
+					</div>
+					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
+						<span class="text-slate-400">Jabatan:</span>
+						<span class="font-medium text-slate-200">{pegawai.jabatan}</span>
+					</div>
+					<div class="flex items-center justify-between py-1">
+						<span class="text-slate-400">Status Verifikasi:</span>
+						<span class="inline-flex items-center gap-1 font-semibold text-emerald-400">
+							<CheckCircle2 class="h-3.5 w-3.5" />
+							<span>Terverifikasi</span>
+						</span>
+					</div>
+				</CardContent>
+			</Card>
 
-		<!-- Detail Grid Sections -->
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-			<!-- Box 1: Informasi Profil & Identitas Pegawai -->
-			<div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4 shadow-sm">
-				<div class="flex items-center gap-2.5 border-b border-slate-800/80 pb-3">
-					<div class="w-8 h-8 rounded-lg bg-indigo-950/70 border border-indigo-800/50 flex items-center justify-center text-indigo-400">
-						<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-						</svg>
-					</div>
-					<div>
-						<h3 class="font-bold text-white text-base">Identitas Pegawai</h3>
-						<p class="text-xs text-slate-400">Data autentikasi dan NIP resmi pegawai</p>
-					</div>
-				</div>
-
-				<div class="space-y-3 text-sm">
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Lengkap</span>
-						<span class="text-slate-100 font-medium text-base">{pegawai.nama}</span>
-					</div>
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Nomor Induk Pegawai (NIP)</span>
-						<span class="text-indigo-300 font-mono font-medium">{pegawai.nip}</span>
-					</div>
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Data</span>
-						<span class="text-emerald-400 font-medium">Terverifikasi di Database Kepegawaian</span>
-					</div>
-				</div>
-			</div>
-
-			<!-- Box 2: Posisi & Jabatan -->
-			<div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4 shadow-sm">
-				<div class="flex items-center gap-2.5 border-b border-slate-800/80 pb-3">
-					<div class="w-8 h-8 rounded-lg bg-cyan-950/70 border border-cyan-800/50 flex items-center justify-center text-cyan-400">
-						<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-						</svg>
-					</div>
-					<div>
-						<h3 class="font-bold text-white text-base">Jabatan & Penugasan</h3>
-						<p class="text-xs text-slate-400">Kedudukan dan peran fungsional/struktural</p>
-					</div>
-				</div>
-
-				<div class="space-y-3 text-sm">
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Jabatan</span>
-						<span class="text-slate-100 font-medium text-base">{pegawai.jabatan}</span>
-					</div>
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Kategori Posisi</span>
-						<span class="text-slate-300">Aparatur Sipil Negara (ASN)</span>
-					</div>
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Hak Akses Modul</span>
-						<span class="text-slate-300">Dapat diajukan dalam usulan perbaikan data & promosi</span>
-					</div>
-				</div>
-			</div>
-
-			<!-- Box 3: Unit Organisasi (UNOR) -->
-			<div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4 shadow-sm md:col-span-2">
-				<div class="flex items-center gap-2.5 border-b border-slate-800/80 pb-3">
-					<div class="w-8 h-8 rounded-lg bg-emerald-950/70 border border-emerald-800/50 flex items-center justify-center text-emerald-400">
-						<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-						</svg>
-					</div>
-					<div>
-						<h3 class="font-bold text-white text-base">Unit Organisasi (UNOR) Terkait</h3>
-						<p class="text-xs text-slate-400">Satuan kerja atau OPD tempat pegawai terdaftar</p>
-					</div>
-				</div>
-
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Kode Unit Organisasi</span>
-						<span class="inline-block mt-1 px-3 py-1 rounded-lg bg-slate-800 text-indigo-300 font-mono font-semibold border border-slate-700">
+			<!-- Unit Organisasi Card -->
+			<Card class="border-slate-800 bg-slate-900/60">
+				<CardHeader class="pb-3 border-b border-slate-800/80">
+					<CardTitle class="text-sm font-semibold text-white flex items-center gap-2">
+						<Building2 class="h-4 w-4 text-emerald-400" />
+						<span>Penempatan Unit Organisasi</span>
+					</CardTitle>
+					<CardDescription class="text-xs">Satuan kerja penugasan pegawai (UNOR).</CardDescription>
+				</CardHeader>
+				<CardContent class="pt-4 space-y-4 text-xs">
+					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
+						<span class="text-slate-400">Kode UNOR:</span>
+						<span class="font-mono font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded">
 							{pegawai.kodeUnor}
 						</span>
 					</div>
-					<div>
-						<span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Unit Organisasi</span>
-						<span class="text-slate-100 font-semibold text-base block mt-1">
+					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
+						<span class="text-slate-400">Nama Satuan Kerja:</span>
+						<span class="font-medium text-slate-200 text-right">
 							{pegawai.namaUnor || pegawai.kodeUnor}
 						</span>
 					</div>
-				</div>
-			</div>
+					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
+						<span class="text-slate-400">Wewenang Akses:</span>
+						<span class="text-slate-300">
+							{authState.isAdmin ? 'Akses Pusat (Penuh)' : 'Terkunci pada OPD Anda'}
+						</span>
+					</div>
+					<div class="flex items-center justify-between py-1">
+						<span class="text-slate-400">Tautan Master:</span>
+						<a href="/unor" class="text-indigo-400 hover:text-indigo-300 font-medium">
+							Lihat Daftar Satuan Kerja →
+						</a>
+					</div>
+				</CardContent>
+			</Card>
 		</div>
 	{/if}
 </div>
 
-<!-- Modal Konfirmasi Hapus -->
-{#if showDeleteConfirm && pegawai}
-	<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-		<div class="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-4">
-			<div class="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-800 flex items-center justify-center text-rose-400 mx-auto">
-				<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-				</svg>
-			</div>
-			<div class="text-center space-y-2">
-				<h3 class="text-lg font-bold text-white">Hapus Pegawai</h3>
-				<p class="text-xs text-slate-400">
-					Anda akan menghapus data pegawai <span class="text-slate-200 font-semibold">{pegawai.nama}</span>. Lanjutkan?
-				</p>
-			</div>
-			<div class="flex items-center justify-center gap-3 pt-2">
-				<button
-					type="button"
-					class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition cursor-pointer"
-					onclick={() => (showDeleteConfirm = false)}
-				>
-					Batal
-				</button>
-				<button
-					type="button"
-					class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-semibold transition cursor-pointer"
-					onclick={handleDelete}
-				>
-					Ya, Hapus
-				</button>
-			</div>
+<!-- Dialog Konfirmasi Hapus -->
+<Dialog
+	isOpen={isDeleteOpen}
+	title="Hapus Data Pegawai"
+	description="Konfirmasi penghapusan data aparatur sipil."
+	onclose={() => isDeleteOpen = false}
+>
+	<div class="space-y-4">
+		<p class="text-xs text-slate-300">
+			Apakah Anda yakin ingin menghapus data pegawai
+			<span class="font-semibold text-white">{pegawai?.nama}</span>
+			(NIP: <span class="font-mono text-indigo-400">{pegawai?.nip}</span>)?
+			Tindakan ini tidak dapat dibatalkan.
+		</p>
+
+		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+			<Button
+				type="button"
+				variant="outline"
+				size="sm"
+				class="text-xs"
+				onclick={() => isDeleteOpen = false}
+			>
+				Batal
+			</Button>
+			<Button
+				type="button"
+				variant="destructive"
+				size="sm"
+				class="text-xs"
+				onclick={handleDelete}
+				disabled={isDeleting}
+			>
+				{#if isDeleting}
+					<Loader2 class="mr-1.5 h-3.5 w-3.5 animate-spin" />
+					<span>Menghapus...</span>
+				{:else}
+					<span>Ya, Hapus</span>
+				{/if}
+			</Button>
 		</div>
 	</div>
-{/if}
+</Dialog>

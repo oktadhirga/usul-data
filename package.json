@@ -16,7 +16,8 @@
     "test": "bun --filter \"*\" test",
     "db:generate": "bun --filter @usul-data/shared db:generate",
     "db:migrate": "bun --filter @usul-data/shared db:migrate",
-    "db:push": "bun --filter @usul-data/shared db:push"
+    "db:push": "bun --filter @usul-data/shared db:push",
+    "db:seed": "bun --filter @usul-data/shared db:seed"
   },
   "devDependencies": {
     "@types/bun": "^1.2.0",

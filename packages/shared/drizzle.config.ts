@@ -10,6 +10,6 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'mysql',
   dbCredentials: {
-    url: process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/usul_data'
+    url: process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/usul_db'
   }
 });
