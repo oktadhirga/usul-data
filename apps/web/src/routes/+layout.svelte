@@ -2,6 +2,7 @@
 	import './layout.css';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import favicon from '$lib/assets/favicon.svg';
 	import { authState } from '$lib/stores/auth.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
@@ -10,8 +11,8 @@
 		Users,
 		User,
 		LogOut,
-		ShieldCheck,
 		Building2,
+		Briefcase,
 		Menu,
 		X
 	} from 'lucide-svelte';
@@ -35,7 +36,8 @@
 </script>
 
 <svelte:head>
-	<title>Usul Data System</title>
+	<title>Usul Data - Sistem Kepegawaian & Verifikasi Data</title>
+	<link rel="icon" href={favicon} />
 </svelte:head>
 
 {#if isLoginPage}
@@ -78,7 +80,7 @@
 					</div>
 					<div>
 						<h1 class="text-base font-bold text-white tracking-tight leading-none">Usul Data</h1>
-						<p class="text-xs text-slate-400 mt-0.5">Sistem Pengusulan Data</p>
+						<p class="text-xs text-slate-400 mt-0.5">Sistem Kepegawaian & RBAC</p>
 					</div>
 				</div>
 
@@ -95,6 +97,32 @@
 					>
 						<LayoutDashboard class="h-4 w-4" />
 						<span>Dashboard</span>
+					</a>
+
+					<a
+						href="/pegawai"
+						onclick={() => isMobileMenuOpen = false}
+						class={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
+							page.url.pathname.startsWith('/pegawai')
+								? 'bg-indigo-600 text-white shadow-sm'
+								: 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+						}`}
+					>
+						<Briefcase class="h-4 w-4" />
+						<span>Data Pegawai</span>
+					</a>
+
+					<a
+						href="/unor"
+						onclick={() => isMobileMenuOpen = false}
+						class={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
+							page.url.pathname.startsWith('/unor')
+								? 'bg-indigo-600 text-white shadow-sm'
+								: 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+						}`}
+					>
+						<Building2 class="h-4 w-4" />
+						<span>Master UNOR</span>
 					</a>
 
 					{#if authState.isAdmin}

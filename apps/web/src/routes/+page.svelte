@@ -9,11 +9,11 @@
 		Shield,
 		Building2,
 		Users,
+		Briefcase,
 		KeyRound,
 		CheckCircle2,
 		AlertCircle,
 		RefreshCw,
-		Layers,
 		ArrowRight
 	} from 'lucide-svelte';
 
@@ -55,7 +55,7 @@
 				Halo, {authState.user?.username || 'Pengguna'}!
 			</h2>
 			<p class="text-slate-400 text-sm max-w-2xl">
-				Selamat datang di portal Usul Data. Hak akses Anda terkonfigurasi sebagai
+				Selamat datang di portal Usul Data Kepegawaian. Hak akses Anda terkonfigurasi sebagai
 				<span class="font-semibold text-slate-200">{authState.isAdmin ? 'Administrator Pusat' : 'Administrator OPD'}</span>.
 			</p>
 		</div>
@@ -74,7 +74,7 @@
 					{authState.user?.role || '-'}
 				</div>
 				<p class="text-xs text-slate-500">
-					{authState.isAdmin ? 'Akses penuh ke semua modul dan manajemen user' : 'Dibatasi pada lingkup unit kerja Anda'}
+					{authState.isAdmin ? 'Akses penuh ke semua unit organisasi & modul' : 'Dibatasi pada lingkup unit kerja Anda'}
 				</p>
 			</CardContent>
 		</Card>
@@ -98,53 +98,91 @@
 		<!-- Quick Actions Card -->
 		<Card class="border-slate-800 bg-slate-900/70">
 			<CardHeader class="flex flex-row items-center justify-between pb-2">
-				<CardTitle class="text-sm font-medium text-slate-400">Aksi Cepat</CardTitle>
-				<Layers class="h-4 w-4 text-amber-400" />
+				<CardTitle class="text-sm font-medium text-slate-400">Pintasan Cepat</CardTitle>
+				<Briefcase class="h-4 w-4 text-indigo-400" />
 			</CardHeader>
-			<CardContent class="space-y-2 pt-1">
-				{#if authState.isAdmin}
-					<a href="/users" class="block">
-						<Button variant="secondary" size="sm" class="w-full justify-between text-xs h-8">
-							<span class="flex items-center gap-1.5">
-								<Users class="h-3.5 w-3.5 text-indigo-400" />
-								<span>Kelola Pengguna</span>
-							</span>
-							<ArrowRight class="h-3 w-3" />
-						</Button>
-					</a>
-				{/if}
-				<a href="/profile" class="block">
-					<Button variant="outline" size="sm" class="w-full justify-between text-xs h-8">
-						<span class="flex items-center gap-1.5">
-							<KeyRound class="h-3.5 w-3.5 text-emerald-400" />
-							<span>Ganti Password</span>
-						</span>
-						<ArrowRight class="h-3 w-3" />
-					</Button>
+			<CardContent class="space-y-2">
+				<a
+					href="/pegawai"
+					class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 transition"
+				>
+					<span>Kelola Data Pegawai</span>
+					<ArrowRight class="h-3.5 w-3.5 text-indigo-400" />
+				</a>
+				<a
+					href="/unor"
+					class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 transition"
+				>
+					<span>Daftar Master UNOR</span>
+					<ArrowRight class="h-3.5 w-3.5 text-emerald-400" />
 				</a>
 			</CardContent>
 		</Card>
 	</div>
 
-	<!-- Scoped Data Live Test Widget -->
-	<Card class="border-slate-800 bg-slate-900/60 shadow-sm">
+	<!-- Module Quick Cards -->
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+		<Card class="border-slate-800 bg-slate-900/50 hover:border-slate-700 transition">
+			<CardHeader>
+				<div class="flex items-center justify-between">
+					<CardTitle class="text-lg text-white flex items-center gap-2">
+						<Briefcase class="h-5 w-5 text-indigo-400" />
+						<span>Modul Data Pegawai</span>
+					</CardTitle>
+					<Badge variant="default" class="text-xs">Aktif</Badge>
+				</div>
+				<CardDescription>
+					Pengelolaan data aparatur sipil per Unit Organisasi (UNOR) dengan filter otorisasi peran berjenjang dan halaman profil pegawai.
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="pt-0">
+				<Button href="/pegawai" class="w-full sm:w-auto text-xs" size="sm">
+					Buka Daftar Pegawai <ArrowRight class="ml-1.5 h-3.5 w-3.5" />
+				</Button>
+			</CardContent>
+		</Card>
+
+		<Card class="border-slate-800 bg-slate-900/50 hover:border-slate-700 transition">
+			<CardHeader>
+				<div class="flex items-center justify-between">
+					<CardTitle class="text-lg text-white flex items-center gap-2">
+						<Building2 class="h-5 w-5 text-emerald-400" />
+						<span>Master Unit Organisasi (UNOR)</span>
+					</CardTitle>
+					<Badge variant="secondary" class="text-xs">Referensi</Badge>
+				</div>
+				<CardDescription>
+					Daftar unit organisasi induk dan satuan kerja perangkat daerah (OPD) sebagai referensi penempatan aparatur.
+				</CardDescription>
+			</CardHeader>
+			<CardContent class="pt-0">
+				<Button href="/unor" variant="outline" class="w-full sm:w-auto text-xs" size="sm">
+					Lihat Master UNOR <ArrowRight class="ml-1.5 h-3.5 w-3.5" />
+				</Button>
+			</CardContent>
+		</Card>
+	</div>
+
+	<!-- Scoping Verification Section -->
+	<Card class="border-slate-800 bg-slate-900/60">
 		<CardHeader class="flex flex-row items-center justify-between">
-			<div class="space-y-1">
-				<CardTitle class="text-lg font-semibold text-white">
-					Verifikasi Middleware Scoping (Live)
+			<div>
+				<CardTitle class="text-base text-white flex items-center gap-2">
+					<Shield class="h-4 w-4 text-indigo-400" />
+					<span>Verifikasi Scoping Hak Akses (resolveUnorScope)</span>
 				</CardTitle>
-				<CardDescription class="text-xs text-slate-400">
-					Menguji endpoint API <code>/api/scoped-data</code> untuk memastikan aturan filter OPD berjalan sesuai hak akses.
+				<CardDescription class="text-xs">
+					Status evaluasi backend atas token otentikasi Anda pada endpoint terproteksi <code>/api/scoped-data</code>.
 				</CardDescription>
 			</div>
 			<Button
 				variant="outline"
 				size="sm"
-				class="h-8 gap-1.5 text-xs text-slate-300"
+				class="h-8 gap-1.5 text-xs"
 				onclick={loadScope}
 				disabled={isLoadingScope}
 			>
-				<RefreshCw class={`h-3.5 w-3.5 ${isLoadingScope ? 'animate-spin text-indigo-400' : ''}`} />
+				<RefreshCw class={`h-3.5 w-3.5 ${isLoadingScope ? 'animate-spin' : ''}`} />
 				<span>Perbarui</span>
 			</Button>
 		</CardHeader>
