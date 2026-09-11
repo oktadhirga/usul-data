@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import favicon from '$lib/assets/favicon.svg';
 	import { authState } from '$lib/stores/auth.svelte';
+	import { fetchUnorList, type UnorItem } from '$lib/api/pegawai';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
 	import {
@@ -20,12 +21,29 @@
 	let { children } = $props();
 
 	let isMobileMenuOpen = $state(false);
+	let unorList = $state<UnorItem[]>([]);
+
+	const userUnorName = $derived(() => {
+		if (!authState.user?.kodeUnor) return '';
+		const found = unorList.find((u) => u.kodeUnor === authState.user?.kodeUnor);
+		return found ? found.namaUnor : authState.user.kodeUnor;
+	});
 
 	const isLoginPage = $derived(page.url.pathname === '/login');
 
 	$effect(() => {
 		if (authState.isInitialized && !authState.isAuthenticated && !isLoginPage) {
 			goto('/login');
+		}
+	});
+
+	$effect(() => {
+		if (authState.isAuthenticated && authState.user?.kodeUnor && unorList.length === 0) {
+			fetchUnorList().then((res) => {
+				if (res.success && Array.isArray(res.data)) {
+					unorList = res.data;
+				}
+			});
 		}
 	});
 
@@ -112,18 +130,20 @@
 						<span>Data Pegawai</span>
 					</a>
 
-					<a
-						href="/unor"
-						onclick={() => isMobileMenuOpen = false}
-						class={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
-							page.url.pathname.startsWith('/unor')
-								? 'bg-indigo-600 text-white shadow-sm'
-								: 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-						}`}
-					>
-						<Building2 class="h-4 w-4" />
-						<span>Master UNOR</span>
-					</a>
+					{#if authState.isAdmin}
+						<a
+							href="/unor"
+							onclick={() => isMobileMenuOpen = false}
+							class={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
+								page.url.pathname.startsWith('/unor')
+									? 'bg-indigo-600 text-white shadow-sm'
+									: 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+							}`}
+						>
+							<Building2 class="h-4 w-4" />
+							<span>Master UNOR</span>
+						</a>
+					{/if}
 
 					{#if authState.isAdmin}
 						<a
@@ -195,9 +215,9 @@
 						RBAC Portal
 					</span>
 					{#if authState.user?.kodeUnor}
-						<span class="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/70 border border-slate-700/60 px-2.5 py-1 rounded-md">
-							<Building2 class="h-3 w-3 text-slate-400" />
-							<span>UNOR: {authState.user.kodeUnor}</span>
+						<span class="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-800/80 border border-slate-700/60 px-3 py-1 rounded-md">
+							<Building2 class="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+							<span>{userUnorName() || 'Memuat Unit...'}</span>
 						</span>
 					{/if}
 				</div>
@@ -206,7 +226,9 @@
 					{#if authState.user}
 						<div class="text-right">
 							<div class="text-xs font-semibold text-slate-200">{authState.user.username}</div>
-							<div class="text-[11px] text-slate-400">{authState.user.role === 'Admin' ? 'Admin Pusat' : 'Admin OPD'}</div>
+							<div class="text-[11px] text-slate-400">
+								{authState.user.role === 'Admin' ? 'Admin Pusat' : (userUnorName() || 'Admin OPD')}
+							</div>
 						</div>
 						<div class="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-indigo-400">
 							{authState.user.username.slice(0, 2).toUpperCase()}

@@ -5,6 +5,7 @@
 
 	interface Props {
 		open?: boolean;
+		isOpen?: boolean;
 		title?: string;
 		description?: string;
 		class?: string;
@@ -15,6 +16,7 @@
 
 	let {
 		open = $bindable(false),
+		isOpen = $bindable(false),
 		title = '',
 		description = '',
 		class: className = '',
@@ -23,13 +25,16 @@
 		onclose
 	}: Props = $props();
 
+	const isShown = $derived(open || isOpen);
+
 	function close() {
 		open = false;
+		isOpen = false;
 		if (onclose) onclose();
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape' && open) {
+		if (e.key === 'Escape' && isShown) {
 			close();
 		}
 	}
@@ -37,7 +42,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if open}
+{#if isShown}
 	<div
 		class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
 		role="dialog"

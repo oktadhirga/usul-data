@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { authState } from '$lib/stores/auth.svelte';
 	import { fetchScopedData, type ScopedDataResponse } from '$lib/api/users';
+	import { fetchUnorList, type UnorItem } from '$lib/api/pegawai';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
@@ -19,6 +20,14 @@
 
 	let scopedInfo = $state<ScopedDataResponse | null>(null);
 	let isLoadingScope = $state(false);
+	let unorList = $state<UnorItem[]>([]);
+
+	const unorName = $derived(() => {
+		if (authState.isAdmin) return 'Semua Unit (Pusat)';
+		if (!authState.user?.kodeUnor) return 'Belum Ditugaskan';
+		const found = unorList.find((u) => u.kodeUnor === authState.user?.kodeUnor);
+		return found ? found.namaUnor : authState.user.kodeUnor;
+	});
 
 	async function loadScope() {
 		isLoadingScope = true;
@@ -26,15 +35,24 @@
 		isLoadingScope = false;
 	}
 
+	async function loadUnors() {
+		const res = await fetchUnorList();
+		if (res.success && Array.isArray(res.data)) {
+			unorList = res.data;
+		}
+	}
+
 	onMount(() => {
 		if (authState.isAuthenticated) {
 			loadScope();
+			loadUnors();
 		}
 	});
 
 	$effect(() => {
 		if (authState.isAuthenticated && !scopedInfo && !isLoadingScope) {
 			loadScope();
+			loadUnors();
 		}
 	});
 </script>
@@ -56,7 +74,10 @@
 			</h2>
 			<p class="text-slate-400 text-sm max-w-2xl">
 				Selamat datang di portal Usul Data Kepegawaian. Hak akses Anda terkonfigurasi sebagai
-				<span class="font-semibold text-slate-200">{authState.isAdmin ? 'Administrator Pusat' : 'Administrator OPD'}</span>.
+				<span class="font-semibold text-slate-200">{authState.isAdmin ? 'Administrator Pusat' : 'Administrator OPD'}</span>
+				{#if !authState.isAdmin && authState.user?.kodeUnor}
+					pada <span class="font-semibold text-emerald-400">{unorName()}</span>
+				{/if}.
 			</p>
 		</div>
 	</div>
@@ -82,15 +103,19 @@
 		<!-- UNOR Scope Card -->
 		<Card class="border-slate-800 bg-slate-900/70">
 			<CardHeader class="flex flex-row items-center justify-between pb-2">
-				<CardTitle class="text-sm font-medium text-slate-400">Kode Unit Organisasi</CardTitle>
+				<CardTitle class="text-sm font-medium text-slate-400">Unit Organisasi</CardTitle>
 				<Building2 class="h-4 w-4 text-emerald-400" />
 			</CardHeader>
 			<CardContent class="space-y-1">
-				<div class="text-2xl font-bold text-white truncate">
-					{authState.user?.kodeUnor || (authState.isAdmin ? 'Semua Unit (Pusat)' : 'Belum Ditugaskan')}
+				<div class="text-lg sm:text-xl font-bold text-white truncate" title={unorName()}>
+					{unorName()}
 				</div>
 				<p class="text-xs text-slate-500">
-					{authState.user?.kodeUnor ? 'Scope data aktif untuk OPD terkait' : 'Tidak ada pembatasan unit organisasi'}
+					{#if authState.user?.kodeUnor}
+						Scope data OPD aktif
+					{:else}
+						{authState.isAdmin ? 'Akses lintas seluruh unit organisasi' : 'Tidak ada pembatasan unit organisasi'}
+					{/if}
 				</p>
 			</CardContent>
 		</Card>
@@ -109,19 +134,21 @@
 					<span>Kelola Data Pegawai</span>
 					<ArrowRight class="h-3.5 w-3.5 text-indigo-400" />
 				</a>
-				<a
-					href="/unor"
-					class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 transition"
-				>
-					<span>Daftar Master UNOR</span>
-					<ArrowRight class="h-3.5 w-3.5 text-emerald-400" />
-				</a>
+				{#if authState.isAdmin}
+					<a
+						href="/unor"
+						class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 transition"
+					>
+						<span>Daftar Master UNOR</span>
+						<ArrowRight class="h-3.5 w-3.5 text-emerald-400" />
+					</a>
+				{/if}
 			</CardContent>
 		</Card>
 	</div>
 
 	<!-- Module Quick Cards -->
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+	<div class={`grid gap-5 ${authState.isAdmin ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
 		<Card class="border-slate-800 bg-slate-900/50 hover:border-slate-700 transition">
 			<CardHeader>
 				<div class="flex items-center justify-between">
@@ -142,25 +169,27 @@
 			</CardContent>
 		</Card>
 
-		<Card class="border-slate-800 bg-slate-900/50 hover:border-slate-700 transition">
-			<CardHeader>
-				<div class="flex items-center justify-between">
-					<CardTitle class="text-lg text-white flex items-center gap-2">
-						<Building2 class="h-5 w-5 text-emerald-400" />
-						<span>Master Unit Organisasi (UNOR)</span>
-					</CardTitle>
-					<Badge variant="secondary" class="text-xs">Referensi</Badge>
-				</div>
-				<CardDescription>
-					Daftar unit organisasi induk dan satuan kerja perangkat daerah (OPD) sebagai referensi penempatan aparatur.
-				</CardDescription>
-			</CardHeader>
-			<CardContent class="pt-0">
-				<Button href="/unor" variant="outline" class="w-full sm:w-auto text-xs" size="sm">
-					Lihat Master UNOR <ArrowRight class="ml-1.5 h-3.5 w-3.5" />
-				</Button>
-			</CardContent>
-		</Card>
+		{#if authState.isAdmin}
+			<Card class="border-slate-800 bg-slate-900/50 hover:border-slate-700 transition">
+				<CardHeader>
+					<div class="flex items-center justify-between">
+						<CardTitle class="text-lg text-white flex items-center gap-2">
+							<Building2 class="h-5 w-5 text-emerald-400" />
+							<span>Master Unit Organisasi (UNOR)</span>
+						</CardTitle>
+						<Badge variant="secondary" class="text-xs">Referensi</Badge>
+					</div>
+					<CardDescription>
+						Daftar unit organisasi induk dan satuan kerja perangkat daerah (OPD) sebagai referensi penempatan aparatur.
+					</CardDescription>
+				</CardHeader>
+				<CardContent class="pt-0">
+					<Button href="/unor" variant="outline" class="w-full sm:w-auto text-xs" size="sm">
+						Lihat Master UNOR <ArrowRight class="ml-1.5 h-3.5 w-3.5" />
+					</Button>
+				</CardContent>
+			</Card>
+		{/if}
 	</div>
 
 	<!-- Scoping Verification Section -->
@@ -219,8 +248,11 @@
 							<span class="font-mono text-slate-300">{scopedInfo.userRole || '-'}</span>
 						</div>
 						<div>
-							<span class="text-slate-500 block">Kode UNOR Pengguna:</span>
-							<span class="font-mono text-slate-300">{scopedInfo.userKodeUnor || '(None)'}</span>
+							<span class="text-slate-500 block">Unit Organisasi:</span>
+							<span class="font-medium text-slate-300 block truncate" title={unorName()}>{unorName()}</span>
+							{#if scopedInfo.userKodeUnor}
+								<span class="font-mono text-[11px] text-emerald-400/80 font-medium">({scopedInfo.userKodeUnor})</span>
+							{/if}
 						</div>
 						<div>
 							<span class="text-slate-500 block">Scope UNOR Aktif:</span>

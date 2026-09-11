@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { authState } from '$lib/stores/auth.svelte';
 	import { fetchUnorList, type UnorItem } from '$lib/api/pegawai';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
@@ -24,7 +25,17 @@
 	}
 
 	onMount(() => {
+		if (authState.isInitialized && !authState.isAdmin) {
+			goto('/pegawai');
+			return;
+		}
 		loadUnor();
+	});
+
+	$effect(() => {
+		if (authState.isInitialized && !authState.isAdmin) {
+			goto('/pegawai');
+		}
 	});
 </script>
 
@@ -37,8 +48,8 @@
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 		<div>
 			<div class="flex items-center gap-2 mb-1">
-				<Badge variant={authState.isAdmin ? 'default' : 'secondary'} class="text-xs">
-					{authState.isAdmin ? 'Akses Penuh Admin Pusat' : `Akses Dibatasi: ${authState.user?.kodeUnor}`}
+				<Badge variant="default" class="text-xs">
+					Akses Penuh Admin Pusat
 				</Badge>
 			</div>
 			<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
@@ -79,8 +90,8 @@
 				<Card class="border-slate-800 bg-slate-900/60 hover:border-slate-700 transition">
 					<CardHeader class="pb-3">
 						<div class="flex items-center justify-between mb-1">
-							<Badge variant="outline" class="font-mono text-xs bg-slate-950 text-indigo-300 border-slate-700">
-								{u.kodeUnor}
+							<Badge variant="outline" class="font-normal text-xs bg-slate-950 text-indigo-300 border-slate-700">
+								Unit Organisasi
 							</Badge>
 							<span class="text-[11px] text-slate-500 font-mono">ID: {u.id}</span>
 						</div>
@@ -91,7 +102,7 @@
 					<CardContent class="pt-0">
 						<div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
 							<a
-								href="/pegawai"
+								href="/pegawai?kode_unor={encodeURIComponent(u.kodeUnor)}"
 								class="text-xs text-indigo-400 hover:text-indigo-300 font-medium inline-flex items-center gap-1"
 							>
 								<span>Lihat Pegawai di UNOR ini</span>

@@ -225,15 +225,9 @@
 				</CardHeader>
 				<CardContent class="pt-4 space-y-4 text-xs">
 					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
-						<span class="text-slate-400">Kode UNOR:</span>
-						<span class="font-mono font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded">
-							{pegawai.kodeUnor}
-						</span>
-					</div>
-					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
-						<span class="text-slate-400">Nama Satuan Kerja:</span>
-						<span class="font-medium text-slate-200 text-right">
-							{pegawai.namaUnor || pegawai.kodeUnor}
+						<span class="text-slate-400">Satuan Kerja / UNOR:</span>
+						<span class="font-semibold text-white text-right">
+							{pegawai.namaUnor || 'Unit Organisasi'}
 						</span>
 					</div>
 					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
@@ -242,12 +236,14 @@
 							{authState.isAdmin ? 'Akses Pusat (Penuh)' : 'Terkunci pada OPD Anda'}
 						</span>
 					</div>
-					<div class="flex items-center justify-between py-1">
-						<span class="text-slate-400">Tautan Master:</span>
-						<a href="/unor" class="text-indigo-400 hover:text-indigo-300 font-medium">
-							Lihat Daftar Satuan Kerja →
-						</a>
-					</div>
+					{#if authState.isAdmin}
+						<div class="flex items-center justify-between py-1">
+							<span class="text-slate-400">Tautan Master:</span>
+							<a href="/unor" class="text-indigo-400 hover:text-indigo-300 font-medium">
+								Lihat Daftar Satuan Kerja →
+							</a>
+						</div>
+					{/if}
 				</CardContent>
 			</Card>
 		</div>
@@ -256,7 +252,7 @@
 
 <!-- Dialog Konfirmasi Hapus -->
 <Dialog
-	isOpen={isDeleteOpen}
+	bind:open={isDeleteOpen}
 	title="Hapus Data Pegawai"
 	description="Konfirmasi penghapusan data aparatur sipil."
 	onclose={() => isDeleteOpen = false}

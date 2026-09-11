@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { authState } from '$lib/stores/auth.svelte';
 	import {
 		fetchPegawaiList,
@@ -39,6 +41,12 @@
 	let selectedUnor = $state<string>('');
 	let searchQuery = $state('');
 	let alertMessage = $state<{ type: 'success' | 'destructive'; title: string; desc: string } | null>(null);
+
+	const userUnorName = $derived(() => {
+		if (!authState.user?.kodeUnor) return '';
+		const found = unorList.find((u) => u.kodeUnor === authState.user?.kodeUnor);
+		return found ? found.namaUnor : authState.user.kodeUnor;
+	});
 
 	// Create dialog states
 	let isCreateOpen = $state(false);
@@ -92,18 +100,38 @@
 		}
 	}
 
+	let prevParamUnor = $state<string | null>(null);
+
 	onMount(async () => {
 		await loadUnors();
+
+		const queryUnor = page.url.searchParams.get('kode_unor');
 
 		// Jika user adalah AdminOPD, otomatis batasi ke kodeUnor miliknya
 		if (!authState.isAdmin && authState.user?.kodeUnor) {
 			selectedUnor = authState.user.kodeUnor;
 			createForm.kodeUnor = authState.user.kodeUnor;
+		} else if (queryUnor) {
+			selectedUnor = queryUnor;
+			createForm.kodeUnor = queryUnor;
 		} else if (unorList.length > 0) {
 			createForm.kodeUnor = unorList[0].kodeUnor;
 		}
 
 		await loadPegawai();
+	});
+
+	$effect(() => {
+		const currentParam = page.url.searchParams.get('kode_unor');
+		if (prevParamUnor === null) {
+			prevParamUnor = currentParam;
+		} else if (prevParamUnor !== currentParam) {
+			prevParamUnor = currentParam;
+			if (authState.isAdmin) {
+				selectedUnor = currentParam || '';
+				loadPegawai();
+			}
+		}
 	});
 
 	function handleFilterChange() {
@@ -115,12 +143,23 @@
 		loadPegawai();
 	}
 
+	function resetFilter() {
+		if (authState.isAdmin) {
+			selectedUnor = '';
+		}
+		searchQuery = '';
+		goto('/pegawai', { replaceState: true });
+		loadPegawai();
+	}
+
 	function openCreateDialog() {
 		createForm = {
 			nip: '',
 			nama: '',
 			jabatan: '',
-			kodeUnor: !authState.isAdmin && authState.user?.kodeUnor ? authState.user.kodeUnor : (unorList[0]?.kodeUnor || '')
+			kodeUnor: !authState.isAdmin && authState.user?.kodeUnor
+				? authState.user.kodeUnor
+				: (selectedUnor || unorList[0]?.kodeUnor || '')
 		};
 		isCreateOpen = true;
 	}
@@ -235,7 +274,7 @@
 		<div>
 			<div class="flex items-center gap-2 mb-1">
 				<Badge variant={authState.isAdmin ? 'default' : 'secondary'} class="text-xs">
-					{authState.isAdmin ? 'Akses Pusat' : `Akses Dibatasi: ${authState.user?.kodeUnor}`}
+					{authState.isAdmin ? 'Akses Pusat' : `Akses Dibatasi: ${userUnorName()}`}
 				</Badge>
 			</div>
 			<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
@@ -290,7 +329,7 @@
 	<Card class="border-slate-800 bg-slate-900/60 p-4">
 		<form onsubmit={handleSearchSubmit} class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
 			<!-- UNOR Filter (Untuk Admin bisa pilih, untuk AdminOPD terkunci) -->
-			<div class="sm:w-64">
+			<div class="sm:w-72">
 				<label for="filter-unor" class="sr-only">Filter Unit Organisasi</label>
 				{#if authState.isAdmin}
 					<select
@@ -299,15 +338,15 @@
 						bind:value={selectedUnor}
 						onchange={handleFilterChange}
 					>
-						<option value="">Semua Unit Organisasi (UNOR)</option>
+						<option value="">Semua Unit Organisasi</option>
 						{#each unorList as u}
-							<option value={u.kodeUnor}>{u.namaUnor} ({u.kodeUnor})</option>
+							<option value={u.kodeUnor}>{u.namaUnor}</option>
 						{/each}
 					</select>
 				{:else}
-					<div class="h-10 px-3 flex items-center gap-2 rounded-md bg-slate-950/80 border border-slate-800 text-slate-300 text-xs font-mono">
-						<Building2 class="h-3.5 w-3.5 text-indigo-400" />
-						<span class="truncate">{authState.user?.kodeUnor || 'UNOR Terkunci'}</span>
+					<div class="h-10 px-3 flex items-center gap-2 rounded-md bg-slate-950/80 border border-slate-800 text-slate-300 text-xs">
+						<Building2 class="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+						<span class="truncate font-medium">{userUnorName() || 'Unit Organisasi Anda'}</span>
 					</div>
 				{/if}
 			</div>
@@ -326,6 +365,17 @@
 			<Button type="submit" variant="secondary" class="h-10 text-xs px-4">
 				Cari
 			</Button>
+
+			{#if (authState.isAdmin && selectedUnor) || searchQuery}
+				<Button
+					type="button"
+					variant="ghost"
+					class="h-10 text-xs px-3 text-slate-400 hover:text-white"
+					onclick={resetFilter}
+				>
+					Reset
+				</Button>
+			{/if}
 		</form>
 	</Card>
 
@@ -389,7 +439,7 @@
 								<TableCell>
 									<Badge variant="outline" class="font-normal text-xs bg-slate-900 border-slate-700 text-slate-300">
 										<Building2 class="mr-1 h-3 w-3 text-indigo-400" />
-										<span>{item.namaUnor || item.kodeUnor}</span>
+										<span>{item.namaUnor || (unorList.find((u) => u.kodeUnor === item.kodeUnor)?.namaUnor) || '-'}</span>
 									</Badge>
 								</TableCell>
 								<TableCell class="text-right pr-6">
@@ -439,7 +489,7 @@
 
 <!-- Dialog Tambah Pegawai -->
 <Dialog
-	isOpen={isCreateOpen}
+	bind:open={isCreateOpen}
 	title="Tambah Pegawai Baru"
 	description="Daftarkan data pegawai aparatur ke dalam unit organisasi."
 	onclose={() => isCreateOpen = false}
@@ -491,7 +541,7 @@
 					bind:value={createForm.kodeUnor}
 				>
 					{#each unorList as u}
-						<option value={u.kodeUnor}>{u.namaUnor} ({u.kodeUnor})</option>
+						<option value={u.kodeUnor}>{u.namaUnor}</option>
 					{/each}
 				</select>
 			{:else}
@@ -500,7 +550,7 @@
 					type="text"
 					readonly
 					disabled
-					value={unorList.find(u => u.kodeUnor === authState.user?.kodeUnor)?.namaUnor || authState.user?.kodeUnor || ''}
+					value={userUnorName() || 'Unit Organisasi Anda'}
 					class="text-xs bg-slate-900 border-slate-800 text-slate-400 cursor-not-allowed"
 				/>
 				<p class="text-[11px] text-amber-400 mt-1">
@@ -538,7 +588,7 @@
 
 <!-- Dialog Ubah Pegawai -->
 <Dialog
-	isOpen={isEditOpen}
+	bind:open={isEditOpen}
 	title="Ubah Data Pegawai"
 	description="Perbarui informasi data pegawai."
 	onclose={() => isEditOpen = false}
@@ -587,7 +637,7 @@
 					bind:value={editForm.kodeUnor}
 				>
 					{#each unorList as u}
-						<option value={u.kodeUnor}>{u.namaUnor} ({u.kodeUnor})</option>
+						<option value={u.kodeUnor}>{u.namaUnor}</option>
 					{/each}
 				</select>
 			</div>
@@ -622,7 +672,7 @@
 
 <!-- Dialog Konfirmasi Hapus -->
 <Dialog
-	isOpen={isDeleteOpen}
+	bind:open={isDeleteOpen}
 	title="Hapus Data Pegawai"
 	description="Konfirmasi penghapusan data aparatur sipil."
 	onclose={() => isDeleteOpen = false}

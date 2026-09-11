@@ -1,16 +1,17 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import type { HTMLButtonAttributes, HTMLAnchorAttributes } from 'svelte/elements';
 	import { cn } from '$lib/utils';
 
 	type ButtonVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 	type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
-	interface Props extends HTMLButtonAttributes {
+	interface Props extends Partial<HTMLButtonAttributes>, Partial<HTMLAnchorAttributes> {
 		variant?: ButtonVariant;
 		size?: ButtonSize;
 		class?: string;
 		children?: Snippet;
+		href?: string;
 	}
 
 	let {
@@ -19,6 +20,7 @@
 		class: className = '',
 		children,
 		type = 'button',
+		href,
 		...rest
 	}: Props = $props();
 
@@ -38,17 +40,34 @@
 	};
 </script>
 
-<button
-	{type}
-	class={cn(
-		'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none',
-		variantStyles[variant],
-		sizeStyles[size],
-		className
-	)}
-	{...rest}
->
-	{#if children}
-		{@render children()}
-	{/if}
-</button>
+{#if href}
+	<a
+		{href}
+		class={cn(
+			'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none no-underline',
+			variantStyles[variant],
+			sizeStyles[size],
+			className
+		)}
+		{...rest}
+	>
+		{#if children}
+			{@render children()}
+		{/if}
+	</a>
+{:else}
+	<button
+		{type}
+		class={cn(
+			'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none',
+			variantStyles[variant],
+			sizeStyles[size],
+			className
+		)}
+		{...rest}
+	>
+		{#if children}
+			{@render children()}
+		{/if}
+	</button>
+{/if}
