@@ -32,3 +32,9 @@ Thumbs.db
 
 # Drizzle migrations
 packages/shared/drizzle/meta/
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep

@@ -14,6 +14,7 @@
 		LogOut,
 		Building2,
 		Briefcase,
+		FileText,
 		Menu,
 		X
 	} from 'lucide-svelte';
@@ -128,6 +129,19 @@
 					>
 						<Briefcase class="h-4 w-4" />
 						<span>Data Pegawai</span>
+					</a>
+
+					<a
+						href="/usulan"
+						onclick={() => isMobileMenuOpen = false}
+						class={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
+							page.url.pathname.startsWith('/usulan')
+								? 'bg-indigo-600 text-white shadow-sm'
+								: 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+						}`}
+					>
+						<FileText class="h-4 w-4" />
+						<span>Usulan Perubahan</span>
 					</a>
 
 					{#if authState.isAdmin}
