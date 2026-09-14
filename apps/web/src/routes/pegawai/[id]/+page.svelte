@@ -38,6 +38,12 @@
 	let isDeleting = $state(false);
 
 	async function loadDetail() {
+		if (!employeeId) {
+			isLoading = false;
+			errorMessage = 'ID pegawai tidak valid.';
+			return;
+		}
+
 		isLoading = true;
 		errorMessage = '';
 		isForbidden = false;
