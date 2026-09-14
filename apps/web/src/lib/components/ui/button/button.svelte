@@ -6,13 +6,16 @@
 	type ButtonVariant = 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 	type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
-	interface Props extends Partial<HTMLButtonAttributes>, Partial<HTMLAnchorAttributes> {
+	type Props = {
 		variant?: ButtonVariant;
 		size?: ButtonSize;
 		class?: string;
 		children?: Snippet;
 		href?: string;
-	}
+		type?: 'button' | 'submit' | 'reset';
+		disabled?: boolean;
+		[key: string]: any;
+	};
 
 	let {
 		variant = 'default',
