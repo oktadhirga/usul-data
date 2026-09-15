@@ -454,7 +454,7 @@
 					<Table>
 						<TableHeader class="bg-slate-950/40">
 							<TableRow class="border-slate-800 hover:bg-transparent">
-								<TableHead class="text-slate-400 font-semibold text-xs py-3.5">ID</TableHead>
+								<TableHead class="text-slate-400 font-semibold text-xs py-3.5 w-14">No</TableHead>
 								<TableHead class="text-slate-400 font-semibold text-xs py-3.5">Pegawai</TableHead>
 								<TableHead class="text-slate-400 font-semibold text-xs py-3.5">Unit Organisasi</TableHead>
 								<TableHead class="text-slate-400 font-semibold text-xs py-3.5">Tanggal Pengajuan</TableHead>
@@ -464,11 +464,11 @@
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{#each paginatedList as item}
+							{#each paginatedList as item, idx}
 								{@const badge = getStatusBadge(item.status)}
 								<TableRow class="border-slate-800 hover:bg-slate-800/40 transition-colors">
 									<TableCell class="text-xs font-mono text-slate-400">
-										#{item.id}
+										{(currentPage - 1) * itemsPerPage + idx + 1}
 									</TableCell>
 									<TableCell>
 										<div class="font-medium text-white text-sm">
@@ -579,7 +579,7 @@
 			<div class="flex items-start justify-between border-b border-slate-800 pb-4">
 				<div>
 					<div class="flex items-center gap-2">
-						<h2 class="text-lg font-bold text-white">Rincian Usulan #{currentDetail.id}</h2>
+						<h2 class="text-lg font-bold text-white">Rincian Usulan</h2>
 						<Badge class={`text-xs border ${badge.class}`}>
 							{badge.label}
 						</Badge>
@@ -801,7 +801,7 @@
 			</div>
 			<div>
 				<h3 class="text-base font-bold text-white">Setujui Usulan Perubahan?</h3>
-				<p class="text-xs text-slate-400">Usulan #{currentDetail?.id} untuk {currentDetail?.namaPegawai}</p>
+				<p class="text-xs text-slate-400">Pegawai: {currentDetail?.namaPegawai}</p>
 			</div>
 		</div>
 
@@ -860,7 +860,7 @@
 			</div>
 			<div>
 				<h3 class="text-base font-bold text-white">Tolak Usulan Perubahan?</h3>
-				<p class="text-xs text-slate-400">Usulan #{currentDetail?.id} untuk {currentDetail?.namaPegawai}</p>
+				<p class="text-xs text-slate-400">Pegawai: {currentDetail?.namaPegawai}</p>
 			</div>
 		</div>
 
