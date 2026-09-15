@@ -243,8 +243,8 @@ export class UsulanService {
       }
     }
 
-    if (existing.status !== 'draft' && existing.status !== 'dibatalkan') {
-      throw new Error('Dokumen hanya dapat ditambahkan pada usulan berstatus draft atau dibatalkan');
+    if (existing.status !== 'draft' && existing.status !== 'dibatalkan' && existing.status !== 'ditolak') {
+      throw new Error('Dokumen hanya dapat ditambahkan pada usulan berstatus draft, dibatalkan, atau ditolak');
     }
 
     // Validasi tipe file PDF (MIME atau extension)
@@ -309,8 +309,8 @@ export class UsulanService {
       }
     }
 
-    if (existing.status !== 'draft' && existing.status !== 'dibatalkan') {
-      throw new Error('Hanya usulan berstatus draft atau dibatalkan yang dapat diedit');
+    if (existing.status !== 'draft' && existing.status !== 'dibatalkan' && existing.status !== 'ditolak') {
+      throw new Error('Hanya usulan berstatus draft, dibatalkan, atau ditolak yang dapat diedit');
     }
 
     if (input.catatan !== undefined) {
@@ -355,8 +355,8 @@ export class UsulanService {
       }
     }
 
-    if (existing.status !== 'draft' && existing.status !== 'dibatalkan') {
-      throw new Error('Hanya usulan berstatus draft atau dibatalkan yang dapat diajukan');
+    if (existing.status !== 'draft' && existing.status !== 'dibatalkan' && existing.status !== 'ditolak') {
+      throw new Error('Hanya usulan berstatus draft, dibatalkan, atau ditolak yang dapat diajukan');
     }
 
     const details = existing.details || [];
@@ -379,7 +379,11 @@ export class UsulanService {
 
     await db
       .update(usulanPerubahan)
-      .set({ status: 'diajukan' })
+      .set({
+        status: 'diajukan',
+        verifiedBy: null,
+        verifiedAt: null
+      })
       .where(eq(usulanPerubahan.id, id));
 
     return {

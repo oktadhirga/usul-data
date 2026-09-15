@@ -41,8 +41,8 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
   - Validasi berkas: Format PDF dan ukuran maksimum 1 MB. Wajib melampirkan berkas untuk jenis usulan `tambah` dan `ubah`, sedangkan untuk `hapus` bersifat opsional.
   - Lifecycle status: `draft` -> `diajukan` -> (`disetujui` / `ditolak` / `dibatalkan`).
   - Scoping & RBAC: `AdminOPD` dibatasi hanya dapat membuat, melihat, mengedit, dan menghapus usulan untuk pegawai di UNOR miliknya. `Admin` memiliki akses penuh lintas UNOR.
-  - Edit & Pengajuan Ulang: Usulan berstatus `draft` dan `dibatalkan` dapat diedit rinciannya dan diajukan kembali ke status `diajukan`.
-  - Hapus Permanen: Usulan berstatus `draft` atau `dibatalkan` dapat dihapus permanen, menghapus data di DB beserta fisik berkas dokumen di server (`uploads/`).
+  - Edit & Pengajuan Ulang: Usulan berstatus `draft`, `dibatalkan`, dan `ditolak` dapat diedit rinciannya dan diajukan kembali ke status `diajukan` (audit reset).
+  - Hapus Permanen: Usulan berstatus `draft`, `dibatalkan`, atau `ditolak` dapat dihapus permanen, menghapus data di DB beserta fisik berkas dokumen di server (`uploads/`).
   - Format Waktu: Menampilkan zona waktu Indonesia Barat (WIB / GMT+7).
 - **Fitur Verifikasi Usulan (Admin Pusat)**:
   - Audit Trail: Kolom `verified_by` (menyimpan username admin yang memverifikasi), `verified_at` (waktu eksekusi verifikasi), dan `catatan` langsung pada tabel `usulan_perubahan`.

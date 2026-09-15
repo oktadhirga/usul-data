@@ -594,13 +594,16 @@
 											Detail
 										</Button>
 
-										<!-- Edit / Ajukan Ulang Action (draft atau dibatalkan) -->
-										{#if item.status === "draft" || item.status === "dibatalkan"}
+										<!-- Edit / Ajukan Ulang Action (draft, dibatalkan, atau ditolak) -->
+										{#if item.status === "draft" || item.status === "dibatalkan" || item.status === "ditolak"}
 											<Button
 												variant="outline"
 												size="sm"
 												class={item.status ===
-												"dibatalkan"
+												"ditolak"
+													? "h-8 text-xs border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
+													: item.status ===
+													"dibatalkan"
 													? "h-8 text-xs border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
 													: "h-8 text-xs border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"}
 												onclick={() =>
@@ -611,7 +614,9 @@
 												<Pencil
 													class="h-3.5 w-3.5 mr-1"
 												/>
-												{item.status === "dibatalkan"
+												{item.status === "ditolak"
+													? "Edit & Ajukan Ulang"
+													: item.status === "dibatalkan"
 													? "Edit Usulan"
 													: "Edit Draft"}
 											</Button>
@@ -631,8 +636,8 @@
 											</Button>
 										{/if}
 
-										<!-- Hapus Permanen Action (draft atau dibatalkan) -->
-										{#if item.status === "draft" || item.status === "dibatalkan"}
+										<!-- Hapus Permanen Action (draft, dibatalkan, atau ditolak) -->
+										{#if item.status === "draft" || item.status === "dibatalkan" || item.status === "ditolak"}
 											<Button
 												variant="ghost"
 												size="sm"
@@ -948,7 +953,7 @@
 						</Button>
 					{/if}
 
-					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan"}
+					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							variant="outline"
 							class="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-xs"
@@ -965,7 +970,7 @@
 				</div>
 
 				<div class="flex items-center gap-2">
-					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan"}
+					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							variant="outline"
 							class="border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 text-xs"
@@ -976,13 +981,13 @@
 							}}
 						>
 							<Pencil class="h-3.5 w-3.5 mr-1" />
-							{currentDetail.status === "dibatalkan"
-								? "Edit & Ajukan Ulang"
-								: "Edit Draft"}
+							{currentDetail.status === "draft"
+								? "Edit Draft"
+								: "Edit & Ajukan Ulang"}
 						</Button>
 					{/if}
 
-					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan"}
+					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs"
 							disabled={isSubmittingDraft}
@@ -997,9 +1002,9 @@
 								Mengajukan...
 							{:else}
 								<Send class="h-3.5 w-3.5 mr-1" />
-								{currentDetail.status === "dibatalkan"
-									? "Ajukan Kembali"
-									: "Ajukan Usulan"}
+								{currentDetail.status === "draft"
+									? "Ajukan Usulan"
+									: "Ajukan Kembali"}
 							{/if}
 						</Button>
 					{/if}

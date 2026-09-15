@@ -465,6 +465,51 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
       const body = await res.json();
       expect(body.success).toBe(true);
     });
+
+    it('Allows updating usulan when in ditolak status', async () => {
+      spyOn(UsulanService, 'updateUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan berhasil diperbarui'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101', {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            catatan: 'Perbaikan dokumen dan rincian sesuai arahan verifikator'
+          })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil diperbarui');
+    });
+
+    it('Allows resubmitting usulan from ditolak status', async () => {
+      spyOn(UsulanService, 'submitUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan perubahan data berhasil diajukan'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/submit', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`
+          }
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
   });
 
   describe('Delete Usulan Permanently', () => {

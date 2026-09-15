@@ -409,7 +409,7 @@
 		const data = res.data;
 		existingStatus = data.status;
 
-		if (data.status !== 'draft' && data.status !== 'dibatalkan') {
+		if (data.status !== 'draft' && data.status !== 'dibatalkan' && data.status !== 'ditolak') {
 			alertMessage = {
 				type: 'destructive',
 				title: 'Status Tidak Dapat Diedit',
@@ -502,9 +502,11 @@
 						Mode Edit Usulan <strong>#{editingUsulanId}</strong> • Status Saat Ini: <strong class="uppercase font-semibold text-amber-200">{existingStatus}</strong>
 					</span>
 				</div>
-				{#if existingStatus === 'dibatalkan'}
+				{#if existingStatus === 'dibatalkan' || existingStatus === 'ditolak'}
 					<span class="text-[11px] text-amber-200/80 hidden sm:inline">
-						Usulan yang dibatalkan dapat diajukan kembali ke verifikator setelah diperbarui.
+						{existingStatus === 'ditolak'
+							? 'Usulan yang ditolak dapat diperbaiki rinciannya dan diajukan kembali ke verifikator.'
+							: 'Usulan yang dibatalkan dapat diajukan kembali ke verifikator setelah diperbarui.'}
 					</span>
 				{/if}
 			</div>
@@ -1113,7 +1115,7 @@
 						{:else}
 							<Send class="h-4 w-4 mr-1.5" />
 							{isEditMode
-								? existingStatus === 'dibatalkan'
+								? existingStatus === 'dibatalkan' || existingStatus === 'ditolak'
 									? 'Simpan & Ajukan Kembali'
 									: 'Simpan & Ajukan Usulan'
 								: 'Ajukan Usulan Sekarang'}
