@@ -10,7 +10,7 @@ export const usulanRoute = new Elysia({ prefix: '/usulan' })
   .use(requireAuth)
   .use(resolveUnorScope)
 
-  // GET /api/usulan - List Usulan Perubahan dengan filter kode_unor & status
+  // GET /api/usulan - List Usulan Perubahan dengan filter kode_unor, status, & kategori_ubah
   .get(
     '/',
     async ({ query, scopeUnor }) => {
@@ -18,6 +18,7 @@ export const usulanRoute = new Elysia({ prefix: '/usulan' })
         const data = await UsulanService.getAll({
           kodeUnor: query.kode_unor ?? null,
           status: (query.status as UsulanStatus) ?? null,
+          kategoriUbah: (query.kategori_ubah as any) ?? null,
           scopeUnor
         });
         return { success: true, data };
@@ -28,7 +29,8 @@ export const usulanRoute = new Elysia({ prefix: '/usulan' })
     {
       query: t.Object({
         kode_unor: t.Optional(t.String()),
-        status: t.Optional(t.String())
+        status: t.Optional(t.String()),
+        kategori_ubah: t.Optional(t.String())
       })
     }
   )
@@ -290,6 +292,78 @@ export const usulanRoute = new Elysia({ prefix: '/usulan' })
     {
       params: t.Object({
         id: t.Numeric()
+      })
+    }
+  )
+
+  // POST /api/usulan/:id/approve - Setujui usulan perubahan data (Admin Pusat only)
+  .post(
+    '/:id/approve',
+    async ({ params: { id }, body, user, set }) => {
+      try {
+        if (!user) {
+          set.status = 401;
+          return { success: false, message: 'Unauthorized' };
+        }
+
+        const res = await UsulanService.approveUsulan(
+          Number(id),
+          body?.catatan,
+          user
+        );
+        return res;
+      } catch (err: any) {
+        if (err.message?.includes('Forbidden')) {
+          set.status = 403;
+        } else {
+          set.status = 400;
+        }
+        return { success: false, message: err.message ?? 'Gagal menyetujui usulan' };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.Numeric()
+      }),
+      body: t.Optional(
+        t.Object({
+          catatan: t.Optional(t.String())
+        })
+      )
+    }
+  )
+
+  // POST /api/usulan/:id/reject - Tolak usulan perubahan data (Admin Pusat only)
+  .post(
+    '/:id/reject',
+    async ({ params: { id }, body, user, set }) => {
+      try {
+        if (!user) {
+          set.status = 401;
+          return { success: false, message: 'Unauthorized' };
+        }
+
+        const res = await UsulanService.rejectUsulan(
+          Number(id),
+          { catatan: body.catatan },
+          user
+        );
+        return res;
+      } catch (err: any) {
+        if (err.message?.includes('Forbidden')) {
+          set.status = 403;
+        } else {
+          set.status = 400;
+        }
+        return { success: false, message: err.message ?? 'Gagal menolak usulan' };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.Numeric()
+      }),
+      body: t.Object({
+        catatan: t.String({ minLength: 1 })
       })
     }
   );

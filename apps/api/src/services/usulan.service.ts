@@ -8,6 +8,7 @@ import {
   eq,
   and,
   desc,
+  inArray,
   type UsulanStatus,
   type JenisUsulan,
   type KategoriUbah,
@@ -24,6 +25,7 @@ export interface UsulanFilterParams {
   kodeUnor?: string | null;
   status?: UsulanStatus | null;
   scopeUnor?: string | null;
+  kategoriUbah?: KategoriUbah | null;
 }
 
 export interface UsulanDetailInput {
@@ -91,6 +93,14 @@ export class UsulanService {
       conditions.push(eq(usulanPerubahan.status, params.status));
     }
 
+    if (params.kategoriUbah) {
+      const usulanIdsWithKategori = db
+        .select({ id: usulanDetailField.usulanId })
+        .from(usulanDetailField)
+        .where(eq(usulanDetailField.kategoriUbah, params.kategoriUbah));
+      conditions.push(inArray(usulanPerubahan.id, usulanIdsWithKategori));
+    }
+
     let query = db
       .select({
         id: usulanPerubahan.id,
@@ -98,6 +108,8 @@ export class UsulanService {
         kodeUnor: usulanPerubahan.kodeUnor,
         status: usulanPerubahan.status,
         catatan: usulanPerubahan.catatan,
+        verifiedBy: usulanPerubahan.verifiedBy,
+        verifiedAt: usulanPerubahan.verifiedAt,
         createdAt: usulanPerubahan.createdAt,
         updatedAt: usulanPerubahan.updatedAt,
         namaPegawai: pegawai.nama,
@@ -130,6 +142,8 @@ export class UsulanService {
         kodeUnor: usulanPerubahan.kodeUnor,
         status: usulanPerubahan.status,
         catatan: usulanPerubahan.catatan,
+        verifiedBy: usulanPerubahan.verifiedBy,
+        verifiedAt: usulanPerubahan.verifiedAt,
         createdAt: usulanPerubahan.createdAt,
         updatedAt: usulanPerubahan.updatedAt,
         namaPegawai: pegawai.nama,
@@ -433,6 +447,113 @@ export class UsulanService {
     return {
       success: true,
       message: 'Usulan berhasil dihapus secara permanen'
+    };
+  }
+
+  static async approveUsulan(
+    id: number,
+    catatan: string | undefined,
+    user: AuthUser
+  ) {
+    if (user.role !== 'Admin') {
+      throw new Error('Forbidden: Hanya Admin yang berhak menyetujui usulan');
+    }
+
+    const existing = await this.getById(id);
+    if (!existing) {
+      throw new Error('Usulan tidak ditemukan');
+    }
+
+    if (existing.status !== 'diajukan') {
+      throw new Error('Hanya usulan berstatus diajukan yang dapat disetujui');
+    }
+
+    // 1. Update status usulan ke 'disetujui' dan isi catatan audit
+    await db
+      .update(usulanPerubahan)
+      .set({
+        status: 'disetujui',
+        verifiedBy: user.username,
+        verifiedAt: new Date(),
+        catatan: catatan !== undefined && catatan !== null ? catatan.trim() : existing.catatan
+      })
+      .where(eq(usulanPerubahan.id, id));
+
+    // 2. Memicu trigger pembaruan data master pegawai sesuai rincian field
+    const details = existing.details || [];
+    const pegawaiUpdatePayload: Partial<{
+      nama: string;
+      nip: string;
+      jabatan: string;
+      kodeUnor: string;
+    }> = {};
+
+    for (const detail of details) {
+      // Catatan: Untuk jenis usulan 'hapus', tidak ada tindakan penghapusan fisik/soft delete (biarkan apa adanya)
+      if (detail.jenisUsulan === 'ubah' || detail.jenisUsulan === 'tambah') {
+        if (detail.nilaiBaru !== null && detail.nilaiBaru !== undefined) {
+          const fieldNorm = detail.fieldName.trim().toLowerCase();
+          if (['nama', 'nama lengkap', 'nama_lengkap'].includes(fieldNorm)) {
+            pegawaiUpdatePayload.nama = detail.nilaiBaru;
+          } else if (['nip', 'nomor induk pegawai'].includes(fieldNorm)) {
+            pegawaiUpdatePayload.nip = detail.nilaiBaru;
+          } else if (['jabatan'].includes(fieldNorm)) {
+            pegawaiUpdatePayload.jabatan = detail.nilaiBaru;
+          } else if (['kode_unor', 'kodeunor', 'unor', 'unit kerja', 'unit organisasi'].includes(fieldNorm)) {
+            pegawaiUpdatePayload.kodeUnor = detail.nilaiBaru;
+          }
+        }
+      }
+    }
+
+    if (Object.keys(pegawaiUpdatePayload).length > 0) {
+      await db
+        .update(pegawai)
+        .set(pegawaiUpdatePayload)
+        .where(eq(pegawai.id, existing.pegawaiId));
+    }
+
+    return {
+      success: true,
+      message: 'Usulan berhasil disetujui dan data pegawai telah diperbarui'
+    };
+  }
+
+  static async rejectUsulan(
+    id: number,
+    input: { catatan: string },
+    user: AuthUser
+  ) {
+    if (user.role !== 'Admin') {
+      throw new Error('Forbidden: Hanya Admin yang berhak menolak usulan');
+    }
+
+    if (!input.catatan || !input.catatan.trim()) {
+      throw new Error('Catatan alasan penolakan wajib diisi');
+    }
+
+    const existing = await this.getById(id);
+    if (!existing) {
+      throw new Error('Usulan tidak ditemukan');
+    }
+
+    if (existing.status !== 'diajukan') {
+      throw new Error('Hanya usulan berstatus diajukan yang dapat ditolak');
+    }
+
+    await db
+      .update(usulanPerubahan)
+      .set({
+        status: 'ditolak',
+        verifiedBy: user.username,
+        verifiedAt: new Date(),
+        catatan: input.catatan.trim()
+      })
+      .where(eq(usulanPerubahan.id, id));
+
+    return {
+      success: true,
+      message: 'Usulan berhasil ditolak'
     };
   }
 }

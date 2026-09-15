@@ -1,52 +1,36 @@
-# Planning Fitur: Usulan Ubah Data Pegawai
+# Planning Fitur Verifikasi Usulan
 
-Dokumen ini berisi panduan tingkat tinggi (high-level) untuk implementasi fitur "Usulan Ubah Data Pegawai" pada arsitektur Usul Data Monorepo (ElysiaJS + SvelteKit 5 + Drizzle ORM).
+File ini berisi planning (tingkat menengah) untuk fitur verifikasi usulan perubahan data pegawai yang akan dieksekusi oleh junior programmer atau model AI. Pastikan membaca `PROGRESS.md` sebelum memulai implementasi.
 
-## 1. Skema Database (Drizzle ORM)
-Tambahkan tabel berikut pada `packages/shared/src/schema`:
-- `usulan_perubahan`: 
-  - Menyimpan header usulan. 
-  - Relasi ke: `pegawai` (id pegawai) dan `unor` (kode_unor pengusul).
-  - Field status: enum (draft, diajukan, dibatalkan, disetujui, ditolak).
-- `usulan_detail_field`: 
-  - Menyimpan field spesifik yang diusulkan perubahannya.
-  - Relasi ke: `usulan_perubahan`.
-  - Field: `jenis_usulan` (enum: tambah, ubah, hapus), `kategori_ubah` (enum: Data Pribadi, Data Keluarga, Golongan, Jabatan, Pendidikan, Pindah Instansi, Diklat/Kursus), `field_name` (free text), `nilai_lama` (free text), `nilai_baru` (free text).
-- `usulan_dokumen`: 
-  - Menyimpan metadata dokumen pendukung.
-  - Relasi ke: `usulan_perubahan`.
-  - Field: nama_dokumen, path_file, tipe_dokumen.
+## 1. Modifikasi Skema Database
+Untuk kebutuhan audit dan pencatatan verifikasi, tambahkan field berikut langsung pada tabel `usulan_perubahan`:
+- `verified_by` (varchar/uuid, berelasi dengan username admin/user)  
+- `verified_at` (timestamp)
+- `catatan` (text, opsional, utamanya digunakan saat usulan ditolak)
 
-## 2. Backend API (ElysiaJS)
-Tambahkan route baru di `apps/api/src/routes/usulan.route.ts` dan logic di `services`:
-- `POST /api/usulan`: Create usulan baru dengan status awal `draft`.
-- `POST /api/usulan/:id/dokumen`: Endpoint untuk upload dokumen pendukung.
-  - *Sistem File*: File disimpan di storage lokal server dalam folder `/uploads`.
-  - *Validasi*: Hanya menerima file berekstensi **PDF** dengan batas ukuran maksimum **1 MB**.
-- `POST /api/usulan/:id/submit`: Mengubah status usulan dari `draft` menjadi `diajukan`.
-  - *Validasi*: Jika `jenis_usulan` adalah `tambah` atau `ubah`, sistem wajib memastikan ada minimal 1 dokumen yang dilampirkan. Untuk `hapus`, dokumen tidak wajib.
-- `GET /api/usulan`: Menampilkan list usulan (termasuk filter otomatis berdasarkan `kodeUnor` user login dan filter kueri `status`).
-- `POST /api/usulan/:id/cancel`: Membatalkan usulan. *Kondisi*: hanya bisa dilakukan jika status saat ini adalah `diajukan`.
+## 2. Backend (API ElysiaJS)
+Buat endpoint baru untuk mendukung proses verifikasi (Admin Pusat):
+- **Endpoint List Semua Usulan**
+  - Mengambil daftar usulan untuk dashboard Admin Pusat.
+  - Tambahkan fitur filter berdasarkan: **Kode UNOR**, **Status Usulan**, dan **Kategori Usulan**.
+- **Endpoint Detail Usulan & Dokumen**
+  - Mengembalikan rincian data usulan dari tabel `usulan_perubahan`, detail field dari `usulan_detail_field`, dan data berkas pendukung dari `usulan_dokumen`.
+- **Endpoint Approve Usulan**
+  - Mengubah status usulan menjadi `disetujui`.
+  - Mengisi field `verified_by` dan `verified_at`.
+  - **Krusial**: Memicu trigger/update pada tabel data utama `pegawai` sesuai data baru yang ada di `usulan_detail_field` (Catatan: Untuk usulan jenis `hapus`, **tidak ada** tindakan update/delete data fisik secara otomatis yang diperlukan, biarkan apa adanya).
+- **Endpoint Reject Usulan**
+  - Mengubah status usulan menjadi `ditolak`.
+  - Wajib mengirimkan *catatan alasan penolakan* dari Admin.
+  - Mengisi field `verified_by`, `verified_at`, dan `catatan`.
 
-## 3. Frontend Web (SvelteKit 5)
-Buat halaman dan komponen berikut di `apps/web/src/routes/usulan`:
-- **UI Form Usulan Perubahan** (Bisa berupa halaman `/usulan/create` atau dialog modal):
-  - Step 1: Pilih pegawai (berdasarkan daftar pegawai di UNOR yang bersangkutan).
-  - Step 2: Pilih jenis usulan (tambah, ubah, hapus) & kategori (berdasarkan daftar opsi).
-  - Step 3: Input rincian perubahan (field nama, lama & baru berbasis free text).
-  - Step 4: Upload dokumen pendukung (PDF, maks 1MB). Dokumen wajib diunggah untuk jenis usulan `tambah` dan `ubah`, namun opsional untuk jenis usulan `hapus`.
-- **UI Halaman Riwayat Usulan** (`/usulan`):
-  - Menampilkan tabel riwayat usulan per UNOR.
-  - Dropdown filter untuk menyaring daftar berdasarkan status.
-  - Tombol aksi: Lanjutkan Draft (jika draft), Batalkan (jika diajukan), dan Lihat Detail.
-
-## 4. Konfirmasi Keputusan (Terkunci)
-Berdasarkan kesepakatan spesifikasi, implementator perlu mengikuti aturan ini:
-1. **Penyimpanan Dokumen**: Sementara menggunakan server lokal pada folder `/uploads`.
-2. **Validasi File**: Maksimal file adalah **1 MB** dan ekstensi harus **PDF**.
-3. **Status Lanjutan**: Untuk fase ini, alur usulan berhenti di status `diajukan`. Aksi persetujuan (`disetujui`/`ditolak`) oleh Admin Utama akan dikembangkan pada tiket/tahap berikutnya.
-4. **Format Kategori & Field**: Nilai `kategori_ubah` wajib berupa *enum options* (Data Pribadi, Data Keluarga, Golongan, Jabatan, Pendidikan, Pindah Instansi, Diklat/Kursus). `jenis_usulan` bernilai: `tambah`, `ubah`, dan `hapus`. Sisa rincian field masih *free text*.
-5. **Kewajiban Dokumen**: Usulan dengan jenis `tambah` dan `ubah` mewajibkan upload dokumen pendukung, sedangkan `hapus` tidak.
-
----
-*Catatan Eksekutor (Junior Dev / AI): Gunakan prinsip yang sudah tercantum di PROGRESS.md. Gunakan Drizzle ORM untuk tabel. Di sisi SvelteKit, wajib gunakan Elysia Eden Treaty untuk pemanggilan API dan komponen UI Svelte yang sudah tersedia.*
+## 3. Frontend (SvelteKit)
+Buat antarmuka (UI) untuk Admin Pusat memproses usulan:
+- **Dashboard Verifikasi (Admin Pusat)**
+  - Halaman untuk menampilkan tabel list semua usulan.
+  - Sediakan UI filter (berdasarkan UNOR, Status, dan Kategori) beserta pagination.
+- **Halaman Detail Usulan & Aksi**
+  - Tampilkan ringkasan usulan dan komparasi (jika ada data lama vs data baru).
+  - Sediakan akses ke dokumen pendukung. Dokumen harus dapat dipreview dengan mekanisme **buka di tab baru (open in new tab)**.
+  - Sediakan dua tombol aksi utama: **Approve** dan **Reject**.
+  - Saat klik **Reject**, harus muncul modal/dialog input untuk memasukkan alasan penolakan sebelum disubmit ke endpoint.

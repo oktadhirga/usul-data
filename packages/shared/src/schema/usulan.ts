@@ -30,6 +30,8 @@ export const usulanPerubahan = mysqlTable('usulan_perubahan', {
     .references(() => unor.kodeUnor, { onDelete: 'cascade', onUpdate: 'cascade' }),
   status: mysqlEnum('status', usulanStatusEnum).notNull().default('draft'),
   catatan: text('catatan'),
+  verifiedBy: varchar('verified_by', { length: 100 }),
+  verifiedAt: timestamp('verified_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull()
 });

@@ -51,6 +51,7 @@
 		ArrowRight,
 		Trash2,
 		Pencil,
+		ShieldCheck
 	} from "lucide-svelte";
 
 	let usulanList = $state<UsulanItem[]>([]);
@@ -886,6 +887,46 @@
 					</div>
 				{/if}
 			</div>
+
+			<!-- Audit Verifikasi (Admin Pusat) -->
+			{#if currentDetail.status === "disetujui" || currentDetail.status === "ditolak"}
+				<div class="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-2.5">
+					<div class="flex items-center gap-2">
+						<div class="h-6 w-6 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+							<ShieldCheck class="h-3.5 w-3.5" />
+						</div>
+						<h4 class="text-xs font-semibold uppercase tracking-wider text-slate-300">
+							Hasil Verifikasi Admin Pusat
+						</h4>
+					</div>
+
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+						<div>
+							<span class="text-slate-400">Diverifikasi oleh:</span>
+							<p class="font-medium text-slate-200 mt-0.5">
+								{currentDetail.verifiedBy || "-"}
+							</p>
+						</div>
+						<div>
+							<span class="text-slate-400">Waktu Verifikasi:</span>
+							<p class="font-medium text-slate-200 mt-0.5">
+								{currentDetail.verifiedAt ? formatDate(currentDetail.verifiedAt) : "-"}
+							</p>
+						</div>
+					</div>
+
+					{#if currentDetail.catatan}
+						<div class="pt-2 border-t border-slate-800">
+							<span class="text-xs text-slate-400">
+								{currentDetail.status === "ditolak" ? "Alasan Penolakan:" : "Catatan Verifikasi:"}
+							</span>
+							<p class="text-xs text-slate-200 mt-1 bg-slate-900/60 p-2.5 rounded border border-slate-800">
+								{currentDetail.catatan}
+							</p>
+						</div>
+					{/if}
+				</div>
+			{/if}
 
 			<!-- Modal Actions Footer -->
 			<div

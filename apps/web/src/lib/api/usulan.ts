@@ -37,6 +37,8 @@ export interface UsulanItem {
 	kodeUnor: string;
 	status: UsulanStatus;
 	catatan?: string | null;
+	verifiedBy?: string | null;
+	verifiedAt?: string | null;
 	createdAt: string;
 	updatedAt: string;
 	namaPegawai?: string | null;
@@ -61,11 +63,14 @@ function getAuthHeaders(isJson = true): HeadersInit {
 export async function fetchUsulanList(params?: {
 	kode_unor?: string;
 	status?: string;
+	kategori_ubah?: string;
 }): Promise<{ success: boolean; data: UsulanItem[]; message?: string }> {
 	try {
 		const searchParams = new URLSearchParams();
 		if (params?.kode_unor) searchParams.set('kode_unor', params.kode_unor);
 		if (params?.status && params.status !== 'all') searchParams.set('status', params.status);
+		if (params?.kategori_ubah && params.kategori_ubah !== 'all')
+			searchParams.set('kategori_ubah', params.kategori_ubah);
 
 		const url = `/api/usulan${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
 		const res = await fetch(url, {
@@ -208,5 +213,39 @@ export async function deleteUsulan(
 		return await res.json();
 	} catch (err: any) {
 		return { success: false, message: err.message || 'Gagal menghapus usulan' };
+	}
+}
+
+export async function approveUsulan(
+	id: number | string,
+	catatan?: string
+): Promise<{ success: boolean; message?: string }> {
+	try {
+		const res = await fetch(`/api/usulan/${id}/approve`, {
+			method: 'POST',
+			headers: getAuthHeaders(true),
+			body: JSON.stringify({ catatan: catatan?.trim() || undefined }),
+			credentials: 'include'
+		});
+		return await res.json();
+	} catch (err: any) {
+		return { success: false, message: err.message || 'Gagal menyetujui usulan' };
+	}
+}
+
+export async function rejectUsulan(
+	id: number | string,
+	catatan: string
+): Promise<{ success: boolean; message?: string }> {
+	try {
+		const res = await fetch(`/api/usulan/${id}/reject`, {
+			method: 'POST',
+			headers: getAuthHeaders(true),
+			body: JSON.stringify({ catatan }),
+			credentials: 'include'
+		});
+		return await res.json();
+	} catch (err: any) {
+		return { success: false, message: err.message || 'Gagal menolak usulan' };
 	}
 }
