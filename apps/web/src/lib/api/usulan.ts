@@ -39,6 +39,7 @@ export interface UsulanItem {
 	catatan?: string | null;
 	verifiedBy?: string | null;
 	verifiedAt?: string | null;
+	catatanVerifikasi?: string | null;
 	createdAt: string;
 	updatedAt: string;
 	namaPegawai?: string | null;

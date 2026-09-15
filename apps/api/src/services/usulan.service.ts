@@ -110,6 +110,7 @@ export class UsulanService {
         catatan: usulanPerubahan.catatan,
         verifiedBy: usulanPerubahan.verifiedBy,
         verifiedAt: usulanPerubahan.verifiedAt,
+        catatanVerifikasi: usulanPerubahan.catatanVerifikasi,
         createdAt: usulanPerubahan.createdAt,
         updatedAt: usulanPerubahan.updatedAt,
         namaPegawai: pegawai.nama,
@@ -144,6 +145,7 @@ export class UsulanService {
         catatan: usulanPerubahan.catatan,
         verifiedBy: usulanPerubahan.verifiedBy,
         verifiedAt: usulanPerubahan.verifiedAt,
+        catatanVerifikasi: usulanPerubahan.catatanVerifikasi,
         createdAt: usulanPerubahan.createdAt,
         updatedAt: usulanPerubahan.updatedAt,
         namaPegawai: pegawai.nama,
@@ -382,7 +384,8 @@ export class UsulanService {
       .set({
         status: 'diajukan',
         verifiedBy: null,
-        verifiedAt: null
+        verifiedAt: null,
+        catatanVerifikasi: null
       })
       .where(eq(usulanPerubahan.id, id));
 
@@ -479,7 +482,7 @@ export class UsulanService {
         status: 'disetujui',
         verifiedBy: user.username,
         verifiedAt: new Date(),
-        catatan: catatan !== undefined && catatan !== null ? catatan.trim() : existing.catatan
+        catatanVerifikasi: catatan !== undefined && catatan !== null ? catatan.trim() : null
       })
       .where(eq(usulanPerubahan.id, id));
 
@@ -551,7 +554,7 @@ export class UsulanService {
         status: 'ditolak',
         verifiedBy: user.username,
         verifiedAt: new Date(),
-        catatan: input.catatan.trim()
+        catatanVerifikasi: input.catatan.trim()
       })
       .where(eq(usulanPerubahan.id, id));
 

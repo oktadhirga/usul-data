@@ -669,7 +669,7 @@
 	onclose={() => (isDetailOpen = false)}
 	title="Detail Usulan Perubahan Data"
 	description="Informasi lengkap pengajuan perubahan data pegawai dan berkas pendukung."
-	class="max-w-3xl border-slate-800 bg-slate-900 text-slate-100"
+	class="max-w-3xl max-h-[90vh] overflow-y-auto border-slate-800 bg-slate-900 text-slate-100"
 >
 	{#if detailLoading}
 		<div
@@ -920,13 +920,13 @@
 						</div>
 					</div>
 
-					{#if currentDetail.catatan}
+					{#if currentDetail.catatanVerifikasi}
 						<div class="pt-2 border-t border-slate-800">
 							<span class="text-xs text-slate-400">
-								{currentDetail.status === "ditolak" ? "Alasan Penolakan:" : "Catatan Verifikasi:"}
+								{currentDetail.status === "ditolak" ? "Alasan Penolakan dari Admin:" : "Catatan Verifikasi Admin:"}
 							</span>
 							<p class="text-xs text-slate-200 mt-1 bg-slate-900/60 p-2.5 rounded border border-slate-800">
-								{currentDetail.catatan}
+								{currentDetail.catatanVerifikasi}
 							</p>
 						</div>
 					{/if}

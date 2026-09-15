@@ -615,7 +615,7 @@
 			</div>
 
 			<!-- Catatan Pengusul -->
-			{#if currentDetail.catatan && currentDetail.status !== 'ditolak'}
+			{#if currentDetail.catatan}
 				<div class="rounded-lg border border-slate-800/80 bg-slate-900/40 p-3.5">
 					<span class="text-xs font-medium text-slate-400 flex items-center gap-1.5 mb-1">
 						<MessageSquare class="h-3.5 w-3.5 text-slate-400" />
@@ -739,13 +739,13 @@
 							<p class="font-medium text-white">{formatWibDate(currentDetail.verifiedAt)}</p>
 						</div>
 					</div>
-					{#if currentDetail.catatan}
+					{#if currentDetail.catatanVerifikasi}
 						<div class="pt-2 border-t border-slate-800/80">
 							<span class="text-xs text-slate-400">
-								{currentDetail.status === 'ditolak' ? 'Alasan Penolakan:' : 'Catatan Persetujuan:'}
+								{currentDetail.status === 'ditolak' ? 'Alasan Penolakan dari Admin:' : 'Catatan Persetujuan:'}
 							</span>
 							<p class="text-xs text-slate-200 mt-0.5 bg-slate-950/40 p-2.5 rounded border border-slate-800/60">
-								{currentDetail.catatan}
+								{currentDetail.catatanVerifikasi}
 							</p>
 						</div>
 					{/if}
