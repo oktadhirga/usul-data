@@ -1,0 +1,1 @@
+ALTER TABLE `usulan_perubahan` ADD `catatan_verifikasi` text;

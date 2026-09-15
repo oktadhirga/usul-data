@@ -51,6 +51,7 @@
 		ArrowRight,
 		Trash2,
 		Pencil,
+		ShieldCheck
 	} from "lucide-svelte";
 
 	let usulanList = $state<UsulanItem[]>([]);
@@ -593,13 +594,16 @@
 											Detail
 										</Button>
 
-										<!-- Edit / Ajukan Ulang Action (draft atau dibatalkan) -->
-										{#if item.status === "draft" || item.status === "dibatalkan"}
+										<!-- Edit / Ajukan Ulang Action (draft, dibatalkan, atau ditolak) -->
+										{#if item.status === "draft" || item.status === "dibatalkan" || item.status === "ditolak"}
 											<Button
 												variant="outline"
 												size="sm"
 												class={item.status ===
-												"dibatalkan"
+												"ditolak"
+													? "h-8 text-xs border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
+													: item.status ===
+													"dibatalkan"
 													? "h-8 text-xs border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
 													: "h-8 text-xs border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"}
 												onclick={() =>
@@ -610,7 +614,9 @@
 												<Pencil
 													class="h-3.5 w-3.5 mr-1"
 												/>
-												{item.status === "dibatalkan"
+												{item.status === "ditolak"
+													? "Edit & Ajukan Ulang"
+													: item.status === "dibatalkan"
 													? "Edit Usulan"
 													: "Edit Draft"}
 											</Button>
@@ -630,8 +636,8 @@
 											</Button>
 										{/if}
 
-										<!-- Hapus Permanen Action (draft atau dibatalkan) -->
-										{#if item.status === "draft" || item.status === "dibatalkan"}
+										<!-- Hapus Permanen Action (draft, dibatalkan, atau ditolak) -->
+										{#if item.status === "draft" || item.status === "dibatalkan" || item.status === "ditolak"}
 											<Button
 												variant="ghost"
 												size="sm"
@@ -663,7 +669,7 @@
 	onclose={() => (isDetailOpen = false)}
 	title="Detail Usulan Perubahan Data"
 	description="Informasi lengkap pengajuan perubahan data pegawai dan berkas pendukung."
-	class="max-w-3xl border-slate-800 bg-slate-900 text-slate-100"
+	class="max-w-3xl max-h-[90vh] overflow-y-auto border-slate-800 bg-slate-900 text-slate-100"
 >
 	{#if detailLoading}
 		<div
@@ -887,6 +893,46 @@
 				{/if}
 			</div>
 
+			<!-- Audit Verifikasi (Admin Pusat) -->
+			{#if currentDetail.status === "disetujui" || currentDetail.status === "ditolak"}
+				<div class="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-2.5">
+					<div class="flex items-center gap-2">
+						<div class="h-6 w-6 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+							<ShieldCheck class="h-3.5 w-3.5" />
+						</div>
+						<h4 class="text-xs font-semibold uppercase tracking-wider text-slate-300">
+							Hasil Verifikasi Admin Pusat
+						</h4>
+					</div>
+
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+						<div>
+							<span class="text-slate-400">Diverifikasi oleh:</span>
+							<p class="font-medium text-slate-200 mt-0.5">
+								{currentDetail.verifiedBy || "-"}
+							</p>
+						</div>
+						<div>
+							<span class="text-slate-400">Waktu Verifikasi:</span>
+							<p class="font-medium text-slate-200 mt-0.5">
+								{currentDetail.verifiedAt ? formatDate(currentDetail.verifiedAt) : "-"}
+							</p>
+						</div>
+					</div>
+
+					{#if currentDetail.catatanVerifikasi}
+						<div class="pt-2 border-t border-slate-800">
+							<span class="text-xs text-slate-400">
+								{currentDetail.status === "ditolak" ? "Alasan Penolakan dari Admin:" : "Catatan Verifikasi Admin:"}
+							</span>
+							<p class="text-xs text-slate-200 mt-1 bg-slate-900/60 p-2.5 rounded border border-slate-800">
+								{currentDetail.catatanVerifikasi}
+							</p>
+						</div>
+					{/if}
+				</div>
+			{/if}
+
 			<!-- Modal Actions Footer -->
 			<div
 				class="flex items-center justify-between border-t border-slate-800 pt-4"
@@ -907,7 +953,7 @@
 						</Button>
 					{/if}
 
-					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan"}
+					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							variant="outline"
 							class="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-xs"
@@ -924,7 +970,7 @@
 				</div>
 
 				<div class="flex items-center gap-2">
-					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan"}
+					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							variant="outline"
 							class="border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 text-xs"
@@ -935,13 +981,13 @@
 							}}
 						>
 							<Pencil class="h-3.5 w-3.5 mr-1" />
-							{currentDetail.status === "dibatalkan"
-								? "Edit & Ajukan Ulang"
-								: "Edit Draft"}
+							{currentDetail.status === "draft"
+								? "Edit Draft"
+								: "Edit & Ajukan Ulang"}
 						</Button>
 					{/if}
 
-					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan"}
+					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs"
 							disabled={isSubmittingDraft}
@@ -956,9 +1002,9 @@
 								Mengajukan...
 							{:else}
 								<Send class="h-3.5 w-3.5 mr-1" />
-								{currentDetail.status === "dibatalkan"
-									? "Ajukan Kembali"
-									: "Ajukan Usulan"}
+								{currentDetail.status === "draft"
+									? "Ajukan Usulan"
+									: "Ajukan Kembali"}
 							{/if}
 						</Button>
 					{/if}

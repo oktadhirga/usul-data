@@ -182,6 +182,9 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
         kodeUnor: 'UNOR-DINKES',
         status: 'draft',
         catatan: null,
+        verifiedBy: null,
+        verifiedAt: null,
+        catatanVerifikasi: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         details: [],
@@ -217,6 +220,9 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
         kodeUnor: 'UNOR-DINKES',
         status: 'draft',
         catatan: null,
+        verifiedBy: null,
+        verifiedAt: null,
+        catatanVerifikasi: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         details: [],
@@ -465,6 +471,51 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
       const body = await res.json();
       expect(body.success).toBe(true);
     });
+
+    it('Allows updating usulan when in ditolak status', async () => {
+      spyOn(UsulanService, 'updateUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan berhasil diperbarui'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101', {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            catatan: 'Perbaikan dokumen dan rincian sesuai arahan verifikator'
+          })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil diperbarui');
+    });
+
+    it('Allows resubmitting usulan from ditolak status', async () => {
+      spyOn(UsulanService, 'submitUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan perubahan data berhasil diajukan'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/submit', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`
+          }
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+    });
   });
 
   describe('Delete Usulan Permanently', () => {
@@ -487,6 +538,132 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
       const body = await res.json();
       expect(body.success).toBe(true);
       expect(body.message).toContain('berhasil dihapus');
+    });
+  });
+
+  describe('Verifikasi Usulan (Approval & Rejection)', () => {
+    it('AdminOPD is forbidden from approving usulan (403)', async () => {
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/approve', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ catatan: 'Disetujui' })
+        })
+      );
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.message).toContain('Forbidden');
+    });
+
+    it('AdminOPD is forbidden from rejecting usulan (403)', async () => {
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/reject', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ catatan: 'Berkas tidak lengkap' })
+        })
+      );
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.message).toContain('Forbidden');
+    });
+
+    it('Admin can approve usulan with status diajukan (200)', async () => {
+      spyOn(UsulanService, 'approveUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan berhasil disetujui dan data pegawai telah diperbarui'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/approve', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ catatan: 'Data terverifikasi dan sesuai' })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil disetujui');
+    });
+
+    it('Admin cannot reject usulan without catatan (422 Unprocessable Entity)', async () => {
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/reject', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        })
+      );
+
+      expect(res.status).toBe(422);
+    });
+
+    it('Admin can reject usulan with valid catatan (200)', async () => {
+      spyOn(UsulanService, 'rejectUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan berhasil ditolak'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/reject', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ catatan: 'SK Pengangkatan belum dilampirkan' })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil ditolak');
+    });
+
+    it('Admin can query usulan list with kategori_ubah filter', async () => {
+      const mockList: any[] = [
+        {
+          id: 101,
+          pegawaiId: 10,
+          kodeUnor: 'UNOR-DINKES',
+          status: 'diajukan',
+          catatan: 'Pengajuan jabatan baru'
+        }
+      ];
+      spyOn(UsulanService, 'getAll').mockResolvedValueOnce(mockList);
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan?kategori_ubah=Jabatan', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${adminToken}`
+          }
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.data).toHaveLength(1);
     });
   });
 });
