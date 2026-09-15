@@ -45,19 +45,19 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
   - Hapus Permanen: Usulan berstatus `draft`, `dibatalkan`, atau `ditolak` dapat dihapus permanen, menghapus data di DB beserta fisik berkas dokumen di server (`uploads/`).
   - Format Waktu: Menampilkan zona waktu Indonesia Barat (WIB / GMT+7).
 - **Fitur Verifikasi Usulan (Admin Pusat)**:
-  - Audit Trail: Kolom `verified_by` (menyimpan username admin yang memverifikasi), `verified_at` (waktu eksekusi verifikasi), dan `catatan` langsung pada tabel `usulan_perubahan`.
+  - Audit Trail: Kolom `verified_by` (menyimpan username admin yang memverifikasi), `verified_at` (waktu eksekusi verifikasi), dan `catatan_verifikasi` pada tabel `usulan_perubahan` (dipisahkan dari `catatan` pengusul agar tidak saling menimpa).
   - Sinkronisasi Master Pegawai: Approval usulan secara otomatis memperbarui kolom data bersangkutan pada tabel master `pegawai` (nama, nip, jabatan, kodeUnor). Untuk jenis usulan `hapus`, tidak ada tindakan penghapusan otomatis sesuai kesepakatan spesifikasi.
   - Penolakan Usulan: Mewajibkan admin memberikan catatan / alasan penolakan sebelum status diubah menjadi `ditolak`.
   - Preview Dokumen: Dilakukan via tautan berkas yang membuka langsung dokumen PDF pada tab peramban baru (`target="_blank"`).
-  - Feedback OPD: Detail usulan pada halaman OPD menampilkan informasi verifikator, waktu verifikasi, dan catatan/alasan penolakan dari admin pusat.
+  - Feedback OPD: Detail usulan pada halaman OPD menampilkan informasi verifikator, waktu verifikasi, dan catatan/alasan penolakan dari admin pusat secara terpisah dari catatan pengusul, serta dilengkapi modal responsif dengan scrollbar vertikal.
 
 ## 4. Known Issues / Technical Debt
 
-- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 52 skenario pengujian komprehensif).
+- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 54 skenario pengujian komprehensif).
 
 ## 5. Yang Sedang Dikerjakan (In Progress)
 
-- (Fitur verifikasi usulan oleh Admin Pusat telah selesai diimplementasikan)
+- Tidak ada (Seluruh cakupan fitur verifikasi usulan telah selesai dan siap di-merge)
 
 ## 6. Yang Sengaja Belum Dikerjakan
 
