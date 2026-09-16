@@ -7,6 +7,7 @@
 	import { fetchUnorList, type UnorItem } from '$lib/api/pegawai';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import NotificationBell from '$lib/components/NotificationBell.svelte';
 	import {
 		LayoutDashboard,
 		Users,
@@ -72,18 +73,21 @@
 				</div>
 				<span>Usul Data</span>
 			</div>
-			<button
-				type="button"
-				class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
-				onclick={() => isMobileMenuOpen = !isMobileMenuOpen}
-				aria-label="Toggle menu"
-			>
-				{#if isMobileMenuOpen}
-					<X class="h-5 w-5" />
-				{:else}
-					<Menu class="h-5 w-5" />
-				{/if}
-			</button>
+			<div class="flex items-center gap-2">
+				<NotificationBell />
+				<button
+					type="button"
+					class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+					onclick={() => isMobileMenuOpen = !isMobileMenuOpen}
+					aria-label="Toggle menu"
+				>
+					{#if isMobileMenuOpen}
+						<X class="h-5 w-5" />
+					{:else}
+						<Menu class="h-5 w-5" />
+					{/if}
+				</button>
+			</div>
 		</div>
 
 		<!-- Sidebar -->
@@ -239,7 +243,7 @@
 		<!-- Main Content Area -->
 		<div class="flex-1 flex flex-col min-w-0 overflow-hidden">
 			<!-- Desktop Top Header -->
-			<header class="hidden md:flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900/60 px-8 backdrop-blur-md">
+			<header class="relative z-40 hidden md:flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900/60 px-8 backdrop-blur-md">
 				<div class="flex items-center gap-3">
 					<span class="text-xs uppercase tracking-wider font-semibold text-indigo-400 bg-indigo-950/60 border border-indigo-800/40 px-2.5 py-1 rounded-md">
 						RBAC Portal
@@ -252,7 +256,9 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center gap-3">
+				<div class="flex items-center gap-4">
+					<NotificationBell />
+					<div class="h-6 w-px bg-slate-800"></div>
 					{#if authState.user}
 						<div class="text-right">
 							<div class="text-xs font-semibold text-slate-200">{authState.user.username}</div>

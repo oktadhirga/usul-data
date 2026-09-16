@@ -5,7 +5,7 @@
 > "aplikasi ini sekarang sudah bisa apa, dan kenapa dibangun begitu" tanpa harus
 > baca seluruh git history atau semua PRD satu-satu.
 
-Terakhir diupdate: 15 September 2026
+Terakhir diupdate: 16 September 2026
 
 ---
 
@@ -23,6 +23,7 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
 | **Profil Pengguna** | Selesai | `users` / `/profile` | Menampilkan info user yang sedang login. |
 | **Usulan Ubah Data Pegawai** | Selesai | `usulan` / `/usulan`, `/usulan/baru` | Pengajuan perubahan data via wizard 5 langkah, upload berkas PDF (maks 1 MB), pembatalan usulan, edit & ajukan kembali usulan dibatalkan/draft, serta hapus usulan secara permanen (DB cascade & berkas fisik). |
 | **Verifikasi Usulan Pegawai** | Selesai | `usulan` / `/verifikasi` | Dashboard Admin Pusat untuk verifikasi usulan masuk, preview dokumen PDF di tab baru, approval (memicu sinkronisasi update otomatis ke tabel pegawai), penolakan dengan catatan wajib, serta pencatatan audit log verifikator (`verified_by` username & `verified_at`). |
+| **Notifikasi In-App** | Selesai | `notifikasi` / Header Bell | Notifikasi perubahan status usulan (diajukan, disetujui, ditolak) untuk Admin & AdminOPD, icon lonceng di header, badge jumlah unread, popover dropdown interaktif, dan penanda dibaca. |
 
 ## 3. Keputusan Arsitektur Penting
 
@@ -50,14 +51,18 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
   - Penolakan Usulan: Mewajibkan admin memberikan catatan / alasan penolakan sebelum status diubah menjadi `ditolak`.
   - Preview Dokumen: Dilakukan via tautan berkas yang membuka langsung dokumen PDF pada tab peramban baru (`target="_blank"`).
   - Feedback OPD: Detail usulan pada halaman OPD menampilkan informasi verifikator, waktu verifikasi, dan catatan/alasan penolakan dari admin pusat secara terpisah dari catatan pengusul, serta dilengkapi modal responsif dengan scrollbar vertikal.
+- **Fitur Notifikasi In-App**:
+  - Tabel `notifikasi` di MySQL berelasi dengan tabel `users`.
+  - Trigger otomatis: saat usulan diajukan (mengirim ke role `Admin`), serta saat usulan disetujui atau ditolak (mengirim ke role `AdminOPD` pada UNOR terkait).
+  - UI Frontend: Komponen `NotificationBell` terpasang di header mobile & desktop dengan badge counter unread, popover daftar notifikasi, opsi tandai semua dibaca, dan redirect rute ke usulan terkait (non-realtime via HTTP fetch on load).
 
 ## 4. Known Issues / Technical Debt
 
-- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 54 skenario pengujian komprehensif).
+- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 59 skenario pengujian komprehensif termasuk notifikasi).
 
 ## 5. Yang Sedang Dikerjakan (In Progress)
 
-- Tidak ada (Seluruh cakupan fitur verifikasi usulan telah selesai dan siap di-merge)
+- Tidak ada (Seluruh cakupan fitur notifikasi in-app telah selesai dan siap di-merge)
 
 ## 6. Yang Sengaja Belum Dikerjakan
 

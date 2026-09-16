@@ -18,6 +18,7 @@ import {
 } from '@usul-data/shared';
 import type { AuthUser } from '../middleware/auth';
 import { PegawaiService } from './pegawai.service';
+import { NotificationService } from './notification.service';
 import path from 'path';
 import fs from 'fs';
 
@@ -389,6 +390,18 @@ export class UsulanService {
       })
       .where(eq(usulanPerubahan.id, id));
 
+    try {
+      const nip = existing.nipPegawai || existing.pegawaiId;
+      const namaUnor = existing.namaUnor || existing.kodeUnor;
+      await NotificationService.notifyAdmins(
+        'Usulan Baru Diajukan',
+        `Usulan data (${nip} - ${namaUnor}) telah diajukan.`,
+        '/verifikasi'
+      );
+    } catch (notifErr) {
+      console.error('Gagal mengirim notifikasi pengajuan usulan:', notifErr);
+    }
+
     return {
       success: true,
       message: 'Usulan perubahan data berhasil diajukan'
@@ -520,6 +533,18 @@ export class UsulanService {
         .where(eq(pegawai.id, existing.pegawaiId));
     }
 
+    try {
+      const nip = existing.nipPegawai || existing.pegawaiId;
+      await NotificationService.notifyUnor(
+        existing.kodeUnor,
+        'Usulan Disetujui',
+        `Usulan data (${nip}) disetujui oleh ${user.username}.`,
+        '/usulan'
+      );
+    } catch (notifErr) {
+      console.error('Gagal mengirim notifikasi approval usulan:', notifErr);
+    }
+
     return {
       success: true,
       message: 'Usulan berhasil disetujui dan data pegawai telah diperbarui'
@@ -557,6 +582,18 @@ export class UsulanService {
         catatanVerifikasi: input.catatan.trim()
       })
       .where(eq(usulanPerubahan.id, id));
+
+    try {
+      const nip = existing.nipPegawai || existing.pegawaiId;
+      await NotificationService.notifyUnor(
+        existing.kodeUnor,
+        'Usulan Ditolak',
+        `Usulan data (${nip}) ditolak oleh ${user.username}. Catatan: ${input.catatan.trim()}`,
+        '/usulan'
+      );
+    } catch (notifErr) {
+      console.error('Gagal mengirim notifikasi penolakan usulan:', notifErr);
+    }
 
     return {
       success: true,
