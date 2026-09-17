@@ -5,7 +5,7 @@
 > "aplikasi ini sekarang sudah bisa apa, dan kenapa dibangun begitu" tanpa harus
 > baca seluruh git history atau semua PRD satu-satu.
 
-Terakhir diupdate: 16 September 2026
+Terakhir diupdate: 17 September 2026
 
 ---
 
@@ -24,11 +24,17 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
 | **Usulan Ubah Data Pegawai** | Selesai | `usulan` / `/usulan`, `/usulan/baru` | Pengajuan perubahan data via wizard 5 langkah, upload berkas PDF (maks 1 MB), pembatalan usulan, edit & ajukan kembali usulan dibatalkan/draft, serta hapus usulan secara permanen (DB cascade & berkas fisik). |
 | **Verifikasi Usulan Pegawai** | Selesai | `usulan` / `/verifikasi` | Dashboard Admin Pusat untuk verifikasi usulan masuk, preview dokumen PDF di tab baru, approval (memicu sinkronisasi update otomatis ke tabel pegawai), penolakan dengan catatan wajib, serta pencatatan audit log verifikator (`verified_by` username & `verified_at`). |
 | **Notifikasi In-App** | Selesai | `notifikasi` / Header Bell | Notifikasi perubahan status usulan (diajukan, disetujui, ditolak) untuk Admin & AdminOPD, icon lonceng di header, badge jumlah unread, popover dropdown interaktif, dan penanda dibaca. |
+| **Dashboard & Laporan Excel** | Selesai | `dashboard` / `/` | Dashboard ringkasan analitik usulan perubahan data aparatur sipil (5 Summary Cards: total, diajukan, disetujui, ditolak, draft/batal; distribusi per UNOR; distribusi per kategori; rekap aktivitas bulanan), filter interaktif tahun/bulan/status/UNOR, dan export laporan lengkap berformat Excel (.xlsx) dengan otorisasi RBAC (Admin Pusat vs AdminOPD). |
 
 ## 3. Keputusan Arsitektur Penting
 
 - **Monorepo**: Menggunakan workspace `bun` (`apps/api`, `apps/web`, `packages/shared`) untuk mempermudah sharing kode dan typing.
 - **Backend API**: Menggunakan **ElysiaJS**.
+- **Fitur Dashboard & Laporan Excel**:
+  - Endpoint analitik `GET /api/dashboard/stats` mengagregasi data usulan per status, per unit kerja (UNOR), per kategori field data, dan tren bulanan dalam tahun kalender via Drizzle ORM query.
+  - Otorisasi data otomatis (RBAC): `AdminOPD` hanya memperoleh agregasi dan data laporan untuk UNOR miliknya (`scopeUnor`), sedangkan `Admin` Pusat mendapatkan statistik global lintas UNOR dengan kebebasan memilih filter spesifik.
+  - Endpoint ekspor `GET /api/dashboard/export` menghasilkan file Microsoft Excel (.xlsx) menggunakan pustaka `exceljs`, lengkap dengan styling warna header, alignment, format tanggal Indonesia, dan rincian perubahan usulan.
+  - Halaman Dashboard SvelteKit 5 ditempatkan sebagai landing page utama (`/`) setelah autentikasi, menyajikan kartu metrik responsif, tabel rekapitulasi performa UNOR, breakdown kategori dengan indikator visual persentase, dan pengunduh file Excel terintegrasi.
 - **Frontend Web**: Menggunakan **SvelteKit 5** dengan TailwindCSS 4.
 - **Komunikasi API**: Frontend menggunakan modul API client terisolasi untuk interaksi backend yang type-safe.
 - **Database**: Menggunakan MySQL dengan **Drizzle ORM**. Skema database dan relasi diletakkan di `packages/shared/src/schema` agar bisa dipakai baik oleh API maupun Web.
@@ -58,11 +64,11 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
 
 ## 4. Known Issues / Technical Debt
 
-- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 59 skenario pengujian komprehensif termasuk notifikasi).
+- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 67 skenario pengujian komprehensif termasuk notifikasi, dashboard stats, dan export excel).
 
 ## 5. Yang Sedang Dikerjakan (In Progress)
 
-- Tidak ada (Seluruh cakupan fitur notifikasi in-app telah selesai dan siap di-merge)
+- Tidak ada (Seluruh cakupan fitur dashboard analitik dan ekspor laporan Excel telah selesai dan siap di-merge)
 
 ## 6. Yang Sengaja Belum Dikerjakan
 

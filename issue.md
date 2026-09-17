@@ -1,37 +1,30 @@
-# Planning Fitur Notifikasi In-App
+# Planning Fitur Dashboard dan Laporan
 
 ## Deskripsi Singkat
-Fitur untuk memberikan notifikasi di dalam aplikasi (in-app) kepada user ketika terjadi perubahan status pada Usulan Data Pegawai.
+Implementasi fitur dashboard sebagai halaman utama (*landing page*) untuk melihat ringkasan statistik usulan perubahan data, beserta kemampuan export laporan ke format Excel (.xlsx). Eksekusi ini mencakup backend (API) dan frontend (Web), dengan tetap memperhatikan hak akses role (Admin vs AdminOPD).
 
-## 1. Skema Database (Drizzle ORM)
-Buat tabel baru `notifikasi` di `packages/shared/src/schema`:
-- `id`: tipe identifier (menyesuaikan konvensi yang ada, misal integer/serial atau varchar/uuid)
-- `user_id`: relasi ke tabel `users` (target penerima notifikasi)
-- `judul`: varchar (misal: "Usulan Disetujui")
-- `pesan`: text (misal: "Usulan ubah data untuk NIP 123... telah disetujui")
-- `is_read`: boolean (default `false`)
-- `link`: varchar (opsional, URL path untuk mengarahkan user saat notifikasi diklik, misal `/usulan/123`)
-- `created_at`: timestamp
+## 1. Backend (apps/api)
+- **Endpoint Statistik (`GET /dashboard/stats`)**
+  - Buat query menggunakan Drizzle ORM untuk mengambil agregasi data dari tabel `usulan_perubahan`.
+  - Agregasi yang diperlukan:
+    - Jumlah usulan berdasarkan **status** (diajukan, disetujui, ditolak, dll).
+    - Jumlah usulan berdasarkan **periode** (bulan/tahun).
+    - Jumlah usulan berdasarkan **UNOR** (unit organisasi).
+  - **Otorisasi / RBAC**: Jika user yang mengakses adalah `AdminOPD`, *wajib* filter data berdasarkan `kodeUnor` user tersebut (hanya melihat data UNOR-nya). `Admin` Pusat dapat melihat semua data.
+- **Endpoint Export (`GET /dashboard/export`)**
+  - Buat endpoint untuk mendownload daftar laporan usulan.
+  - Endpoint ini menerima query parameter (seperti periode, status, unor) dan mengembalikan file dalam format **Excel (.xlsx)**. (Catatan: bisa pertimbangkan penambahan *library* pendukung seperti `exceljs` atau `xlsx` untuk men-generate file Excel di sisi server).
 
-## 2. Backend API (ElysiaJS)
-Buat modul API baru untuk notifikasi:
-- `GET /api/notifications`: Mengambil daftar notifikasi milik user yang sedang login, diurutkan dari yang terbaru.
-- `PATCH /api/notifications/:id/read`: Mengubah status `is_read` menjadi `true`.
-- **Trigger/Hook Notifikasi**: 
-  - **Saat Verifikasi (Untuk Admin OPD)**: Modifikasi endpoint verifikasi usulan (`disetujui` / `ditolak`). Saat Admin Pusat melakukan verifikasi, sistem menambahkan record notifikasi untuk Admin OPD yang membuat usulan tersebut.
-  - **Saat Pengajuan (Untuk Admin Pusat)**: Modifikasi endpoint pengajuan usulan (`draft` -> `diajukan`). Saat Admin OPD mengajukan usulan, sistem menambahkan notifikasi untuk role Admin Pusat.
+## 2. Frontend (apps/web)
+- **Halaman Dashboard UI (`/` - Halaman Utama setelah Login)**
+  - Jadikan halaman Dashboard ini sebagai default routing (rute pendaratan) sesudah user berhasil login.
+  - Buat UI Dashboard yang responsif menggunakan SvelteKit 5 dan TailwindCSS 4.
+  - Tampilkan *Summary Cards* (Kartu Ringkasan) untuk metrik utama: Total Usulan, Disetujui, Ditolak, dan Menunggu Verifikasi.
+  - Buat komponen tabel atau list standar untuk melihat sebaran per UNOR (bagi Admin) atau tren bulanan (Sementara ini **tidak** menggunakan *library* grafik tambahan/chart).
+  - Fetch data menggunakan modul API client yang sudah ada.
+- **Tombol Export**
+  - Tambahkan tombol "Export Data (Excel)" di UI Dashboard.
+  - Saat diklik, panggil endpoint export dan picu browser untuk mengunduh file `.xlsx` hasil export.
 
-## 3. Frontend Web (SvelteKit)
-- **Komponen Navbar/Header**:
-  - Tambahkan icon Bell (Lonceng).
-  - Tampilkan indikator/badge (angka atau titik merah) jika terdapat notifikasi yang belum dibaca (`is_read == false`).
-- **Dropdown Notifikasi**:
-  - Saat icon Bell diklik, tampilkan daftar notifikasi terbaru dalam bentuk dropdown/popover.
-- **Interaksi**:
-  - Jika item notifikasi diklik, panggil endpoint pembacaan notifikasi lalu arahkan user ke halaman `link` yang tertera (misal detail usulan).
-  - Ambil data notifikasi menggunakan request HTTP/fetch standar setiap kali layout atau halaman dimuat. Tidak perlu mengimplementasikan *real-time* (WebSocket/SSE) untuk versi ini.
-
----
-**Catatan untuk Eksekusi (Junior/AI):**
-- Ikuti standar penulisan kode monorepo yang sudah ada (struktur Drizzle schema, Elysia controllers, dan API client SvelteKit).
-- Jangan ubah skema tabel yang sudah ada secara asal, cukup tambahkan yang diperlukan.
+## 3. Packages Shared (packages/shared)
+- Tidak ada perubahan skema database (schema/tabel baru) yang diperlukan. Cukup manfaatkan tabel `usulan_perubahan`, `pegawai`, dan `unor` yang sudah ada, serta membuat query yang efisien.

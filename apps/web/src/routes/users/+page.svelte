@@ -9,6 +9,7 @@
 		deleteUser,
 		type UserItem
 	} from '$lib/api/users';
+	import { fetchUnorList, type UnorItem } from '$lib/api/pegawai';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -31,7 +32,9 @@
 	} from 'lucide-svelte';
 
 	let users = $state<UserItem[]>([]);
+	let unorList = $state<UnorItem[]>([]);
 	let isLoading = $state(false);
+	let isLoadingUnor = $state(false);
 	let searchQuery = $state('');
 	let alertMessage = $state<{ type: 'success' | 'destructive'; title: string; desc: string } | null>(null);
 
@@ -76,12 +79,22 @@
 		}
 	}
 
+	async function loadUnorList() {
+		isLoadingUnor = true;
+		const res = await fetchUnorList();
+		isLoadingUnor = false;
+		if (res.success && Array.isArray(res.data)) {
+			unorList = res.data;
+		}
+	}
+
 	onMount(() => {
 		if (authState.isInitialized && !authState.isAdmin) {
 			goto('/');
 			return;
 		}
 		loadUsers();
+		loadUnorList();
 	});
 
 	$effect(() => {
@@ -106,7 +119,7 @@
 			username: '',
 			password: '',
 			role: 'AdminOPD',
-			kodeUnor: ''
+			kodeUnor: unorList[0]?.kodeUnor || ''
 		};
 		isCreateOpen = true;
 	}
@@ -326,10 +339,15 @@
 								</TableCell>
 								<TableCell>
 									{#if u.kodeUnor}
-										<span class="inline-flex items-center gap-1 font-mono text-xs text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">
-											<Building2 class="h-3 w-3" />
-											{u.kodeUnor}
-										</span>
+										{@const found = unorList.find((un) => un.kodeUnor === u.kodeUnor)}
+										<div class="flex flex-col">
+											<span class="text-xs font-medium text-slate-200">
+												{found ? found.namaUnor : u.kodeUnor}
+											</span>
+											<span class="font-mono text-[10px] text-slate-500">
+												{u.kodeUnor}
+											</span>
+										</div>
 									{:else}
 										<span class="text-xs text-slate-500 italic">Semua / None</span>
 									{/if}
@@ -421,17 +439,23 @@
 
 			{#if createForm.role === 'AdminOPD'}
 				<div class="space-y-1.5">
-					<Label for="c-kodeUnor" class="text-xs">Kode Unit Organisasi (UNOR)</Label>
-					<Input
+					<Label for="c-kodeUnor" class="text-xs">Unit Organisasi (UNOR)</Label>
+					<select
 						id="c-kodeUnor"
-						type="text"
-						placeholder="cth: UNOR-101 / DISKOMINFO"
+						class="flex h-10 w-full rounded-lg border border-slate-700/80 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 						bind:value={createForm.kodeUnor}
 						required
-						disabled={isCreating}
-					/>
+						disabled={isCreating || isLoadingUnor}
+					>
+						<option value="" disabled>-- Pilih Unit Organisasi --</option>
+						{#each unorList as u}
+							<option value={u.kodeUnor}>
+								{u.namaUnor} ({u.kodeUnor})
+							</option>
+						{/each}
+					</select>
 					<p class="text-[11px] text-slate-400">
-						Akun AdminOPD akan difilter hanya dapat mengakses data dengan kode UNOR ini.
+						Akun AdminOPD akan difilter hanya dapat mengakses data dengan unit organisasi ini.
 					</p>
 				</div>
 			{/if}
@@ -513,15 +537,21 @@
 
 			{#if editForm.role === 'AdminOPD'}
 				<div class="space-y-1.5">
-					<Label for="e-kodeUnor" class="text-xs">Kode Unit Organisasi (UNOR)</Label>
-					<Input
+					<Label for="e-kodeUnor" class="text-xs">Unit Organisasi (UNOR)</Label>
+					<select
 						id="e-kodeUnor"
-						type="text"
-						placeholder="cth: UNOR-101"
+						class="flex h-10 w-full rounded-lg border border-slate-700/80 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 						bind:value={editForm.kodeUnor}
 						required
-						disabled={isUpdating}
-					/>
+						disabled={isUpdating || isLoadingUnor}
+					>
+						<option value="" disabled>-- Pilih Unit Organisasi --</option>
+						{#each unorList as u}
+							<option value={u.kodeUnor}>
+								{u.namaUnor} ({u.kodeUnor})
+							</option>
+						{/each}
+					</select>
 				</div>
 			{/if}
 		</form>
