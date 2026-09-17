@@ -200,9 +200,31 @@ describe('Dashboard and Reporting Feature Test Suite', () => {
     });
   });
 
-  describe('DashboardService.generateExcelReport direct generation', () => {
+  describe('DashboardService.generateWorkbookFromData direct generation', () => {
     it('generates a valid excel binary buffer with ZIP/XLSX header', async () => {
-      const buffer = await DashboardService.generateExcelReport({});
+      const mockRows = [
+        {
+          id: 1,
+          createdAt: new Date(),
+          nipPegawai: '198501012010011001',
+          namaPegawai: 'Dr. Ahmad Fauzi',
+          jabatanPegawai: 'Kepala Bidang',
+          namaUnor: 'Dinas Kesehatan',
+          status: 'disetujui',
+          catatan: 'Catatan usulan',
+          verifiedBy: 'admin',
+          verifiedAt: new Date(),
+          catatanVerifikasi: 'Disetujui lengkap'
+        }
+      ];
+      const mockDetails = new Map<number, string[]>([
+        [1, ['Data Pribadi (ubah: nama)']]
+      ]);
+
+      const buffer = await DashboardService.generateWorkbookFromData(mockRows, mockDetails, {
+        unorLabel: 'Unit: Dinas Kesehatan',
+        periodLabel: 'Periode: 2026'
+      });
       expect(Buffer.isBuffer(buffer)).toBe(true);
       expect(buffer.length).toBeGreaterThan(100);
       // Valid XLSX file begins with ZIP local file header bytes [0x50, 0x4B] ('PK')

@@ -305,6 +305,37 @@ export class DashboardService {
       }
     }
 
+    let unorLabel = 'Seluruh Unit Organisasi';
+    if (effectiveKodeUnor) {
+      const unorRecord = await db
+        .select({ namaUnor: unor.namaUnor })
+        .from(unor)
+        .where(eq(unor.kodeUnor, effectiveKodeUnor))
+        .limit(1);
+      if (unorRecord[0]?.namaUnor) {
+        unorLabel = `Unit: ${unorRecord[0].namaUnor}`;
+      } else {
+        unorLabel = 'Unit Organisasi Terpilih';
+      }
+    }
+    const periodLabel = params.tahun
+      ? `Periode: ${params.bulan ? BULAN_NAMES[params.bulan - 1] + ' ' : ''}${params.tahun}`
+      : 'Semua Periode';
+
+    return this.generateWorkbookFromData(rows, detailsByUsulan, {
+      unorLabel,
+      periodLabel
+    });
+  }
+
+  static async generateWorkbookFromData(
+    rows: any[],
+    detailsByUsulan: Map<number, string[]>,
+    options: {
+      unorLabel?: string;
+      periodLabel?: string;
+    }
+  ): Promise<Buffer> {
     // Inisialisasi Excel Workbook
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Sistem Usul Data Kepegawaian';
@@ -330,22 +361,8 @@ export class DashboardService {
     // Subtitle Info Periode / UNOR (Tanpa Unor ID)
     worksheet.mergeCells('A2:K2');
     const subtitleCell = worksheet.getCell('A2');
-    let unorLabel = 'Seluruh Unit Organisasi';
-    if (effectiveKodeUnor) {
-      const unorRecord = await db
-        .select({ namaUnor: unor.namaUnor })
-        .from(unor)
-        .where(eq(unor.kodeUnor, effectiveKodeUnor))
-        .limit(1);
-      if (unorRecord[0]?.namaUnor) {
-        unorLabel = `Unit: ${unorRecord[0].namaUnor}`;
-      } else {
-        unorLabel = 'Unit Organisasi Terpilih';
-      }
-    }
-    const periodLabel = params.tahun
-      ? `Periode: ${params.bulan ? BULAN_NAMES[params.bulan - 1] + ' ' : ''}${params.tahun}`
-      : 'Semua Periode';
+    const unorLabel = options.unorLabel || 'Seluruh Unit Organisasi';
+    const periodLabel = options.periodLabel || 'Semua Periode';
     subtitleCell.value = `${unorLabel} | ${periodLabel} | Dicetak: ${new Date().toLocaleDateString('id-ID')}`;
     subtitleCell.font = { name: 'Calibri', size: 10, italic: true, color: { argb: 'FF64748B' } };
     subtitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -411,7 +428,7 @@ export class DashboardService {
         row.jabatanPegawai || '-',
         row.namaUnor || '-',
         detailsText,
-        row.status.toUpperCase(),
+        row.status ? String(row.status).toUpperCase() : '-',
         row.catatan || '-',
         verifikasiText,
         row.catatanVerifikasi || '-'
