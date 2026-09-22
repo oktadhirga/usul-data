@@ -6,6 +6,7 @@ import { unorRoute } from './unor.route';
 import { pegawaiRoute } from './pegawai.route';
 import { usulanRoute, uploadsRoute } from './usulan.route';
 import { notificationRoute } from './notification.route';
+import { dashboardRoute } from './dashboard.route';
 import { authContext, requireAuth, resolveUnorScope } from '../middleware/auth';
 
 
@@ -18,6 +19,7 @@ export const appRoutes = new Elysia({ prefix: '/api' })
   .use(usulanRoute)
   .use(uploadsRoute)
   .use(notificationRoute)
+  .use(dashboardRoute)
   // Demo endpoint untuk memverifikasi scoping kode_unor (resolveUnorScope)
   .use(authContext)
   .use(requireAuth)
