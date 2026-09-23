@@ -1,4 +1,4 @@
-# Progress & Status Aplikasi: Usul Data Monorepo
+# Progress & Status Aplikasi: ASN-Sync (Usul Data Monorepo)
 
 > File ini diupdate SETIAP fitur/sub-fitur besar selesai — bukan tiap commit kecil.
 > Tujuannya: siapapun (manusia atau AI) yang baru mulai sesi baru bisa cepat paham
@@ -10,7 +10,7 @@ Terakhir diupdate: 23 September 2026
 ---
 
 ## 1. Ringkasan Aplikasi
-Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, verifikasi usulan oleh Admin Pusat, dashboard analitik & ekspor Excel, serta tema tampilan Dark Mode dan Light Mode.
+Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negara (**ASN-Sync**) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, verifikasi usulan oleh Admin Pusat, dashboard analitik & ekspor Excel, serta tema tampilan Dark Mode dan Light Mode.
 
 ## 2. Fitur yang Sudah Ada
 

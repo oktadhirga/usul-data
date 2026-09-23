@@ -58,7 +58,7 @@
 </script>
 
 <svelte:head>
-	<title>Usul Data - Sistem Kepegawaian & Verifikasi Data</title>
+	<title>ASN-Sync - Sistem Pengusulan & Verifikasi Data Pegawai</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
@@ -69,10 +69,10 @@
 		<!-- Mobile Header -->
 		<div class="md:hidden flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-4 py-3 sticky top-0 z-40 backdrop-blur-md">
 			<div class="flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
-				<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-black text-sm">
-					UD
+				<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-black text-sm tracking-wider">
+					AS
 				</div>
-				<span>Usul Data</span>
+				<span>ASN-Sync</span>
 			</div>
 			<div class="flex items-center gap-2">
 				<ThemeToggle />
@@ -101,12 +101,12 @@
 			<div class="space-y-6">
 				<!-- Brand Logo -->
 				<div class="flex items-center gap-3 px-2 py-1">
-					<div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-base shadow-md shadow-indigo-600/20">
-						UD
+					<div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-base shadow-md shadow-indigo-600/20 tracking-wider">
+						AS
 					</div>
 					<div>
-						<h1 class="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-none">Usul Data</h1>
-						<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sistem Kepegawaian & RBAC</p>
+						<h1 class="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-none">ASN-Sync</h1>
+						<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sistem Pengusulan & Verifikasi ASN</p>
 					</div>
 				</div>
 
@@ -248,7 +248,7 @@
 			<header class="relative z-40 hidden md:flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 px-8 backdrop-blur-md">
 				<div class="flex items-center gap-3">
 					<span class="text-xs uppercase tracking-wider font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/40 px-2.5 py-1 rounded-md">
-						RBAC Portal
+						ASN-Sync Portal
 					</span>
 					{#if authState.user?.kodeUnor}
 						<span class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 px-3 py-1 rounded-md">

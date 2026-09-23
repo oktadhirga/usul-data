@@ -227,7 +227,7 @@
 </script>
 
 <svelte:head>
-	<title>Manajemen Akun Pengguna - Usul Data</title>
+	<title>Manajemen Akun Pengguna - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6 max-w-6xl mx-auto">

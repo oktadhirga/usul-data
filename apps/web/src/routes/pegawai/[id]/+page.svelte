@@ -82,7 +82,7 @@
 </script>
 
 <svelte:head>
-	<title>Detail Pegawai {pegawai?.nama ? `- ${pegawai.nama}` : ''} - Usul Data</title>
+	<title>Detail Pegawai {pegawai?.nama ? `- ${pegawai.nama}` : ''} - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6 max-w-4xl mx-auto">

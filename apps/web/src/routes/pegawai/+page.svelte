@@ -265,7 +265,7 @@
 </script>
 
 <svelte:head>
-	<title>Daftar Pegawai - Usul Data</title>
+	<title>Daftar Pegawai - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6 max-w-7xl mx-auto">

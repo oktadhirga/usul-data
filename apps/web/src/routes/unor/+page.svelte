@@ -40,7 +40,7 @@
 </script>
 
 <svelte:head>
-	<title>Master Unit Organisasi (UNOR) - Usul Data</title>
+	<title>Master Unit Organisasi (UNOR) - ASN-Sync</title>
 </svelte:head>
 
 <div class="max-w-7xl mx-auto space-y-6">

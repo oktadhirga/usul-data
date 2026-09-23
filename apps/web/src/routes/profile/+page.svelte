@@ -78,7 +78,7 @@
 </script>
 
 <svelte:head>
-	<title>Profil & Keamanan Akun - Usul Data</title>
+	<title>Profil & Keamanan Akun - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6 max-w-4xl mx-auto">

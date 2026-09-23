@@ -152,7 +152,7 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard Analitik & Statistik - Usul Data</title>
+	<title>Dashboard Analitik & Statistik - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6 max-w-7xl mx-auto pb-12">

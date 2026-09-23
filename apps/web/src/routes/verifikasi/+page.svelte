@@ -274,7 +274,7 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard Verifikasi Usulan - Admin Pusat</title>
+	<title>Verifikasi Usulan - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6">

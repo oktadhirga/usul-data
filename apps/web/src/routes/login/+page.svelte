@@ -42,7 +42,7 @@
 </script>
 
 <svelte:head>
-	<title>Masuk - Usul Data</title>
+	<title>Masuk - ASN-Sync</title>
 </svelte:head>
 
 <div class="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 relative overflow-hidden transition-colors">
@@ -58,14 +58,14 @@
 	<div class="w-full max-w-md relative z-10">
 		<Card class="border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/90 shadow-2xl backdrop-blur-xl">
 			<CardHeader class="space-y-2 text-center pb-6">
-				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-xl shadow-lg shadow-indigo-600/25 mb-2">
-					UD
+				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-lg shadow-lg shadow-indigo-600/25 mb-2 tracking-wider">
+					AS
 				</div>
 				<CardTitle class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-					Selamat Datang
+					ASN-Sync
 				</CardTitle>
 				<CardDescription class="text-slate-500 dark:text-slate-400 text-sm">
-					Masuk ke Sistem Pengusulan Data untuk mengakses portal kerja Anda
+					Sistem Pengusulan & Sinkronisasi Data Pegawai ASN
 				</CardDescription>
 			</CardHeader>
 

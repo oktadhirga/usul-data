@@ -468,6 +468,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{isEditMode ? 'Edit Usulan' : 'Buat Usulan Baru'} - ASN-Sync</title>
+</svelte:head>
+
 <div class="max-w-4xl mx-auto space-y-6">
 	<!-- Back Button & Header -->
 	<div class="flex items-center justify-between">
