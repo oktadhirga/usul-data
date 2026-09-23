@@ -92,7 +92,7 @@
 			href="/pegawai"
 			variant="outline"
 			size="sm"
-			class="gap-1.5 text-xs h-9 text-slate-300 hover:text-white"
+			class="gap-1.5 text-xs h-9"
 		>
 			<ArrowLeft class="h-4 w-4" />
 			<span>Kembali ke Daftar Pegawai</span>
@@ -114,20 +114,20 @@
 	</div>
 
 	{#if isLoading}
-		<Card class="border-slate-800 bg-slate-900/40 py-16">
-			<div class="flex flex-col items-center justify-center text-slate-400 gap-2">
-				<Loader2 class="h-7 w-7 animate-spin text-indigo-400" />
-				<span class="text-xs">Memuat detail data pegawai...</span>
-			</div>
+		<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 py-16">
+			<CardContent class="flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 gap-3">
+				<Loader2 class="h-8 w-8 animate-spin text-indigo-600 dark:text-indigo-400" />
+				<p class="text-sm font-medium">Memuat rincian data pegawai...</p>
+			</CardContent>
 		</Card>
 	{:else if isForbidden}
-		<Card class="border-rose-900/50 bg-rose-950/20 p-8 text-center space-y-4">
-			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-rose-950 border border-rose-800 mx-auto text-rose-400">
+		<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-8 text-center space-y-4">
+			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-950 border border-rose-300 dark:border-rose-800 mx-auto text-rose-600 dark:text-rose-400">
 				<ShieldAlert class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<h2 class="text-lg font-bold text-white">403 - Akses Ditolak (Scoping Restricted)</h2>
-				<p class="text-xs text-rose-300 max-w-md mx-auto leading-relaxed">
+				<h2 class="text-lg font-bold text-slate-900 dark:text-white">403 - Akses Ditolak (Scoping Restricted)</h2>
+				<p class="text-xs text-rose-600 dark:text-rose-300 max-w-md mx-auto leading-relaxed">
 					{errorMessage}
 				</p>
 			</div>
@@ -138,13 +138,13 @@
 			</div>
 		</Card>
 	{:else if errorMessage || !pegawai}
-		<Card class="border-slate-800 bg-slate-900/40 p-8 text-center space-y-4">
-			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800 border border-slate-700 mx-auto text-slate-400">
+		<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-8 text-center space-y-4">
+			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 mx-auto text-slate-400">
 				<AlertCircle class="h-6 w-6" />
 			</div>
 			<div class="space-y-1">
-				<h2 class="text-base font-semibold text-white">Data Tidak Ditemukan</h2>
-				<p class="text-xs text-slate-400 max-w-sm mx-auto">
+				<h2 class="text-base font-semibold text-slate-900 dark:text-white">Data Tidak Ditemukan</h2>
+				<p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
 					{errorMessage || 'Pegawai dengan ID yang diminta tidak terdaftar pada sistem.'}
 				</p>
 			</div>
@@ -156,11 +156,11 @@
 		</Card>
 	{:else}
 		<!-- Main Profile Header Card -->
-		<Card class="border-slate-800 bg-gradient-to-r from-slate-900 via-slate-900/90 to-indigo-950/40 overflow-hidden">
+		<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 shadow-sm overflow-hidden">
 			<CardContent class="p-6 md:p-8">
 				<div class="flex flex-col md:flex-row md:items-center gap-6">
 					<!-- Large Avatar Letter -->
-					<div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/20 border-2 border-indigo-500/40 text-indigo-400 font-extrabold text-3xl shadow-inner">
+					<div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-600/20 border-2 border-indigo-200 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-400 font-extrabold text-3xl shadow-inner">
 						{pegawai.nama.charAt(0).toUpperCase()}
 					</div>
 
@@ -169,16 +169,16 @@
 							<Badge variant="default" class="text-xs">
 								Aparatur Sipil Aktif
 							</Badge>
-							<Badge variant="outline" class="font-mono text-xs bg-slate-900 text-slate-300 border-slate-700">
+							<Badge variant="outline" class="font-mono text-xs bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700">
 								ID #{pegawai.id}
 							</Badge>
 						</div>
 
-						<h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">
+						<h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
 							{pegawai.nama}
 						</h1>
 
-						<p class="text-sm font-medium text-indigo-300">
+						<p class="text-sm font-medium text-indigo-600 dark:text-indigo-300">
 							{pegawai.jabatan}
 						</p>
 					</div>
@@ -189,30 +189,30 @@
 		<!-- Details Information Sections -->
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 			<!-- Identitas Pegawai Card -->
-			<Card class="border-slate-800 bg-slate-900/60">
-				<CardHeader class="pb-3 border-b border-slate-800/80">
-					<CardTitle class="text-sm font-semibold text-white flex items-center gap-2">
-						<IdCard class="h-4 w-4 text-indigo-400" />
+			<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
+				<CardHeader class="pb-3 border-b border-slate-100 dark:border-slate-800/80">
+					<CardTitle class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+						<IdCard class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
 						<span>Identitas Pegawai</span>
 					</CardTitle>
 					<CardDescription class="text-xs">Nomor identitas dan data administratif.</CardDescription>
 				</CardHeader>
 				<CardContent class="pt-4 space-y-4 text-xs">
-					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
-						<span class="text-slate-400">Nomor Induk Pegawai (NIP):</span>
-						<span class="font-mono font-semibold text-white">{pegawai.nip}</span>
+					<div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/40">
+						<span class="text-slate-500 dark:text-slate-400">Nomor Induk Pegawai (NIP):</span>
+						<span class="font-mono font-semibold text-slate-900 dark:text-white">{pegawai.nip}</span>
 					</div>
-					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
-						<span class="text-slate-400">Nama Lengkap:</span>
-						<span class="font-medium text-slate-200">{pegawai.nama}</span>
+					<div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/40">
+						<span class="text-slate-500 dark:text-slate-400">Nama Lengkap:</span>
+						<span class="font-medium text-slate-800 dark:text-slate-200">{pegawai.nama}</span>
 					</div>
-					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
-						<span class="text-slate-400">Jabatan:</span>
-						<span class="font-medium text-slate-200">{pegawai.jabatan}</span>
+					<div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/40">
+						<span class="text-slate-500 dark:text-slate-400">Jabatan:</span>
+						<span class="font-medium text-slate-800 dark:text-slate-200">{pegawai.jabatan}</span>
 					</div>
 					<div class="flex items-center justify-between py-1">
-						<span class="text-slate-400">Status Verifikasi:</span>
-						<span class="inline-flex items-center gap-1 font-semibold text-emerald-400">
+						<span class="text-slate-500 dark:text-slate-400">Status Verifikasi:</span>
+						<span class="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
 							<CheckCircle2 class="h-3.5 w-3.5" />
 							<span>Terverifikasi</span>
 						</span>
@@ -221,31 +221,31 @@
 			</Card>
 
 			<!-- Unit Organisasi Card -->
-			<Card class="border-slate-800 bg-slate-900/60">
-				<CardHeader class="pb-3 border-b border-slate-800/80">
-					<CardTitle class="text-sm font-semibold text-white flex items-center gap-2">
-						<Building2 class="h-4 w-4 text-emerald-400" />
+			<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
+				<CardHeader class="pb-3 border-b border-slate-100 dark:border-slate-800/80">
+					<CardTitle class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+						<Building2 class="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
 						<span>Penempatan Unit Organisasi</span>
 					</CardTitle>
 					<CardDescription class="text-xs">Satuan kerja penugasan pegawai (UNOR).</CardDescription>
 				</CardHeader>
 				<CardContent class="pt-4 space-y-4 text-xs">
-					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
-						<span class="text-slate-400">Satuan Kerja / UNOR:</span>
-						<span class="font-semibold text-white text-right">
+					<div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/40">
+						<span class="text-slate-500 dark:text-slate-400">Satuan Kerja / UNOR:</span>
+						<span class="font-semibold text-slate-900 dark:text-white text-right">
 							{pegawai.namaUnor || 'Unit Organisasi'}
 						</span>
 					</div>
-					<div class="flex items-center justify-between py-1 border-b border-slate-800/40">
-						<span class="text-slate-400">Wewenang Akses:</span>
-						<span class="text-slate-300">
+					<div class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800/40">
+						<span class="text-slate-500 dark:text-slate-400">Wewenang Akses:</span>
+						<span class="text-slate-700 dark:text-slate-300">
 							{authState.isAdmin ? 'Akses Pusat (Penuh)' : 'Terkunci pada OPD Anda'}
 						</span>
 					</div>
 					{#if authState.isAdmin}
 						<div class="flex items-center justify-between py-1">
-							<span class="text-slate-400">Tautan Master:</span>
-							<a href="/unor" class="text-indigo-400 hover:text-indigo-300 font-medium">
+							<span class="text-slate-500 dark:text-slate-400">Tautan Master:</span>
+							<a href="/unor" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium">
 								Lihat Daftar Satuan Kerja →
 							</a>
 						</div>
@@ -264,14 +264,14 @@
 	onclose={() => isDeleteOpen = false}
 >
 	<div class="space-y-4">
-		<p class="text-xs text-slate-300">
+		<p class="text-xs text-slate-600 dark:text-slate-300">
 			Apakah Anda yakin ingin menghapus data pegawai
-			<span class="font-semibold text-white">{pegawai?.nama}</span>
-			(NIP: <span class="font-mono text-indigo-400">{pegawai?.nip}</span>)?
+			<span class="font-semibold text-slate-900 dark:text-white">{pegawai?.nama}</span>
+			(NIP: <span class="font-mono text-indigo-600 dark:text-indigo-400">{pegawai?.nip}</span>)?
 			Tindakan ini tidak dapat dibatalkan.
 		</p>
 
-		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
 			<Button
 				type="button"
 				variant="outline"

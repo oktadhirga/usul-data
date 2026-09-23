@@ -11,7 +11,7 @@
 	let { class: className = '', children, ...rest }: Props = $props();
 </script>
 
-<th class={cn('h-11 px-4 text-left align-middle font-medium text-xs uppercase tracking-wider text-slate-400', className)} {...rest}>
+<th class={cn('h-11 px-4 text-left align-middle font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400', className)} {...rest}>
 	{#if children}
 		{@render children()}
 	{/if}

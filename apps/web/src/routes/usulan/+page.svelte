@@ -238,17 +238,17 @@
 	function getStatusBadgeVariant(status: UsulanStatus): string {
 		switch (status) {
 			case "draft":
-				return "bg-slate-800 text-slate-300 border border-slate-700";
+				return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700";
 			case "diajukan":
-				return "bg-amber-500/10 text-amber-400 border border-amber-500/30";
+				return "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30";
 			case "disetujui":
-				return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+				return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30";
 			case "ditolak":
-				return "bg-rose-500/10 text-rose-400 border border-rose-500/30";
+				return "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30";
 			case "dibatalkan":
-				return "bg-slate-700/50 text-slate-400 border border-slate-600 line-through";
+				return "bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-600 line-through";
 			default:
-				return "bg-slate-800 text-slate-300";
+				return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
 		}
 	}
 
@@ -272,13 +272,13 @@
 	function getJenisBadge(jenis: string): string {
 		switch (jenis) {
 			case "tambah":
-				return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+				return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20";
 			case "ubah":
-				return "bg-sky-500/10 text-sky-400 border border-sky-500/20";
+				return "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20";
 			case "hapus":
-				return "bg-rose-500/10 text-rose-400 border border-rose-500/20";
+				return "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20";
 			default:
-				return "bg-slate-800 text-slate-300";
+				return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
 		}
 	}
 
@@ -312,25 +312,25 @@
 			<div class="flex items-start gap-3">
 				{#if alertMessage.type === "success"}
 					<CheckCircle2
-						class="h-5 w-5 text-emerald-400 mt-0.5 shrink-0"
+						class="h-5 w-5 text-emerald-500 dark:text-emerald-400 mt-0.5 shrink-0"
 					/>
 				{:else}
 					<AlertCircle
-						class="h-5 w-5 text-rose-400 mt-0.5 shrink-0"
+						class="h-5 w-5 text-rose-500 dark:text-rose-400 mt-0.5 shrink-0"
 					/>
 				{/if}
 				<div class="flex-1">
-					<AlertTitle class="font-semibold text-white"
+					<AlertTitle class="font-semibold text-slate-900 dark:text-white"
 						>{alertMessage.title}</AlertTitle
 					>
-					<AlertDescription class="text-sm text-slate-300 mt-0.5">
+					<AlertDescription class="text-sm text-slate-600 dark:text-slate-300 mt-0.5">
 						{alertMessage.desc}
 					</AlertDescription>
 				</div>
 				<button
 					type="button"
 					onclick={() => (alertMessage = null)}
-					class="text-slate-400 hover:text-white text-xs px-2 py-1 rounded"
+					class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs px-2 py-1 rounded"
 				>
 					Tutup
 				</button>
@@ -344,23 +344,23 @@
 	>
 		<div>
 			<div class="flex items-center gap-2">
-				<h1 class="text-2xl font-bold tracking-tight text-white">
+				<h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
 					Riwayat Usulan Perubahan
 				</h1>
 				<Badge
 					variant="outline"
-					class="border-indigo-500/30 bg-indigo-500/10 text-indigo-400 font-medium"
+					class="border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium"
 				>
 					{usulanList.length} Usulan
 				</Badge>
 			</div>
-			<p class="text-sm text-slate-400 mt-1">
+			<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
 				{#if authState.isAdmin}
 					Pantau dan kelola seluruh usulan pembaruan data pegawai
 					lintas Unit Organisasi.
 				{:else}
 					Daftar usulan perubahan data pegawai untuk unit:
-					<span class="font-semibold text-indigo-300"
+					<span class="font-semibold text-indigo-600 dark:text-indigo-300"
 						>{userUnorName() || authState.user?.kodeUnor}</span
 					>
 				{/if}
@@ -370,7 +370,6 @@
 		<div class="flex items-center gap-2">
 			<Button
 				variant="outline"
-				class="border-slate-800 bg-slate-900/60 hover:bg-slate-800 text-slate-300"
 				onclick={loadUsulan}
 				disabled={isLoading}
 			>
@@ -391,13 +390,13 @@
 	</div>
 
 	<!-- Filter Bar -->
-	<Card class="border-slate-800 bg-slate-900/50 backdrop-blur-sm">
+	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-sm">
 		<CardContent class="p-4">
 			<div class="flex flex-col md:flex-row items-center gap-4">
 				<div
-					class="flex items-center gap-2 text-slate-400 text-sm shrink-0"
+					class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm shrink-0"
 				>
-					<Filter class="h-4 w-4" />
+					<Filter class="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
 					<span>Filter Status:</span>
 				</div>
 
@@ -406,10 +405,10 @@
 					{#each [{ value: "all", label: "Semua" }, { value: "draft", label: "Draft" }, { value: "diajukan", label: "Diajukan" }, { value: "disetujui", label: "Disetujui" }, { value: "ditolak", label: "Ditolak" }, { value: "dibatalkan", label: "Dibatalkan" }] as opt}
 						<button
 							type="button"
-							class={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+							class={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
 								selectedStatus === opt.value
 									? "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30"
-									: "bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700/50"
+									: "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 dark:text-slate-300 dark:border-slate-700/50"
 							}`}
 							onclick={() => {
 								selectedStatus = opt.value;
@@ -427,7 +426,7 @@
 						<select
 							bind:value={selectedUnor}
 							onchange={loadUsulan}
-							class="w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+							class="w-full rounded-md border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
 						>
 							<option value="">Semua Unit Organisasi</option>
 							{#each unorList as u}
@@ -444,12 +443,12 @@
 
 	<!-- Table Card -->
 	<Card
-		class="border-slate-800 bg-slate-900/50 backdrop-blur-sm overflow-hidden"
+		class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden"
 	>
 		<div class="overflow-x-auto">
 			<Table>
-				<TableHeader class="bg-slate-950/60 border-b border-slate-800">
-					<TableRow class="hover:bg-transparent border-slate-800">
+				<TableHeader class="bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800">
+					<TableRow class="hover:bg-transparent border-b border-slate-200 dark:border-slate-800">
 						<TableHead
 							class="w-12 text-center text-slate-400 text-xs"
 							>No</TableHead
@@ -489,18 +488,18 @@
 							</TableCell>
 						</TableRow>
 					{:else if usulanList.length === 0}
-						<TableRow class="border-slate-800/50">
+						<TableRow class="border-slate-200 dark:border-slate-800/50">
 							<TableCell colspan={6} class="h-48 text-center">
 								<div
-									class="flex flex-col items-center justify-center gap-3 text-slate-400"
+									class="flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400"
 								>
 									<div
-										class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800/80 text-slate-400"
+										class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400"
 									>
 										<FileText class="h-6 w-6" />
 									</div>
 									<div class="space-y-1">
-										<p class="font-medium text-slate-300">
+										<p class="font-medium text-slate-800 dark:text-slate-300">
 											Belum ada usulan perubahan
 										</p>
 										<p class="text-xs text-slate-500">
@@ -515,7 +514,7 @@
 									<Button
 										variant="outline"
 										size="sm"
-										class="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 mt-2"
+										class="mt-2"
 										onclick={() => goto("/usulan/baru")}
 									>
 										<Plus class="h-3.5 w-3.5 mr-1.5" />
@@ -527,23 +526,23 @@
 					{:else}
 						{#each usulanList as item, idx (item.id)}
 							<TableRow
-								class="border-slate-800/50 hover:bg-slate-800/30 transition-colors"
+								class="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
 							>
 								<TableCell
-									class="text-center font-mono text-xs text-slate-500"
+									class="text-center font-mono text-xs text-slate-400 dark:text-slate-500"
 								>
 									{idx + 1}
 								</TableCell>
 								<TableCell>
 									<div class="space-y-0.5">
 										<p
-											class="font-medium text-slate-200 text-sm"
+											class="font-medium text-slate-900 dark:text-slate-200 text-sm"
 										>
 											{item.namaPegawai ||
 												"Pegawai #" + item.pegawaiId}
 										</p>
 										<p
-											class="font-mono text-xs text-slate-400"
+											class="font-mono text-xs text-slate-500 dark:text-slate-400"
 										>
 											NIP: {item.nipPegawai || "-"}
 										</p>
@@ -558,10 +557,10 @@
 								</TableCell>
 								<TableCell>
 									<div
-										class="flex items-center gap-1.5 text-xs text-slate-300"
+										class="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300"
 									>
 										<Building2
-											class="h-3.5 w-3.5 text-slate-500 shrink-0"
+											class="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0"
 										/>
 										<span class="truncate max-w-xs"
 											>{item.namaUnor ||
@@ -569,7 +568,7 @@
 										>
 									</div>
 								</TableCell>
-								<TableCell class="text-xs text-slate-400">
+								<TableCell class="text-xs text-slate-500 dark:text-slate-400">
 									{formatDate(item.createdAt)}
 								</TableCell>
 								<TableCell class="text-center">
@@ -587,7 +586,7 @@
 										<Button
 											variant="ghost"
 											size="sm"
-											class="h-8 text-xs text-slate-300 hover:text-white hover:bg-slate-800"
+											class="h-8 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800"
 											onclick={() => openDetail(item.id)}
 										>
 											<Eye class="h-3.5 w-3.5 mr-1" />
@@ -669,7 +668,7 @@
 	onclose={() => (isDetailOpen = false)}
 	title="Detail Usulan Perubahan Data"
 	description="Informasi lengkap pengajuan perubahan data pegawai dan berkas pendukung."
-	class="max-w-3xl max-h-[90vh] overflow-y-auto border-slate-800 bg-slate-900 text-slate-100"
+	class="max-w-3xl max-h-[90vh] overflow-y-auto"
 >
 	{#if detailLoading}
 		<div
@@ -682,25 +681,24 @@
 		<div class="space-y-6 pt-2">
 			<!-- Header Info Grid -->
 			<div
-				class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4"
+				class="grid grid-cols-1 md:grid-cols-2 gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-4"
 			>
 				<div class="space-y-2">
 					<div>
-						<span class="text-xs text-slate-500">Nama Pegawai:</span
-						>
-						<p class="font-semibold text-slate-200">
+						<span class="text-xs text-slate-500">Nama Pegawai:</span>
+						<p class="font-semibold text-slate-800 dark:text-slate-200">
 							{currentDetail.namaPegawai || "-"}
 						</p>
 					</div>
 					<div>
 						<span class="text-xs text-slate-500">NIP:</span>
-						<p class="font-mono text-xs text-slate-300">
+						<p class="font-mono text-xs text-indigo-600 dark:text-indigo-400">
 							{currentDetail.nipPegawai || "-"}
 						</p>
 					</div>
 					<div>
 						<span class="text-xs text-slate-500">Jabatan:</span>
-						<p class="text-xs text-slate-300">
+						<p class="text-xs text-slate-700 dark:text-slate-300">
 							{currentDetail.jabatanPegawai || "-"}
 						</p>
 					</div>
@@ -708,17 +706,13 @@
 
 				<div class="space-y-2">
 					<div>
-						<span class="text-xs text-slate-500"
-							>Unit Organisasi:</span
-						>
-						<p class="text-xs text-slate-200">
+						<span class="text-xs text-slate-500">Unit Organisasi:</span>
+						<p class="text-xs text-slate-700 dark:text-slate-200">
 							{currentDetail.namaUnor || currentDetail.kodeUnor}
 						</p>
 					</div>
 					<div>
-						<span class="text-xs text-slate-500"
-							>Status Saat Ini:</span
-						>
+						<span class="text-xs text-slate-500">Status Saat Ini:</span>
 						<div class="mt-0.5">
 							<span
 								class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeVariant(currentDetail.status)}`}
@@ -728,10 +722,8 @@
 						</div>
 					</div>
 					<div>
-						<span class="text-xs text-slate-500"
-							>Tanggal Pengajuan:</span
-						>
-						<p class="text-xs text-slate-300">
+						<span class="text-xs text-slate-500">Tanggal Pengajuan:</span>
+						<p class="text-xs text-slate-700 dark:text-slate-300">
 							{formatDate(currentDetail.createdAt)}
 						</p>
 					</div>
@@ -741,12 +733,10 @@
 			<!-- Catatan -->
 			{#if currentDetail.catatan}
 				<div
-					class="rounded-lg border border-slate-800 bg-slate-950/30 p-3"
+					class="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30 p-3"
 				>
-					<span class="text-xs font-medium text-slate-400"
-						>Catatan Pengusul:</span
-					>
-					<p class="text-xs text-slate-200 mt-1 whitespace-pre-wrap">
+					<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Catatan Pengusul:</span>
+					<p class="text-xs text-slate-800 dark:text-slate-200 mt-1 whitespace-pre-wrap">
 						{currentDetail.catatan}
 					</p>
 				</div>
@@ -755,36 +745,26 @@
 			<!-- Rincian Field Yang Diusulkan -->
 			<div class="space-y-2">
 				<h3
-					class="text-sm font-semibold text-slate-200 flex items-center gap-2"
+					class="text-sm font-semibold text-slate-900 dark:text-slate-200 flex items-center gap-2"
 				>
-					<FileText class="h-4 w-4 text-indigo-400" />
+					<FileText class="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
 					Rincian Perubahan Field
 				</h3>
 				<div
-					class="rounded-lg border border-slate-800 overflow-hidden bg-slate-950/40"
+					class="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950/40"
 				>
 					<Table>
 						<TableHeader
-							class="bg-slate-950/80 border-b border-slate-800"
+							class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800"
 						>
 							<TableRow
-								class="hover:bg-transparent border-slate-800 text-xs"
+								class="hover:bg-transparent border-slate-200 dark:border-slate-800 text-xs"
 							>
-								<TableHead class="text-slate-400"
-									>Kategori</TableHead
-								>
-								<TableHead class="text-slate-400"
-									>Jenis</TableHead
-								>
-								<TableHead class="text-slate-400"
-									>Field</TableHead
-								>
-								<TableHead class="text-slate-400"
-									>Nilai Lama</TableHead
-								>
-								<TableHead class="text-slate-400"
-									>Nilai Baru</TableHead
-								>
+								<TableHead class="text-slate-600 dark:text-slate-400">Kategori</TableHead>
+								<TableHead class="text-slate-600 dark:text-slate-400">Jenis</TableHead>
+								<TableHead class="text-slate-600 dark:text-slate-400">Field</TableHead>
+								<TableHead class="text-slate-600 dark:text-slate-400">Nilai Lama</TableHead>
+								<TableHead class="text-slate-600 dark:text-slate-400">Nilai Baru</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -800,10 +780,10 @@
 							{:else}
 								{#each currentDetail.details as det}
 									<TableRow
-										class="border-slate-800/40 text-xs"
+										class="border-slate-100 dark:border-slate-800/40 text-xs"
 									>
 										<TableCell
-											class="font-medium text-slate-300"
+											class="font-medium text-slate-800 dark:text-slate-300"
 											>{det.kategoriUbah}</TableCell
 										>
 										<TableCell>
@@ -814,15 +794,15 @@
 											</span>
 										</TableCell>
 										<TableCell
-											class="font-mono text-slate-300"
+											class="font-mono text-slate-800 dark:text-slate-300"
 											>{det.fieldName}</TableCell
 										>
 										<TableCell
-											class="text-rose-300/80 font-mono line-through"
+											class="text-rose-500 dark:text-rose-300/80 font-mono line-through"
 											>{det.nilaiLama || "-"}</TableCell
 										>
 										<TableCell
-											class="text-emerald-400 font-mono font-medium"
+											class="text-emerald-600 dark:text-emerald-400 font-mono font-medium"
 											>{det.nilaiBaru || "-"}</TableCell
 										>
 									</TableRow>
@@ -836,16 +816,16 @@
 			<!-- Dokumen Pendukung -->
 			<div class="space-y-2">
 				<h3
-					class="text-sm font-semibold text-slate-200 flex items-center gap-2"
+					class="text-sm font-semibold text-slate-900 dark:text-slate-200 flex items-center gap-2"
 				>
-					<FileDown class="h-4 w-4 text-indigo-400" />
+					<FileDown class="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
 					Dokumen Pendukung
 				</h3>
 				{#if !currentDetail.dokumen || currentDetail.dokumen.length === 0}
 					<div
-						class="rounded-lg border border-slate-800/80 bg-slate-950/30 p-4 text-center"
+						class="rounded-lg border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/30 p-4 text-center"
 					>
-						<p class="text-xs text-slate-400">
+						<p class="text-xs text-slate-500 dark:text-slate-400">
 							Tidak ada dokumen pendukung yang dilampirkan.
 						</p>
 					</div>
@@ -853,19 +833,19 @@
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						{#each currentDetail.dokumen as doc}
 							<div
-								class="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/40 p-3 hover:border-slate-700 transition-colors"
+								class="flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 p-3 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
 							>
 								<div
 									class="flex items-center gap-2.5 overflow-hidden"
 								>
 									<div
-										class="flex h-8 w-8 items-center justify-center rounded bg-rose-500/10 text-rose-400 shrink-0"
+										class="flex h-8 w-8 items-center justify-center rounded bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 shrink-0"
 									>
 										<FileText class="h-4 w-4" />
 									</div>
 									<div class="overflow-hidden">
 										<p
-											class="text-xs font-medium text-slate-200 truncate"
+											class="text-xs font-medium text-slate-800 dark:text-slate-200 truncate"
 										>
 											{doc.namaDokumen}
 										</p>
@@ -882,7 +862,7 @@
 										: `/api${doc.pathFile}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									class="inline-flex items-center gap-1 rounded bg-slate-800 hover:bg-slate-700 px-2.5 py-1 text-xs text-indigo-300 transition-colors shrink-0 ml-2"
+									class="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1 text-xs text-indigo-600 dark:text-indigo-300 transition-colors shrink-0 ml-2"
 								>
 									<FileDown class="h-3 w-3" />
 									Buka
@@ -895,37 +875,37 @@
 
 			<!-- Audit Verifikasi (Admin Pusat) -->
 			{#if currentDetail.status === "disetujui" || currentDetail.status === "ditolak"}
-				<div class="rounded-xl border border-slate-800 bg-slate-950/50 p-4 space-y-2.5">
+				<div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 p-4 space-y-2.5">
 					<div class="flex items-center gap-2">
-						<div class="h-6 w-6 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+						<div class="h-6 w-6 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
 							<ShieldCheck class="h-3.5 w-3.5" />
 						</div>
-						<h4 class="text-xs font-semibold uppercase tracking-wider text-slate-300">
+						<h4 class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
 							Hasil Verifikasi Admin Pusat
 						</h4>
 					</div>
 
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
 						<div>
-							<span class="text-slate-400">Diverifikasi oleh:</span>
-							<p class="font-medium text-slate-200 mt-0.5">
+							<span class="text-slate-500 dark:text-slate-400">Diverifikasi oleh:</span>
+							<p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
 								{currentDetail.verifiedBy || "-"}
 							</p>
 						</div>
 						<div>
-							<span class="text-slate-400">Waktu Verifikasi:</span>
-							<p class="font-medium text-slate-200 mt-0.5">
+							<span class="text-slate-500 dark:text-slate-400">Waktu Verifikasi:</span>
+							<p class="font-medium text-slate-800 dark:text-slate-200 mt-0.5">
 								{currentDetail.verifiedAt ? formatDate(currentDetail.verifiedAt) : "-"}
 							</p>
 						</div>
 					</div>
 
 					{#if currentDetail.catatanVerifikasi}
-						<div class="pt-2 border-t border-slate-800">
-							<span class="text-xs text-slate-400">
+						<div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+							<span class="text-xs text-slate-500 dark:text-slate-400">
 								{currentDetail.status === "ditolak" ? "Alasan Penolakan dari Admin:" : "Catatan Verifikasi Admin:"}
 							</span>
-							<p class="text-xs text-slate-200 mt-1 bg-slate-900/60 p-2.5 rounded border border-slate-800">
+							<p class="text-xs text-slate-800 dark:text-slate-200 mt-1 bg-white dark:bg-slate-900/60 p-2.5 rounded border border-slate-200 dark:border-slate-800">
 								{currentDetail.catatanVerifikasi}
 							</p>
 						</div>
@@ -935,13 +915,13 @@
 
 			<!-- Modal Actions Footer -->
 			<div
-				class="flex items-center justify-between border-t border-slate-800 pt-4"
+				class="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 pt-4"
 			>
 				<div class="flex items-center gap-2">
 					{#if currentDetail.status === "diajukan"}
 						<Button
 							variant="outline"
-							class="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-xs"
+							class="border-rose-300 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-xs"
 							onclick={() => {
 								isDetailOpen = false;
 								if (currentDetail?.id)
@@ -956,7 +936,7 @@
 					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							variant="outline"
-							class="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 text-xs"
+							class="border-rose-300 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-xs"
 							onclick={() => {
 								const id = currentDetail?.id;
 								isDetailOpen = false;
@@ -973,7 +953,7 @@
 					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							variant="outline"
-							class="border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 text-xs"
+							class="border-indigo-300 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-xs"
 							onclick={() => {
 								const id = currentDetail?.id;
 								isDetailOpen = false;
@@ -1011,7 +991,7 @@
 
 					<Button
 						variant="outline"
-						class="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs"
+						size="sm"
 						onclick={() => (isDetailOpen = false)}
 					>
 						Tutup
@@ -1026,23 +1006,22 @@
 <Dialog
 	bind:open={isCancelOpen}
 	onclose={() => (isCancelOpen = false)}
-	title="Batalkan Usulan Perubahan"
-	description="Tindakan ini akan membatalkan usulan yang sudah diajukan. Status akan berubah menjadi dibatalkan."
-	class="max-w-md border-slate-800 bg-slate-900 text-slate-100"
+	title="Batalkan Pengajuan Usulan"
+	description="Konfirmasi pembatalan usulan perubahan data."
+	class="max-w-md"
 >
 	<div class="space-y-4 pt-2">
 		<div
-			class="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-xs text-amber-300"
+			class="rounded-lg border border-amber-300 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300"
 		>
 			Pastikan Anda yakin ingin membatalkan usulan #{cancellingId}. Usulan
 			yang dibatalkan nantinya masih dapat diedit dan diajukan kembali
 			jika diperlukan.
 		</div>
 
-		<div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+		<div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
 			<Button
 				variant="outline"
-				class="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300"
 				onclick={() => (isCancelOpen = false)}
 				disabled={isCancelling}
 			>
@@ -1070,22 +1049,21 @@
 	bind:open={isDeleteOpen}
 	onclose={() => (isDeleteOpen = false)}
 	title="Hapus Usulan Secara Permanen"
-	description="Tindakan ini akan menghapus usulan dan berkas lampiran pendukung secara permanen dari server."
-	class="max-w-md border-slate-800 bg-slate-900 text-slate-100"
+	description="Tindakan ini tidak dapat dibatalkan."
+	class="max-w-md"
 >
 	<div class="space-y-4 pt-2">
 		<div
-			class="rounded-lg border border-rose-500/20 bg-rose-500/10 p-3 text-xs text-rose-300"
+			class="rounded-lg border border-rose-300 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 p-3 text-xs text-rose-800 dark:text-rose-300"
 		>
 			Peringatan: Usulan #{deletingId} beserta seluruh file dokumen lampirannya
 			akan dihapus secara permanen. Data yang dihapus tidak dapat dipulihkan
 			kembali.
 		</div>
 
-		<div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+		<div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
 			<Button
 				variant="outline"
-				class="border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300"
 				onclick={() => (isDeleteOpen = false)}
 				disabled={isDeleting}
 			>

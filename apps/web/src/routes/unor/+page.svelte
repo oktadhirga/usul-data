@@ -52,11 +52,11 @@
 					Akses Penuh Admin Pusat
 				</Badge>
 			</div>
-			<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
-				<Building2 class="h-7 w-7 text-emerald-400" />
+			<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+				<Building2 class="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
 				<span>Daftar Unit Organisasi (UNOR)</span>
 			</h1>
-			<p class="text-sm text-slate-400 mt-1">
+			<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
 				Master referensi satuan kerja dan organisasi perangkat daerah di lingkungan pemerintahan.
 			</p>
 		</div>
@@ -81,29 +81,29 @@
 			<span class="text-xs">Memuat data UNOR...</span>
 		</div>
 	{:else if errorMessage}
-		<div class="p-4 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-300 text-xs">
+		<div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs">
 			{errorMessage}
 		</div>
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 			{#each unors as u}
-				<Card class="border-slate-800 bg-slate-900/60 hover:border-slate-700 transition">
+				<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700 transition">
 					<CardHeader class="pb-3">
 						<div class="flex items-center justify-between mb-1">
-							<Badge variant="outline" class="font-normal text-xs bg-slate-950 text-indigo-300 border-slate-700">
+							<Badge variant="outline" class="font-normal text-xs bg-indigo-50 dark:bg-slate-950 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-slate-700">
 								Unit Organisasi
 							</Badge>
-							<span class="text-[11px] text-slate-500 font-mono">ID: {u.id}</span>
+							<span class="text-[11px] text-slate-400 dark:text-slate-500 font-mono">ID: {u.id}</span>
 						</div>
-						<CardTitle class="text-base font-bold text-white">
+						<CardTitle class="text-base font-bold text-slate-900 dark:text-white">
 							{u.namaUnor}
 						</CardTitle>
 					</CardHeader>
 					<CardContent class="pt-0">
-						<div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+						<div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
 							<a
 								href="/pegawai?kode_unor={encodeURIComponent(u.kodeUnor)}"
-								class="text-xs text-indigo-400 hover:text-indigo-300 font-medium inline-flex items-center gap-1"
+								class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium inline-flex items-center gap-1"
 							>
 								<span>Lihat Pegawai di UNOR ini</span>
 								<ArrowRight class="h-3 w-3" />

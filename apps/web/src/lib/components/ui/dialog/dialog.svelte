@@ -59,14 +59,14 @@
 		<!-- Modal Container -->
 		<div
 			class={cn(
-				'relative z-50 w-full max-w-lg rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl transition-all sm:my-8 text-slate-100',
+				'relative z-50 w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-2xl transition-all sm:my-8 text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100',
 				className
 			)}
 		>
 			<!-- Close Button -->
 			<button
 				type="button"
-				class="absolute right-4 top-4 rounded-md p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus:outline-none cursor-pointer"
+				class="absolute right-4 top-4 rounded-md p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors focus:outline-none cursor-pointer"
 				onclick={close}
 				aria-label="Close"
 			>
@@ -77,10 +77,10 @@
 			{#if title || description}
 				<div class="flex flex-col space-y-1.5 text-left mb-5 pr-6">
 					{#if title}
-						<h2 class="text-lg font-semibold text-white tracking-tight">{title}</h2>
+						<h2 class="text-lg font-semibold text-slate-900 dark:text-white tracking-tight">{title}</h2>
 					{/if}
 					{#if description}
-						<p class="text-sm text-slate-400">{description}</p>
+						<p class="text-sm text-slate-500 dark:text-slate-400">{description}</p>
 					{/if}
 				</div>
 			{/if}

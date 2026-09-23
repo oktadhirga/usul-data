@@ -5,12 +5,12 @@
 > "aplikasi ini sekarang sudah bisa apa, dan kenapa dibangun begitu" tanpa harus
 > baca seluruh git history atau semua PRD satu-satu.
 
-Terakhir diupdate: 17 September 2026
+Terakhir diupdate: 23 September 2026
 
 ---
 
 ## 1. Ringkasan Aplikasi
-Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, serta verifikasi usulan oleh Admin Pusat.
+Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, verifikasi usulan oleh Admin Pusat, dashboard analitik & ekspor Excel, serta tema tampilan Dark Mode dan Light Mode.
 
 ## 2. Fitur yang Sudah Ada
 
@@ -25,6 +25,7 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
 | **Verifikasi Usulan Pegawai** | Selesai | `usulan` / `/verifikasi` | Dashboard Admin Pusat untuk verifikasi usulan masuk, preview dokumen PDF di tab baru, approval (memicu sinkronisasi update otomatis ke tabel pegawai), penolakan dengan catatan wajib, serta pencatatan audit log verifikator (`verified_by` username & `verified_at`). |
 | **Notifikasi In-App** | Selesai | `notifikasi` / Header Bell | Notifikasi perubahan status usulan (diajukan, disetujui, ditolak) untuk Admin & AdminOPD, icon lonceng di header, badge jumlah unread, popover dropdown interaktif, dan penanda dibaca. |
 | **Dashboard & Laporan Excel** | Selesai | `dashboard` / `/` | Dashboard ringkasan analitik usulan perubahan data aparatur sipil (5 Summary Cards: total, diajukan, disetujui, ditolak, draft/batal; distribusi per UNOR; distribusi per kategori; rekap aktivitas bulanan), filter interaktif tahun/bulan/status/UNOR, dan export laporan lengkap berformat Excel (.xlsx) dengan otorisasi RBAC (Admin Pusat vs AdminOPD). |
+| **Dark Mode & Light Mode** | Selesai | `web` / Header Toggle | Dukungan tema ganda (Light Mode sebagai default dan Dark Mode), toggle switch Sun/Moon di header (mobile & desktop) dan halaman login, pencegahan flash (anti-FOUC) di `app.html`, persistensi `localStorage`, serta adaptasi penuh styling Tailwind CSS v4 di seluruh halaman & komponen UI. |
 
 ## 3. Keputusan Arsitektur Penting
 
@@ -36,6 +37,13 @@ Aplikasi manajemen data (Usul Data) yang dikembangkan dengan arsitektur monorepo
   - Endpoint ekspor `GET /api/dashboard/export` menghasilkan file Microsoft Excel (.xlsx) menggunakan pustaka `exceljs`, lengkap dengan styling warna header, alignment, format tanggal Indonesia, dan rincian perubahan usulan.
   - Halaman Dashboard SvelteKit 5 ditempatkan sebagai landing page utama (`/`) setelah autentikasi, menyajikan kartu metrik responsif, tabel rekapitulasi performa UNOR, breakdown kategori dengan indikator visual persentase, dan pengunduh file Excel terintegrasi.
 - **Frontend Web**: Menggunakan **SvelteKit 5** dengan TailwindCSS 4.
+- **Fitur Dark Mode & Light Mode**:
+  - Tailwind CSS v4 selector-based dark variant: Dikonfigurasikan melalui `@custom-variant dark (&:where(.dark, .dark *));` pada `apps/web/src/routes/layout.css` untuk memungkinkan penataan berbasis class `.dark` pada elemen root `<html>`.
+  - Default Tema: Light Mode secara default (`bg-slate-50 text-slate-900`), dengan Dark Mode bertema deep navy-slate (`#090d16` text `slate-100`).
+  - Pencegahan FOUC (Flash of Unstyled Content): Script inline sinkron di `<head>` pada `apps/web/src/app.html` membaca preferensi tersimpan di `localStorage.getItem('theme') === 'dark'` sebelum DOM pertama dirender.
+  - State Management: Store reaktif kelas Svelte 5 (`themeState`) di `apps/web/src/lib/stores/theme.svelte.ts` dengan method `toggleTheme()` dan `setTheme()`.
+  - Penempatan Toggle: Tombol `ThemeToggle` (ikon Sun/Moon) terintegrasi di top header aplikasi (baik mobile maupun desktop di samping lonceng notifikasi) dan sudut kanan atas halaman Login.
+  - Adaptasi Komponen: Seluruh komponen UI inti (Card, Table, Dialog/Modal, Input, Button, Badge, NotificationBell) serta seluruh halaman (Dashboard, Pegawai, UNOR, Users, Usulan, Wizard Usulan Baru, Verifikasi, Profile, Login) disesuaikan secara konsisten untuk kedua mode.
 - **Komunikasi API**: Frontend menggunakan modul API client terisolasi untuk interaksi backend yang type-safe.
 - **Database**: Menggunakan MySQL dengan **Drizzle ORM**. Skema database dan relasi diletakkan di `packages/shared/src/schema` agar bisa dipakai baik oleh API maupun Web.
 - **Relasi Database**:

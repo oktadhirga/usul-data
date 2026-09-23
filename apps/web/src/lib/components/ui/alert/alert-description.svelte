@@ -11,7 +11,7 @@
 	let { class: className = '', children, ...rest }: Props = $props();
 </script>
 
-<div class={cn('text-sm [&_p]:leading-relaxed text-slate-300', className)} {...rest}>
+<div class={cn('text-sm [&_p]:leading-relaxed text-slate-600 dark:text-slate-300', className)} {...rest}>
 	{#if children}
 		{@render children()}
 	{/if}
