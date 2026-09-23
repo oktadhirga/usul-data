@@ -32,11 +32,11 @@
 		<!-- Brand & Nav Links -->
 		<div class="flex items-center gap-8">
 			<a href="/" class="flex items-center gap-2 group">
-				<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center font-bold text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-					UD
+				<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center font-bold text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform tracking-wider text-xs">
+					AS
 				</div>
 				<span class="font-bold text-lg text-white tracking-tight group-hover:text-indigo-300 transition-colors">
-					Usul Data
+					ASN-Sync
 				</span>
 				<span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-mono">
 					v1.0

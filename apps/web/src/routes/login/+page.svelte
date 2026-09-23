@@ -6,6 +6,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import { Lock, User, AlertCircle, Loader2 } from 'lucide-svelte';
 
 	let username = $state('');
@@ -41,25 +42,30 @@
 </script>
 
 <svelte:head>
-	<title>Masuk - Usul Data</title>
+	<title>Masuk - ASN-Sync</title>
 </svelte:head>
 
-<div class="min-h-screen w-full flex items-center justify-center p-4 bg-slate-950 relative overflow-hidden">
+<div class="min-h-screen w-full flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 relative overflow-hidden transition-colors">
+	<!-- Theme toggle button on top right of login page -->
+	<div class="absolute top-4 right-4 z-20">
+		<ThemeToggle />
+	</div>
+
 	<!-- Background subtle decorative glow -->
-	<div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
-	<div class="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+	<div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+	<div class="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-400/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
 	<div class="w-full max-w-md relative z-10">
-		<Card class="border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-xl">
+		<Card class="border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/90 shadow-2xl backdrop-blur-xl">
 			<CardHeader class="space-y-2 text-center pb-6">
-				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-xl shadow-lg shadow-indigo-600/25 mb-2">
-					UD
+				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-lg shadow-lg shadow-indigo-600/25 mb-2 tracking-wider">
+					AS
 				</div>
-				<CardTitle class="text-2xl font-bold tracking-tight text-white">
-					Selamat Datang
+				<CardTitle class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+					ASN-Sync
 				</CardTitle>
-				<CardDescription class="text-slate-400 text-sm">
-					Masuk ke Sistem Pengusulan Data untuk mengakses portal kerja Anda
+				<CardDescription class="text-slate-500 dark:text-slate-400 text-sm">
+					Sistem Pengusulan & Sinkronisasi Data Pegawai ASN
 				</CardDescription>
 			</CardHeader>
 
@@ -74,18 +80,18 @@
 					{/if}
 
 					<div class="space-y-1.5">
-						<Label for="username" class="text-xs font-semibold uppercase tracking-wider text-slate-300">
+						<Label for="username" class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
 							Username
 						</Label>
 						<div class="relative">
-							<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+							<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
 								<User class="h-4 w-4" />
 							</div>
 							<Input
 								id="username"
 								type="text"
 								placeholder="Masukkan username"
-								class="pl-9 bg-slate-950/60 border-slate-800 focus-visible:ring-indigo-500"
+								class="pl-9"
 								bind:value={username}
 								autocomplete="username"
 								required
@@ -95,18 +101,18 @@
 					</div>
 
 					<div class="space-y-1.5">
-						<Label for="password" class="text-xs font-semibold uppercase tracking-wider text-slate-300">
+						<Label for="password" class="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
 							Password
 						</Label>
 						<div class="relative">
-							<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+							<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
 								<Lock class="h-4 w-4" />
 							</div>
 							<Input
 								id="password"
 								type="password"
 								placeholder="Masukkan password"
-								class="pl-9 bg-slate-950/60 border-slate-800 focus-visible:ring-indigo-500"
+								class="pl-9"
 								bind:value={password}
 								autocomplete="current-password"
 								required

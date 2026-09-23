@@ -17,7 +17,7 @@
 
 <div
 	class={cn(
-		'rounded-xl border border-slate-800 bg-slate-900/80 text-slate-100 shadow-sm backdrop-blur-sm',
+		'rounded-xl border border-slate-200 bg-white text-slate-900 shadow-xs dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 backdrop-blur-sm transition-colors',
 		className
 	)}
 	{...rest}

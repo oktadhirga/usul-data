@@ -11,7 +11,7 @@
 	let { class: className = '', children, ...rest }: Props = $props();
 </script>
 
-<tr class={cn('transition-colors hover:bg-slate-800/40 data-[state=selected]:bg-slate-800', className)} {...rest}>
+<tr class={cn('transition-colors hover:bg-slate-100/70 dark:hover:bg-slate-800/40 data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-slate-800', className)} {...rest}>
 	{#if children}
 		{@render children()}
 	{/if}

@@ -227,15 +227,15 @@
 </script>
 
 <svelte:head>
-	<title>Manajemen Akun Pengguna - Usul Data</title>
+	<title>Manajemen Akun Pengguna - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6 max-w-6xl mx-auto">
 	<!-- Page Header -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 		<div>
-			<h2 class="text-2xl font-bold tracking-tight text-white">Manajemen Akun Pengguna</h2>
-			<p class="text-sm text-slate-400 mt-1">
+			<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Manajemen Akun Pengguna</h2>
+			<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
 				Kelola akun administrator pusat dan administrator OPD berserta penugasan kode UNOR.
 			</p>
 		</div>
@@ -244,7 +244,7 @@
 			<Button
 				variant="outline"
 				size="sm"
-				class="gap-1.5 text-xs text-slate-300"
+				class="gap-1.5 text-xs"
 				onclick={loadUsers}
 				disabled={isLoading}
 			>
@@ -276,18 +276,18 @@
 	{/if}
 
 	<!-- Search & Table Card -->
-	<Card class="border-slate-800 bg-slate-900/60 shadow-sm">
+	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm">
 		<CardHeader class="pb-3">
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-				<CardTitle class="text-base font-semibold text-white">
+				<CardTitle class="text-base font-semibold text-slate-900 dark:text-white">
 					Daftar Pengguna ({filteredUsers.length})
 				</CardTitle>
 				<div class="relative w-full sm:w-64">
-					<Search class="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+					<Search class="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
 					<Input
 						type="text"
 						placeholder="Cari username / UNOR..."
-						class="pl-9 h-9 text-xs bg-slate-950/60 border-slate-800"
+						class="pl-9 h-9 text-xs"
 						bind:value={searchQuery}
 					/>
 				</div>
@@ -297,7 +297,7 @@
 		<CardContent>
 			<Table>
 				<TableHeader>
-					<TableRow>
+					<TableRow class="hover:bg-transparent border-b border-slate-200 dark:border-slate-800">
 						<TableHead class="w-16">ID</TableHead>
 						<TableHead>Username</TableHead>
 						<TableHead>Role</TableHead>
@@ -308,25 +308,25 @@
 				</TableHeader>
 				<TableBody>
 					{#if isLoading && users.length === 0}
-						<TableRow>
+						<TableRow class="border-b border-slate-100 dark:border-slate-800/60">
 							<TableCell class="text-center py-8 text-slate-500 text-xs" colspan={6}>
 								<Loader2 class="h-5 w-5 animate-spin mx-auto mb-2 text-indigo-400" />
 								<span>Memuat data pengguna...</span>
 							</TableCell>
 						</TableRow>
 					{:else if filteredUsers.length === 0}
-						<TableRow>
+						<TableRow class="border-b border-slate-100 dark:border-slate-800/60">
 							<TableCell class="text-center py-8 text-slate-500 text-xs" colspan={6}>
 								Tidak ada data pengguna yang sesuai.
 							</TableCell>
 						</TableRow>
 					{:else}
 						{#each filteredUsers as u}
-							<TableRow>
+							<TableRow class="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
 								<TableCell class="font-mono text-xs text-slate-400">#{u.id}</TableCell>
-								<TableCell class="font-medium text-white">
+								<TableCell class="font-medium text-slate-900 dark:text-white">
 									<div class="flex items-center gap-2">
-										<div class="h-6 w-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] text-indigo-400 font-bold">
+										<div class="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">
 											{u.username.slice(0, 2).toUpperCase()}
 										</div>
 										<span>{u.username}</span>
@@ -341,7 +341,7 @@
 									{#if u.kodeUnor}
 										{@const found = unorList.find((un) => un.kodeUnor === u.kodeUnor)}
 										<div class="flex flex-col">
-											<span class="text-xs font-medium text-slate-200">
+											<span class="text-xs font-medium text-slate-800 dark:text-slate-200">
 												{found ? found.namaUnor : u.kodeUnor}
 											</span>
 											<span class="font-mono text-[10px] text-slate-500">
@@ -352,7 +352,7 @@
 										<span class="text-xs text-slate-500 italic">Semua / None</span>
 									{/if}
 								</TableCell>
-								<TableCell class="text-xs text-slate-400">
+								<TableCell class="text-xs text-slate-500 dark:text-slate-400">
 									{new Date(u.createdAt).toLocaleDateString('id-ID', {
 										day: 'numeric',
 										month: 'short',
@@ -364,7 +364,7 @@
 										<Button
 											variant="ghost"
 											size="sm"
-											class="h-8 w-8 p-0 text-slate-400 hover:text-white"
+											class="h-8 w-8 p-0 text-slate-400 hover:text-slate-900 dark:hover:text-white"
 											onclick={() => openEditDialog(u)}
 											title="Edit User"
 										>
@@ -428,7 +428,7 @@
 				<Label for="c-role" class="text-xs">Role / Hak Akses</Label>
 				<select
 					id="c-role"
-					class="flex h-10 w-full rounded-lg border border-slate-700/80 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+					class="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 					bind:value={createForm.role}
 					disabled={isCreating}
 				>
@@ -442,7 +442,7 @@
 					<Label for="c-kodeUnor" class="text-xs">Unit Organisasi (UNOR)</Label>
 					<select
 						id="c-kodeUnor"
-						class="flex h-10 w-full rounded-lg border border-slate-700/80 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+						class="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 						bind:value={createForm.kodeUnor}
 						required
 						disabled={isCreating || isLoadingUnor}
@@ -526,7 +526,7 @@
 				<Label for="e-role" class="text-xs">Role / Hak Akses</Label>
 				<select
 					id="e-role"
-					class="flex h-10 w-full rounded-lg border border-slate-700/80 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+					class="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 					bind:value={editForm.role}
 					disabled={isUpdating}
 				>
@@ -540,7 +540,7 @@
 					<Label for="e-kodeUnor" class="text-xs">Unit Organisasi (UNOR)</Label>
 					<select
 						id="e-kodeUnor"
-						class="flex h-10 w-full rounded-lg border border-slate-700/80 bg-slate-900/90 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+						class="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 						bind:value={editForm.kodeUnor}
 						required
 						disabled={isUpdating || isLoadingUnor}
@@ -591,9 +591,9 @@
 >
 	{#snippet children()}
 		{#if deletingUser}
-			<div class="rounded-lg bg-rose-950/30 border border-rose-900/50 p-4 text-xs text-rose-300">
+			<div class="rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 p-4 text-xs text-rose-800 dark:text-rose-300">
 				Apakah Anda yakin ingin menghapus akun pengguna
-				<span class="font-bold text-white font-mono">@{deletingUser.username}</span>?
+				<span class="font-bold text-slate-900 dark:text-white font-mono">@{deletingUser.username}</span>?
 			</div>
 		{/if}
 	{/snippet}

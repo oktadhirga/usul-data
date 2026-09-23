@@ -11,7 +11,7 @@
 	let { class: className = '', children, ...rest }: Props = $props();
 </script>
 
-<td class={cn('p-4 align-middle text-sm text-slate-300', className)} {...rest}>
+<td class={cn('p-4 align-middle text-sm text-slate-700 dark:text-slate-300', className)} {...rest}>
 	{#if children}
 		{@render children()}
 	{/if}

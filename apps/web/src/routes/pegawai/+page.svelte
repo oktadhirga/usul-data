@@ -265,7 +265,7 @@
 </script>
 
 <svelte:head>
-	<title>Daftar Pegawai - Usul Data</title>
+	<title>Daftar Pegawai - ASN-Sync</title>
 </svelte:head>
 
 <div class="space-y-6 max-w-7xl mx-auto">
@@ -277,11 +277,11 @@
 					{authState.isAdmin ? 'Akses Pusat' : `Akses Dibatasi: ${userUnorName()}`}
 				</Badge>
 			</div>
-			<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2.5">
-				<Briefcase class="h-7 w-7 text-indigo-400" />
+			<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+				<Briefcase class="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
 				<span>Data Pegawai</span>
 			</h1>
-			<p class="text-sm text-slate-400 mt-1">
+			<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
 				Pengelolaan data aparatur sipil negara dan penempatan Unit Organisasi (UNOR).
 			</p>
 		</div>
@@ -298,7 +298,7 @@
 				<span class="hidden sm:inline">Segarkan</span>
 			</Button>
 
-			<Button class="gap-1.5 text-xs h-9 bg-indigo-600 hover:bg-indigo-500" onclick={openCreateDialog}>
+			<Button class="gap-1.5 text-xs h-9 bg-indigo-600 hover:bg-indigo-500 text-white" onclick={openCreateDialog}>
 				<Plus class="h-4 w-4" />
 				<span>Tambah Pegawai</span>
 			</Button>
@@ -309,15 +309,15 @@
 	{#if alertMessage}
 		<Alert variant={alertMessage.type} class="relative">
 			{#if alertMessage.type === 'success'}
-				<CheckCircle2 class="h-4 w-4 text-emerald-400" />
+				<CheckCircle2 class="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
 			{:else}
-				<AlertCircle class="h-4 w-4 text-rose-400" />
+				<AlertCircle class="h-4 w-4 text-rose-500 dark:text-rose-400" />
 			{/if}
 			<AlertTitle>{alertMessage.title}</AlertTitle>
 			<AlertDescription>{alertMessage.desc}</AlertDescription>
 			<button
 				type="button"
-				class="absolute top-3 right-3 text-slate-400 hover:text-white text-xs"
+				class="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs"
 				onclick={() => alertMessage = null}
 			>
 				✕
@@ -326,7 +326,7 @@
 	{/if}
 
 	<!-- Filter & Search Bar -->
-	<Card class="border-slate-800 bg-slate-900/60 p-4">
+	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
 		<form onsubmit={handleSearchSubmit} class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
 			<!-- UNOR Filter (Untuk Admin bisa pilih, untuk AdminOPD terkunci) -->
 			<div class="sm:w-72">
@@ -334,7 +334,7 @@
 				{#if authState.isAdmin}
 					<select
 						id="filter-unor"
-						class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+						class="w-full h-10 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
 						bind:value={selectedUnor}
 						onchange={handleFilterChange}
 					>
@@ -344,8 +344,8 @@
 						{/each}
 					</select>
 				{:else}
-					<div class="h-10 px-3 flex items-center gap-2 rounded-md bg-slate-950/80 border border-slate-800 text-slate-300 text-xs">
-						<Building2 class="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+					<div class="h-10 px-3 flex items-center gap-2 rounded-md bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs">
+						<Building2 class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
 						<span class="truncate font-medium">{userUnorName() || 'Unit Organisasi Anda'}</span>
 					</div>
 				{/if}
@@ -353,11 +353,11 @@
 
 			<!-- Search Input -->
 			<div class="relative flex-1">
-				<Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+				<Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
 				<Input
 					type="text"
 					placeholder="Cari berdasarkan nama atau NIP..."
-					class="pl-9 h-10 text-xs bg-slate-950 border-slate-800"
+					class="pl-9 h-10 text-xs"
 					bind:value={searchQuery}
 				/>
 			</div>
@@ -370,7 +370,7 @@
 				<Button
 					type="button"
 					variant="ghost"
-					class="h-10 text-xs px-3 text-slate-400 hover:text-white"
+					class="h-10 text-xs px-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
 					onclick={resetFilter}
 				>
 					Reset
@@ -380,17 +380,17 @@
 	</Card>
 
 	<!-- Pegawai Table -->
-	<Card class="border-slate-800 bg-slate-900/40">
+	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
 		<CardContent class="p-0">
 			{#if isLoading}
 				<div class="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
-					<Loader2 class="h-6 w-6 animate-spin text-indigo-400" />
+					<Loader2 class="h-6 w-6 animate-spin text-indigo-500 dark:text-indigo-400" />
 					<span class="text-xs">Memuat daftar pegawai...</span>
 				</div>
 			{:else if pegawaiList.length === 0}
 				<div class="py-16 text-center space-y-2">
-					<Briefcase class="h-8 w-8 text-slate-600 mx-auto" />
-					<div class="text-sm font-semibold text-slate-300">Tidak ada pegawai ditemukan</div>
+					<Briefcase class="h-8 w-8 text-slate-400 dark:text-slate-600 mx-auto" />
+					<div class="text-sm font-semibold text-slate-800 dark:text-slate-300">Tidak ada pegawai ditemukan</div>
 					<p class="text-xs text-slate-500 max-w-sm mx-auto">
 						{searchQuery || selectedUnor
 							? 'Coba ubah kata kunci pencarian atau filter unit organisasi.'
@@ -400,45 +400,45 @@
 			{:else}
 				<Table>
 					<TableHeader>
-						<TableRow class="hover:bg-transparent border-slate-800">
-							<TableHead class="w-12 text-slate-400">No</TableHead>
-							<TableHead class="text-slate-400">Pegawai</TableHead>
-							<TableHead class="text-slate-400">NIP</TableHead>
-							<TableHead class="text-slate-400">Jabatan</TableHead>
-							<TableHead class="text-slate-400">Unit Organisasi</TableHead>
-							<TableHead class="text-right text-slate-400 pr-6">Aksi</TableHead>
+						<TableRow class="hover:bg-transparent border-b border-slate-200 dark:border-slate-800">
+							<TableHead class="w-12 text-center text-slate-600 dark:text-slate-400">No</TableHead>
+							<TableHead class="w-48 text-slate-600 dark:text-slate-400">NIP</TableHead>
+							<TableHead class="text-slate-600 dark:text-slate-400">Nama Pegawai</TableHead>
+							<TableHead class="text-slate-600 dark:text-slate-400">Jabatan</TableHead>
+							<TableHead class="text-slate-600 dark:text-slate-400">Unit Organisasi</TableHead>
+							<TableHead class="w-32 text-right text-slate-600 dark:text-slate-400">Aksi</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{#each pegawaiList as item, index}
-							<TableRow class="border-slate-800/60 hover:bg-slate-800/40 transition">
-								<TableCell class="text-xs text-slate-500 font-mono">
+							<TableRow class="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+								<TableCell class="text-xs text-slate-400 dark:text-slate-500 font-mono text-center">
 									{index + 1}
 								</TableCell>
 								<TableCell>
 									<div class="flex items-center gap-3">
-										<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-indigo-400 font-semibold text-xs border border-slate-700">
+										<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-semibold text-xs border border-slate-200 dark:border-slate-700">
 											{item.nama.charAt(0).toUpperCase()}
 										</div>
 										<div>
 											<a
 												href="/pegawai/{item.id}"
-												class="text-xs font-semibold text-white hover:text-indigo-400 transition"
+												class="text-xs font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition"
 											>
 												{item.nama}
 											</a>
 										</div>
 									</div>
 								</TableCell>
-								<TableCell class="font-mono text-xs text-slate-300">
+								<TableCell class="font-mono text-xs text-indigo-600 dark:text-indigo-400">
 									{item.nip}
 								</TableCell>
-								<TableCell class="text-xs text-slate-300">
+								<TableCell class="text-xs text-slate-700 dark:text-slate-300">
 									{item.jabatan}
 								</TableCell>
 								<TableCell>
-									<Badge variant="outline" class="font-normal text-xs bg-slate-900 border-slate-700 text-slate-300">
-										<Building2 class="mr-1 h-3 w-3 text-indigo-400" />
+									<Badge variant="outline" class="font-normal text-xs bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+										<Building2 class="mr-1 h-3 w-3 text-indigo-600 dark:text-indigo-400" />
 										<span>{item.namaUnor || (unorList.find((u) => u.kodeUnor === item.kodeUnor)?.namaUnor) || '-'}</span>
 									</Badge>
 								</TableCell>
@@ -496,48 +496,48 @@
 >
 	<form onsubmit={handleCreateSubmit} class="space-y-4">
 		<div class="space-y-1.5">
-			<Label for="create-nip" class="text-xs text-slate-300">NIP (Nomor Induk Pegawai) *</Label>
+			<Label for="create-nip" class="text-xs text-slate-700 dark:text-slate-300">NIP (Nomor Induk Pegawai) *</Label>
 			<Input
 				id="create-nip"
 				type="text"
 				placeholder="Contoh: 198501012010011001"
 				required
 				bind:value={createForm.nip}
-				class="font-mono text-xs bg-slate-950 border-slate-800"
+				class="font-mono text-xs"
 			/>
 		</div>
 
 		<div class="space-y-1.5">
-			<Label for="create-nama" class="text-xs text-slate-300">Nama Lengkap *</Label>
+			<Label for="create-nama" class="text-xs text-slate-700 dark:text-slate-300">Nama Lengkap *</Label>
 			<Input
 				id="create-nama"
 				type="text"
 				placeholder="Nama lengkap pegawai beserta gelar"
 				required
 				bind:value={createForm.nama}
-				class="text-xs bg-slate-950 border-slate-800"
+				class="text-xs"
 			/>
 		</div>
 
 		<div class="space-y-1.5">
-			<Label for="create-jabatan" class="text-xs text-slate-300">Jabatan *</Label>
+			<Label for="create-jabatan" class="text-xs text-slate-700 dark:text-slate-300">Jabatan *</Label>
 			<Input
 				id="create-jabatan"
 				type="text"
 				placeholder="Contoh: Kepala Seksi, Analis Kepegawaian..."
 				required
 				bind:value={createForm.jabatan}
-				class="text-xs bg-slate-950 border-slate-800"
+				class="text-xs"
 			/>
 		</div>
 
 		<div class="space-y-1.5">
-			<Label for="create-unor" class="text-xs text-slate-300">Unit Organisasi (UNOR) *</Label>
+			<Label for="create-unor" class="text-xs text-slate-700 dark:text-slate-300">Unit Organisasi (UNOR) *</Label>
 			{#if authState.isAdmin}
 				<select
 					id="create-unor"
 					required
-					class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+					class="w-full h-10 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
 					bind:value={createForm.kodeUnor}
 				>
 					{#each unorList as u}
@@ -551,15 +551,15 @@
 					readonly
 					disabled
 					value={userUnorName() || 'Unit Organisasi Anda'}
-					class="text-xs bg-slate-900 border-slate-800 text-slate-400 cursor-not-allowed"
+					class="text-xs bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed"
 				/>
-				<p class="text-[11px] text-amber-400 mt-1">
+				<p class="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
 					Sebagai Admin OPD, pegawai otomatis dialokasikan ke Unit Organisasi Anda.
 				</p>
 			{/if}
 		</div>
 
-		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
 			<Button
 				type="button"
 				variant="outline"
@@ -572,7 +572,7 @@
 			<Button
 				type="submit"
 				size="sm"
-				class="text-xs bg-indigo-600 hover:bg-indigo-500"
+				class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white"
 				disabled={isCreating}
 			>
 				{#if isCreating}
@@ -595,45 +595,45 @@
 >
 	<form onsubmit={handleEditSubmit} class="space-y-4">
 		<div class="space-y-1.5">
-			<Label for="edit-nip" class="text-xs text-slate-300">NIP (Nomor Induk Pegawai) *</Label>
+			<Label for="edit-nip" class="text-xs text-slate-700 dark:text-slate-300">NIP (Nomor Induk Pegawai) *</Label>
 			<Input
 				id="edit-nip"
 				type="text"
 				required
 				bind:value={editForm.nip}
-				class="font-mono text-xs bg-slate-950 border-slate-800"
+				class="font-mono text-xs"
 			/>
 		</div>
 
 		<div class="space-y-1.5">
-			<Label for="edit-nama" class="text-xs text-slate-300">Nama Lengkap *</Label>
+			<Label for="edit-nama" class="text-xs text-slate-700 dark:text-slate-300">Nama Lengkap *</Label>
 			<Input
 				id="edit-nama"
 				type="text"
 				required
 				bind:value={editForm.nama}
-				class="text-xs bg-slate-950 border-slate-800"
+				class="text-xs"
 			/>
 		</div>
 
 		<div class="space-y-1.5">
-			<Label for="edit-jabatan" class="text-xs text-slate-300">Jabatan *</Label>
+			<Label for="edit-jabatan" class="text-xs text-slate-700 dark:text-slate-300">Jabatan *</Label>
 			<Input
 				id="edit-jabatan"
 				type="text"
 				required
 				bind:value={editForm.jabatan}
-				class="text-xs bg-slate-950 border-slate-800"
+				class="text-xs"
 			/>
 		</div>
 
 		{#if authState.isAdmin}
 			<div class="space-y-1.5">
-				<Label for="edit-unor" class="text-xs text-slate-300">Unit Organisasi (UNOR) *</Label>
+				<Label for="edit-unor" class="text-xs text-slate-700 dark:text-slate-300">Unit Organisasi (UNOR) *</Label>
 				<select
 					id="edit-unor"
 					required
-					class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-800 text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+					class="w-full h-10 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
 					bind:value={editForm.kodeUnor}
 				>
 					{#each unorList as u}
@@ -643,7 +643,7 @@
 			</div>
 		{/if}
 
-		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
 			<Button
 				type="button"
 				variant="outline"
@@ -656,7 +656,7 @@
 			<Button
 				type="submit"
 				size="sm"
-				class="text-xs bg-indigo-600 hover:bg-indigo-500"
+				class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white"
 				disabled={isUpdating}
 			>
 				{#if isUpdating}
@@ -678,14 +678,14 @@
 	onclose={() => isDeleteOpen = false}
 >
 	<div class="space-y-4">
-		<p class="text-xs text-slate-300">
+		<p class="text-xs text-slate-700 dark:text-slate-300">
 			Apakah Anda yakin ingin menghapus data pegawai
-			<span class="font-semibold text-white">{deletingPegawai?.nama}</span>
-			(NIP: <span class="font-mono text-indigo-400">{deletingPegawai?.nip}</span>)?
+			<span class="font-semibold text-slate-900 dark:text-white">{deletingPegawai?.nama}</span>
+			(NIP: <span class="font-mono text-indigo-600 dark:text-indigo-400">{deletingPegawai?.nip}</span>)?
 			Tindakan ini tidak dapat dibatalkan.
 		</p>
 
-		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+		<div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
 			<Button
 				type="button"
 				variant="outline"

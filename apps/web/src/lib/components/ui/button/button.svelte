@@ -29,9 +29,9 @@
 
 	const variantStyles: Record<ButtonVariant, string> = {
 		default: 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-sm',
-		secondary: 'bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-700/60',
-		outline: 'border border-slate-700 bg-transparent text-slate-200 hover:bg-slate-800/60 hover:text-white',
-		ghost: 'hover:bg-slate-800/60 text-slate-300 hover:text-white',
+		secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 border border-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:border-slate-700/60',
+		outline: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800/60 dark:hover:text-white',
+		ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800/60 dark:text-slate-300 dark:hover:text-white',
 		destructive: 'bg-rose-600 text-white hover:bg-rose-500 shadow-sm'
 	};
 

@@ -11,7 +11,7 @@
 	let { class: className = '', children, ...rest }: Props = $props();
 </script>
 
-<h5 class={cn('mb-1 font-medium leading-none tracking-tight text-white', className)} {...rest}>
+<h5 class={cn('mb-1 font-medium leading-none tracking-tight text-slate-900 dark:text-white', className)} {...rest}>
 	{#if children}
 		{@render children()}
 	{/if}

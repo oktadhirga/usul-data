@@ -11,7 +11,7 @@
 	let { class: className = '', children, ...rest }: Props = $props();
 </script>
 
-<tbody class={cn('[&_tr:last-child]:border-0 divide-y divide-slate-800/60', className)} {...rest}>
+<tbody class={cn('[&_tr:last-child]:border-0 divide-y divide-slate-100 dark:divide-slate-800/60', className)} {...rest}>
 	{#if children}
 		{@render children()}
 	{/if}
