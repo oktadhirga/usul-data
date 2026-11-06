@@ -121,7 +121,9 @@ describe('SimpegSyncService — Sinkronisasi UNOR', () => {
     });
 
     const updateSpy = spyOn(UnorService, 'update').mockResolvedValue({ success: true, message: 'OK' });
+    updateSpy.mockClear();
     const createSpy = spyOn(UnorService, 'create').mockResolvedValue({ success: true, message: 'OK' });
+    createSpy.mockClear();
 
     // Act
     const result: SyncResult = await SimpegSyncService.syncUnor();

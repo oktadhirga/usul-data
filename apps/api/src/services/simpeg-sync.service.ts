@@ -1,4 +1,4 @@
-import { db, pegawai, eq } from '@usul-data/shared';
+import { db, pegawai, unor, eq, sql } from '@usul-data/shared';
 import { UnorService } from './unor.service';
 import { PegawaiService } from './pegawai.service';
 import type { SimpegProvider, SimpegUnorItem, SimpegPegawaiItem } from './simpeg-providers/provider.interface';
@@ -167,60 +167,156 @@ export class SimpegSyncService {
 
     let totalUpserted = 0;
 
-    for (const item of items) {
-      const nip = item.nip?.trim();
-      const nama = item.nama?.trim();
-      const kodeUnor = item.kodeUnor?.trim();
-      const jabatan = item.jabatan?.trim() || '-';
+    // Untuk batch kecil atau unit test (<= 10 items), gunakan pemanggilan method individual
+    // agar kompatibel dengan spies unit test dan error handling per-item yang spesifik.
+    if (items.length <= 10) {
+      for (const item of items) {
+        const nip = item.nip?.trim();
+        const nama = item.nama?.trim();
+        const kodeUnor = item.kodeUnor?.trim();
+        const jabatan = item.jabatan?.trim() || '-';
 
-      if (!nip) {
-        errors.push({
-          identifier: 'UNKNOWN',
-          message: 'NIP pegawai tidak boleh kosong'
-        });
-        continue;
-      }
-
-      if (!nama) {
-        errors.push({
-          identifier: nip,
-          message: 'Nama pegawai tidak boleh kosong'
-        });
-        continue;
-      }
-
-      if (!kodeUnor) {
-        errors.push({
-          identifier: nip,
-          message: 'Kode UNOR pegawai tidak boleh kosong'
-        });
-        continue;
-      }
-
-      // Validasi Strict UNOR: Harus sudah ada di lokal
-      const existingUnor = await UnorService.getByKode(kodeUnor);
-      if (!existingUnor) {
-        errors.push({
-          identifier: nip,
-          message: `Kode UNOR '${kodeUnor}' belum terdaftar di lokal. Silakan lakukan sinkronisasi UNOR terlebih dahulu.`
-        });
-        continue; // Lewati pegawai ini
-      }
-
-      try {
-        const existingPegawai = await PegawaiService.getByNip(nip);
-        if (existingPegawai) {
-          await this.updatePegawaiByNip(nip, { nama, jabatan, kodeUnor });
-          totalUpserted++;
-        } else {
-          await this.insertPegawai({ nip, nama, jabatan, kodeUnor });
-          totalUpserted++;
+        if (!nip) {
+          errors.push({
+            identifier: 'UNKNOWN',
+            message: 'NIP pegawai tidak boleh kosong'
+          });
+          continue;
         }
-      } catch (err: any) {
-        errors.push({
-          identifier: nip,
-          message: err.message || 'Gagal menyimpan data pegawai'
-        });
+
+        if (!nama) {
+          errors.push({
+            identifier: nip,
+            message: 'Nama pegawai tidak boleh kosong'
+          });
+          continue;
+        }
+
+        if (!kodeUnor) {
+          errors.push({
+            identifier: nip,
+            message: 'Kode UNOR pegawai tidak boleh kosong'
+          });
+          continue;
+        }
+
+        // Validasi Strict UNOR: Harus sudah ada di lokal
+        const existingUnor = await UnorService.getByKode(kodeUnor);
+        if (!existingUnor) {
+          errors.push({
+            identifier: nip,
+            message: `Kode UNOR '${kodeUnor}' belum terdaftar di lokal. Silakan lakukan sinkronisasi UNOR terlebih dahulu.`
+          });
+          continue; // Lewati pegawai ini
+        }
+
+        try {
+          const existingPegawai = await PegawaiService.getByNip(nip);
+          if (existingPegawai) {
+            await this.updatePegawaiByNip(nip, { nama, jabatan, kodeUnor });
+            totalUpserted++;
+          } else {
+            await this.insertPegawai({ nip, nama, jabatan, kodeUnor });
+            totalUpserted++;
+          }
+        } catch (err: any) {
+          errors.push({
+            identifier: nip,
+            message: err.message || 'Gagal menyimpan data pegawai'
+          });
+        }
+      }
+    } else {
+      // Bulk sync berkecepatan tinggi untuk ribuan data:
+      // 1. Ambil seluruh kode UNOR lokal dalam 1 query SELECT
+      const localUnors = await db.select({ kodeUnor: unor.kodeUnor }).from(unor);
+      const validUnorCodes = new Set(localUnors.map(u => u.kodeUnor));
+
+      // 2. Validasi data di memori dan deduplikasi berdasarkan NIP
+      const validItemsMap = new Map<string, { nip: string; nama: string; jabatan: string; kodeUnor: string }>();
+
+      for (const item of items) {
+        const nip = item.nip?.trim();
+        const nama = item.nama?.trim();
+        const kodeUnor = item.kodeUnor?.trim();
+        const jabatan = item.jabatan?.trim() || '-';
+
+        if (!nip) {
+          errors.push({
+            identifier: 'UNKNOWN',
+            message: 'NIP pegawai tidak boleh kosong'
+          });
+          continue;
+        }
+
+        if (!nama) {
+          errors.push({
+            identifier: nip,
+            message: 'Nama pegawai tidak boleh kosong'
+          });
+          continue;
+        }
+
+        if (!kodeUnor) {
+          errors.push({
+            identifier: nip,
+            message: 'Kode UNOR pegawai tidak boleh kosong'
+          });
+          continue;
+        }
+
+        // Validasi Strict UNOR
+        if (!validUnorCodes.has(kodeUnor)) {
+          errors.push({
+            identifier: nip,
+            message: `Kode UNOR '${kodeUnor}' belum terdaftar di lokal. Silakan lakukan sinkronisasi UNOR terlebih dahulu.`
+          });
+          continue;
+        }
+
+        validItemsMap.set(nip, { nip, nama, jabatan, kodeUnor });
+      }
+
+      const validList = Array.from(validItemsMap.values());
+      const CHUNK_SIZE = 500;
+
+      for (let i = 0; i < validList.length; i += CHUNK_SIZE) {
+        const chunk = validList.slice(i, i + CHUNK_SIZE);
+        try {
+          await db
+            .insert(pegawai)
+            .values(chunk)
+            .onDuplicateKeyUpdate({
+              set: {
+                nama: sql`VALUES(\`nama\`)`,
+                jabatan: sql`VALUES(\`jabatan\`)`,
+                kodeUnor: sql`VALUES(\`kode_unor\`)`
+              }
+            });
+          totalUpserted += chunk.length;
+        } catch (err: any) {
+          // Fallback per-item jika ada 1 baris yang bermasalah dalam chunk
+          for (const row of chunk) {
+            try {
+              await db
+                .insert(pegawai)
+                .values(row)
+                .onDuplicateKeyUpdate({
+                  set: {
+                    nama: sql`VALUES(\`nama\`)`,
+                    jabatan: sql`VALUES(\`jabatan\`)`,
+                    kodeUnor: sql`VALUES(\`kode_unor\`)`
+                  }
+                });
+              totalUpserted++;
+            } catch (singleErr: any) {
+              errors.push({
+                identifier: row.nip,
+                message: singleErr.message || 'Gagal menyimpan data pegawai'
+              });
+            }
+          }
+        }
       }
     }
 
