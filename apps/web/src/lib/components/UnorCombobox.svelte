@@ -108,25 +108,28 @@
 		<input type="hidden" {name} {value} {required} />
 	{/if}
 
-	<!-- Trigger Button -->
-	<button
-		{id}
-		type="button"
-		{disabled}
+	<!-- Trigger Container -->
+	<div
 		class={cn(
-			'w-full text-left rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 flex items-center justify-between transition-colors shadow-2xs hover:border-slate-400 dark:hover:border-slate-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
+			'w-full text-left rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500 flex items-center justify-between transition-colors shadow-2xs hover:border-slate-400 dark:hover:border-slate-700',
+			disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
 			size === 'sm' ? 'h-8 px-2.5 text-xs' : 'h-10 px-3 text-xs',
 			className
 		)}
-		onclick={toggleDropdown}
-		aria-expanded={isOpen}
 	>
-		<div class="flex items-center gap-2 min-w-0 flex-1 pr-1">
+		<button
+			{id}
+			type="button"
+			{disabled}
+			class="flex items-center gap-2 min-w-0 flex-1 pr-1 h-full text-left cursor-pointer focus:outline-none"
+			onclick={toggleDropdown}
+			aria-expanded={isOpen}
+		>
 			<Building2 class="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
 			<span class="truncate block font-medium {value ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}">
 				{selectedLabel()}
 			</span>
-		</div>
+		</button>
 
 		<div class="flex items-center gap-1 shrink-0 ml-1">
 			{#if (allowClear || allOptionLabel) && value && value !== allValue}
@@ -139,9 +142,18 @@
 					<X class="h-3 w-3" />
 				</button>
 			{/if}
-			<ChevronsUpDown class="h-3.5 w-3.5 text-slate-400 shrink-0" />
+			<button
+				type="button"
+				{disabled}
+				class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer focus:outline-none p-0.5"
+				onclick={toggleDropdown}
+				tabindex="-1"
+				aria-label="Toggle daftar unit kerja"
+			>
+				<ChevronsUpDown class="h-3.5 w-3.5 shrink-0" />
+			</button>
 		</div>
-	</button>
+	</div>
 
 	<!-- Searchable Dropdown Popover -->
 	{#if isOpen}
