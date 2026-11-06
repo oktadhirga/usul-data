@@ -5,12 +5,12 @@
 > "aplikasi ini sekarang sudah bisa apa, dan kenapa dibangun begitu" tanpa harus
 > baca seluruh git history atau semua PRD satu-satu.
 
-Terakhir diupdate: 23 September 2026
+Terakhir diupdate: 6 November 2026
 
 ---
 
 ## 1. Ringkasan Aplikasi
-Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negara (**ASN-Sync**) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, verifikasi usulan oleh Admin Pusat, dashboard analitik & ekspor Excel, serta tema tampilan Dark Mode dan Light Mode.
+Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negara (**ASN-Sync**) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, verifikasi usulan oleh Admin Pusat, dashboard analitik & ekspor Excel, tema tampilan Dark/Light Mode, serta integrasi penarikan data dari API SIMPEG BKD Trenggalek.
 
 ## 2. Fitur yang Sudah Ada
 
@@ -26,57 +26,47 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
 | **Notifikasi In-App** | Selesai | `notifikasi` / Header Bell | Notifikasi perubahan status usulan (diajukan, disetujui, ditolak) untuk Admin & AdminOPD, icon lonceng di header, badge jumlah unread, popover dropdown interaktif, dan penanda dibaca. |
 | **Dashboard & Laporan Excel** | Selesai | `dashboard` / `/` | Dashboard ringkasan analitik usulan perubahan data aparatur sipil (5 Summary Cards: total, diajukan, disetujui, ditolak, draft/batal; distribusi per UNOR; distribusi per kategori; rekap aktivitas bulanan), filter interaktif tahun/bulan/status/UNOR, dan export laporan lengkap berformat Excel (.xlsx) dengan otorisasi RBAC (Admin Pusat vs AdminOPD). |
 | **Dark Mode & Light Mode** | Selesai | `web` / Header Toggle | Dukungan tema ganda (Light Mode sebagai default dan Dark Mode), toggle switch Sun/Moon di header (mobile & desktop) dan halaman login, pencegahan flash (anti-FOUC) di `app.html`, persistensi `localStorage`, serta adaptasi penuh styling Tailwind CSS v4 di seluruh halaman & komponen UI. |
+| **Integrasi API SIMPEG** | Selesai | `simpeg` / `/unor`, `/pegawai` | Sinkronisasi data terpisah dari API SIMPEG BKD Trenggalek (`/unit_kerja` dan `/pegawai`) via Basic Auth. Sinkronisasi UNOR manual di `/unor`, sinkronisasi Pegawai di `/pegawai` dengan validasi strict foreign key UNOR dan modal rekapitulasi laporan sinkronisasi. |
 
 ## 3. Keputusan Arsitektur Penting
 
 - **Monorepo**: Menggunakan workspace `bun` (`apps/api`, `apps/web`, `packages/shared`) untuk mempermudah sharing kode dan typing.
 - **Backend API**: Menggunakan **ElysiaJS**.
+- **Fitur Integrasi API SIMPEG**:
+  - **Pemisahan Penarikan Data (Decoupled Sync)**: Jalur UNOR dan Pegawai dipisahkan secara independen. UNOR ditarik HANYA secara manual via tombol di halaman `/unor`. Pegawai dapat ditarik manual via tombol di `/pegawai` atau otomatis berkala.
+  - **Strict UNOR Dependency**: Pegawai dari SIMPEG yang kode UNOR-nya belum terdaftar di database lokal akan di-SKIP (tidak disimpan) dan dicatat dalam daftar peringatan/error untuk menjaga integritas foreign key dan mencegah auto-create UNOR liar.
+  - **Provider Pattern & Basic Auth**: Provider eksternal mendukung Basic Auth (`user_tes:password_tes`) untuk endpoint `https://bkdtrenggalek.net/api_tes/`, pemetaan otomatis format response `{ result: [...] }`, serta dukungan `MOCK_SIMPEG=true` untuk pengujian lokal/CI yang cepat dan terisolasi.
+  - **Endpoints API**: `POST /api/simpeg/unor/sync`, `GET /api/simpeg/unor/status`, `POST /api/simpeg/pegawai/sync`, `GET /api/simpeg/pegawai/status` (dibatasi khusus role `Admin`).
+  - **Frontend UI Modal**: Tombol `Tarik Data UNOR (SIMPEG)` di halaman UNOR dan `Tarik Data Pegawai (SIMPEG)` di halaman Pegawai dilengkapi indikator loading, auto-refresh data, dan modal dialog rekapitulasi hasil (total data ditarik, total di-upsert, dan daftar data dilewati).
 - **Fitur Dashboard & Laporan Excel**:
   - Endpoint analitik `GET /api/dashboard/stats` mengagregasi data usulan per status, per unit kerja (UNOR), per kategori field data, dan tren bulanan dalam tahun kalender via Drizzle ORM query.
   - Otorisasi data otomatis (RBAC): `AdminOPD` hanya memperoleh agregasi dan data laporan untuk UNOR miliknya (`scopeUnor`), sedangkan `Admin` Pusat mendapatkan statistik global lintas UNOR dengan kebebasan memilih filter spesifik.
-  - Endpoint ekspor `GET /api/dashboard/export` menghasilkan file Microsoft Excel (.xlsx) menggunakan pustaka `exceljs`, lengkap dengan styling warna header, alignment, format tanggal Indonesia, dan rincian perubahan usulan.
-  - Halaman Dashboard SvelteKit 5 ditempatkan sebagai landing page utama (`/`) setelah autentikasi, menyajikan kartu metrik responsif, tabel rekapitulasi performa UNOR, breakdown kategori dengan indikator visual persentase, dan pengunduh file Excel terintegrasi.
+  - Endpoint ekspor `GET /api/dashboard/export` menghasilkan file Microsoft Excel (.xlsx) menggunakan pustaka `exceljs`.
+  - Halaman Dashboard SvelteKit 5 ditempatkan sebagai landing page utama (`/`) setelah autentikasi.
 - **Frontend Web**: Menggunakan **SvelteKit 5** dengan TailwindCSS 4.
 - **Fitur Dark Mode & Light Mode**:
-  - Tailwind CSS v4 selector-based dark variant: Dikonfigurasikan melalui `@custom-variant dark (&:where(.dark, .dark *));` pada `apps/web/src/routes/layout.css` untuk memungkinkan penataan berbasis class `.dark` pada elemen root `<html>`.
-  - Default Tema: Light Mode secara default (`bg-slate-50 text-slate-900`), dengan Dark Mode bertema deep navy-slate (`#090d16` text `slate-100`).
-  - Pencegahan FOUC (Flash of Unstyled Content): Script inline sinkron di `<head>` pada `apps/web/src/app.html` membaca preferensi tersimpan di `localStorage.getItem('theme') === 'dark'` sebelum DOM pertama dirender.
-  - State Management: Store reaktif kelas Svelte 5 (`themeState`) di `apps/web/src/lib/stores/theme.svelte.ts` dengan method `toggleTheme()` dan `setTheme()`.
-  - Penempatan Toggle: Tombol `ThemeToggle` (ikon Sun/Moon) terintegrasi di top header aplikasi (baik mobile maupun desktop di samping lonceng notifikasi) dan sudut kanan atas halaman Login.
-  - Adaptasi Komponen: Seluruh komponen UI inti (Card, Table, Dialog/Modal, Input, Button, Badge, NotificationBell) serta seluruh halaman (Dashboard, Pegawai, UNOR, Users, Usulan, Wizard Usulan Baru, Verifikasi, Profile, Login) disesuaikan secara konsisten untuk kedua mode.
-- **Komunikasi API**: Frontend menggunakan modul API client terisolasi untuk interaksi backend yang type-safe.
-- **Database**: Menggunakan MySQL dengan **Drizzle ORM**. Skema database dan relasi diletakkan di `packages/shared/src/schema` agar bisa dipakai baik oleh API maupun Web.
-- **Relasi Database**:
-  - `Pegawai` berelasi `one-to-many` dengan `Unor` (1 Unor punya banyak Pegawai).
-  - `User` memiliki atribut `kodeUnor` untuk membatasi akses role `AdminOPD` ke data Unor tertentu.
+  - Tailwind CSS v4 selector-based dark variant: Dikonfigurasikan melalui `@custom-variant dark (&:where(.dark, .dark *));`.
+  - Default Tema: Light Mode secara default, dengan Dark Mode bertema deep navy-slate.
+  - Pencegahan FOUC via inline script di `<head>` membaca `localStorage`.
+- **Database**: Menggunakan MySQL dengan **Drizzle ORM**. Skema database dan relasi diletakkan di `packages/shared/src/schema`.
 - **Fitur Usulan Ubah Data Pegawai**:
-  - Struktur tabel: `usulan_perubahan` (header), `usulan_detail_field` (rincian field), dan `usulan_dokumen` (berkas lampiran PDF).
-  - Jenis usulan: `tambah`, `ubah`, dan `hapus`.
-  - Kategori usulan: 7 opsi baku (`Data Pribadi`, `Data Keluarga`, `Golongan`, `Jabatan`, `Pendidikan`, `Pindah Instansi`, `Diklat/Kursus`).
-  - Validasi berkas: Format PDF dan ukuran maksimum 1 MB. Wajib melampirkan berkas untuk jenis usulan `tambah` dan `ubah`, sedangkan untuk `hapus` bersifat opsional.
-  - Lifecycle status: `draft` -> `diajukan` -> (`disetujui` / `ditolak` / `dibatalkan`).
-  - Scoping & RBAC: `AdminOPD` dibatasi hanya dapat membuat, melihat, mengedit, dan menghapus usulan untuk pegawai di UNOR miliknya. `Admin` memiliki akses penuh lintas UNOR.
-  - Edit & Pengajuan Ulang: Usulan berstatus `draft`, `dibatalkan`, dan `ditolak` dapat diedit rinciannya dan diajukan kembali ke status `diajukan` (audit reset).
-  - Hapus Permanen: Usulan berstatus `draft`, `dibatalkan`, atau `ditolak` dapat dihapus permanen, menghapus data di DB beserta fisik berkas dokumen di server (`uploads/`).
-  - Format Waktu: Menampilkan zona waktu Indonesia Barat (WIB / GMT+7).
+  - Struktur tabel: `usulan_perubahan`, `usulan_detail_field`, dan `usulan_dokumen`.
+  - Lifecycle: `draft` -> `diajukan` -> (`disetujui` / `ditolak` / `dibatalkan`).
+  - Scoping RBAC: `AdminOPD` hanya mengelola pegawai di UNOR-nya; `Admin` lintas UNOR.
 - **Fitur Verifikasi Usulan (Admin Pusat)**:
-  - Audit Trail: Kolom `verified_by` (menyimpan username admin yang memverifikasi), `verified_at` (waktu eksekusi verifikasi), dan `catatan_verifikasi` pada tabel `usulan_perubahan` (dipisahkan dari `catatan` pengusul agar tidak saling menimpa).
-  - Sinkronisasi Master Pegawai: Approval usulan secara otomatis memperbarui kolom data bersangkutan pada tabel master `pegawai` (nama, nip, jabatan, kodeUnor). Untuk jenis usulan `hapus`, tidak ada tindakan penghapusan otomatis sesuai kesepakatan spesifikasi.
-  - Penolakan Usulan: Mewajibkan admin memberikan catatan / alasan penolakan sebelum status diubah menjadi `ditolak`.
-  - Preview Dokumen: Dilakukan via tautan berkas yang membuka langsung dokumen PDF pada tab peramban baru (`target="_blank"`).
-  - Feedback OPD: Detail usulan pada halaman OPD menampilkan informasi verifikator, waktu verifikasi, dan catatan/alasan penolakan dari admin pusat secara terpisah dari catatan pengusul, serta dilengkapi modal responsif dengan scrollbar vertikal.
+  - Audit Trail: Kolom `verified_by`, `verified_at`, dan `catatan_verifikasi`.
+  - Sinkronisasi Master Pegawai: Approval otomatis memperbarui data master pegawai bersangkutan di lokal.
 - **Fitur Notifikasi In-App**:
-  - Tabel `notifikasi` di MySQL berelasi dengan tabel `users`.
-  - Trigger otomatis: saat usulan diajukan (mengirim ke role `Admin`), serta saat usulan disetujui atau ditolak (mengirim ke role `AdminOPD` pada UNOR terkait).
-  - UI Frontend: Komponen `NotificationBell` terpasang di header mobile & desktop dengan badge counter unread, popover daftar notifikasi, opsi tandai semua dibaca, dan redirect rute ke usulan terkait (non-realtime via HTTP fetch on load).
+  - Tabel `notifikasi` di MySQL berelasi dengan `users`.
+  - UI `NotificationBell` di header dengan popover dan badge counter unread.
 
 ## 4. Known Issues / Technical Debt
 
-- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 67 skenario pengujian komprehensif termasuk notifikasi, dashboard stats, dan export excel).
+- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 82 skenario pengujian komprehensif termasuk integrasi SIMPEG, notifikasi, dashboard stats, dan export excel).
 
 ## 5. Yang Sedang Dikerjakan (In Progress)
 
-- Tidak ada (Seluruh cakupan fitur dashboard analitik dan ekspor laporan Excel telah selesai dan siap di-merge)
+- Tidak ada (Seluruh cakupan fitur integrasi API SIMPEG BKD Trenggalek telah selesai diimplementasikan di backend dan frontend)
 
 ## 6. Yang Sengaja Belum Dikerjakan
 
