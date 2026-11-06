@@ -451,10 +451,10 @@
 	{/if}
 
 	<!-- Filter & Search Bar -->
-	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
+	<Card class="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
 		<form onsubmit={handleSearchSubmit} class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
 			<!-- UNOR Filter (Searchable combobox untuk Admin, terkunci untuk AdminOPD) -->
-			<div class="sm:w-80 relative" bind:this={unorDropdownRef}>
+			<div class="sm:w-80 relative z-40" bind:this={unorDropdownRef}>
 				<label for="filter-unor-trigger" class="sr-only">Filter Unit Organisasi</label>
 				{#if authState.isAdmin}
 					<!-- Trigger Combobox Button -->
@@ -490,7 +490,7 @@
 
 					<!-- Searchable Popover Dropdown -->
 					{#if isUnorDropdownOpen}
-						<div class="absolute left-0 top-full mt-1.5 w-full sm:w-96 max-w-[95vw] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl z-50 overflow-hidden">
+						<div class="absolute left-0 top-full mt-1.5 w-full sm:w-96 max-w-[95vw] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl z-50 overflow-hidden">
 							<!-- Search Input inside Dropdown -->
 							<div class="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60 relative">
 								<Search class="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -591,7 +591,7 @@
 	</Card>
 
 	<!-- Pegawai Table -->
-	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+	<Card class="relative z-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
 		<CardContent class="p-0">
 			{#if isLoading}
 				<div class="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
