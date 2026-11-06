@@ -4,25 +4,41 @@
 	import { authState } from '$lib/stores/auth.svelte';
 	import { fetchUnorList, type UnorItem } from '$lib/api/pegawai';
 	import { syncSimpegUnor, type SimpegSyncResult } from '$lib/api/simpeg';
-	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
 	import { Dialog } from '$lib/components/ui/dialog';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import {
 		Building2,
 		ArrowRight,
+		ArrowUpRight,
 		Loader2,
 		AlertCircle,
 		CheckCircle2,
 		RefreshCw,
 		CloudDownload,
-		AlertTriangle
+		AlertTriangle,
+		Search,
+		X,
+		Users
 	} from 'lucide-svelte';
 
 	let unors = $state<UnorItem[]>([]);
 	let isLoading = $state(true);
 	let errorMessage = $state('');
+	let searchQuery = $state('');
+
+	let filteredUnors = $derived(
+		unors.filter((u) => {
+			const query = searchQuery.trim().toLowerCase();
+			if (!query) return true;
+			return (
+				u.namaUnor.toLowerCase().includes(query) ||
+				u.kodeUnor.toLowerCase().includes(query)
+			);
+		})
+	);
 
 	// State Sinkronisasi SIMPEG
 	let isSyncing = $state(false);
@@ -150,6 +166,31 @@
 		</Alert>
 	{/if}
 
+	<!-- Search & Filter Bar -->
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
+		<div class="relative flex-1 max-w-md">
+			<Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+			<Input
+				bind:value={searchQuery}
+				placeholder="Cari nama atau kode unit kerja..."
+				class="pl-9 pr-8 h-9 text-xs"
+			/>
+			{#if searchQuery}
+				<button
+					type="button"
+					class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+					onclick={() => (searchQuery = '')}
+					title="Hapus pencarian"
+				>
+					<X class="h-3.5 w-3.5" />
+				</button>
+			{/if}
+		</div>
+		<div class="text-xs text-slate-500 dark:text-slate-400 font-medium px-1">
+			Menampilkan <span class="font-bold text-slate-900 dark:text-white">{filteredUnors.length}</span> dari {unors.length} unit kerja
+		</div>
+	</div>
+
 	{#if isLoading}
 		<div class="py-16 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
 			<Loader2 class="h-6 w-6 text-emerald-400 animate-spin" />
@@ -159,33 +200,46 @@
 		<div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs">
 			{errorMessage}
 		</div>
+	{:else if filteredUnors.length === 0}
+		<div class="py-14 text-center rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 bg-slate-50/50 dark:bg-slate-900/20">
+			<Building2 class="h-8 w-8 text-slate-400 mx-auto mb-2 opacity-50" />
+			<p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Tidak ada unit organisasi ditemukan</p>
+			<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Coba kata kunci pencarian lain atau bersihkan kotak pencarian.</p>
+			{#if searchQuery}
+				<Button variant="outline" size="sm" class="mt-3 text-xs" onclick={() => (searchQuery = '')}>
+					Bersihkan Pencarian
+				</Button>
+			{/if}
+		</div>
 	{:else}
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-			{#each unors as u}
-				<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-700 transition">
-					<CardHeader class="pb-3">
-						<div class="flex items-center justify-between mb-1">
-							<Badge variant="outline" class="font-normal text-xs bg-indigo-50 dark:bg-slate-950 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-slate-700">
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+			{#each filteredUnors as u}
+				<a
+					href="/pegawai?kode_unor={encodeURIComponent(u.kodeUnor)}"
+					class="group relative flex flex-col justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-emerald-500 dark:hover:border-emerald-500/80 hover:shadow-md transition-all duration-150 cursor-pointer"
+				>
+					<div class="space-y-2">
+						<div class="flex items-center justify-between gap-2">
+							<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
 								{u.kodeUnor}
-							</Badge>
-							<span class="text-[11px] text-slate-400 dark:text-slate-500 font-mono">ID: {u.id}</span>
+							</span>
+							<div class="text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+								<ArrowUpRight class="h-4 w-4" />
+							</div>
 						</div>
-						<CardTitle class="text-base font-bold text-slate-900 dark:text-white">
+						<h3 class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors line-clamp-2 leading-snug">
 							{u.namaUnor}
-						</CardTitle>
-					</CardHeader>
-					<CardContent class="pt-0">
-						<div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-							<a
-								href="/pegawai?kode_unor={encodeURIComponent(u.kodeUnor)}"
-								class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium inline-flex items-center gap-1"
-							>
-								<span>Lihat Pegawai di UNOR ini</span>
-								<ArrowRight class="h-3 w-3" />
-							</a>
-						</div>
-					</CardContent>
-				</Card>
+						</h3>
+					</div>
+
+					<div class="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+						<span class="flex items-center gap-1 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+							<Users class="h-3 w-3" />
+							<span>Lihat Pegawai</span>
+						</span>
+						<span class="font-mono text-[10px]">ID: {u.id}</span>
+					</div>
+				</a>
 			{/each}
 		</div>
 	{/if}
