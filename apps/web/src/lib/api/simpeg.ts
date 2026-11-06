@@ -93,3 +93,4 @@ export async function getSimpegPegawaiStatus(): Promise<SimpegApiResponse> {
 		};
 	}
 }
+

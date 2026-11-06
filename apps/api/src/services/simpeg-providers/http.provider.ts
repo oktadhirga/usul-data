@@ -61,39 +61,13 @@ export class HttpSimpegProvider implements SimpegProvider {
     }));
   }
 
-  async fetchPegawai(options?: { offset?: number; limit?: number }): Promise<SimpegPegawaiItem[]> {
-    let url = this.pegawaiUrl;
-    const params = new URLSearchParams();
-    if (options?.offset !== undefined) params.set('offset', String(options.offset));
-    if (options?.limit !== undefined) params.set('limit', String(options.limit));
-
-    const queryString = params.toString();
-    if (queryString) {
-      url += (url.includes('?') ? '&' : '?') + queryString;
-    }
-
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: this.authHeader,
-        Accept: 'application/json'
-      }
-    });
-
-    if (!res.ok) {
-      throw new Error(`Gagal mengambil data Pegawai dari SIMPEG: HTTP ${res.status} ${res.statusText}`);
-    }
-
-    const json: any = await res.json();
-    const rawList: any[] = Array.isArray(json) ? json : (json.result ?? json.data ?? []);
-
+  private mapPegawaiItems(rawList: any[]): SimpegPegawaiItem[] {
     return rawList.map((item) => {
-      // Format nama lengkap dengan gelar jika tersedia
       let nama = item.nama ?? item.nama_lengkap ?? '';
       if (item.nama_lengkap) {
         const parts = [item.gelar_depan, item.nama_lengkap, item.gelar_belakang]
           .filter(Boolean)
-          .map((s: string) => s.trim())
+          .map((s: string) => String(s).trim())
           .filter((s: string) => s.length > 0);
         if (parts.length > 0) {
           nama = parts.join(' ');
@@ -113,5 +87,72 @@ export class HttpSimpegProvider implements SimpegProvider {
       };
     });
   }
-}
 
+  async fetchPegawai(options?: { offset?: number; limit?: number }): Promise<SimpegPegawaiItem[]> {
+    // 1. Single Page Fetch jika limit ditentukan secara eksplisit
+    if (options?.limit !== undefined) {
+      let url = this.pegawaiUrl;
+      const params = new URLSearchParams();
+      if (options?.offset !== undefined) params.set('offset', String(options.offset));
+      params.set('limit', String(options.limit));
+
+      const queryString = params.toString();
+      if (queryString) {
+        url += (url.includes('?') ? '&' : '?') + queryString;
+      }
+
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: this.authHeader,
+          Accept: 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error(`Gagal mengambil data Pegawai dari SIMPEG: HTTP ${res.status} ${res.statusText}`);
+      }
+
+      const json: any = await res.json();
+      const rawList: any[] = Array.isArray(json) ? json : (json.result ?? json.data ?? []);
+      return this.mapPegawaiItems(rawList);
+    }
+
+    // 2. Auto-Pagination Loop jika limit tidak ditentukan (Tarik seluruh data secara tuntas)
+    const batchSize = 2000;
+    let offset = options?.offset ?? 0;
+    const allRawItems: any[] = [];
+
+    while (true) {
+      let url = this.pegawaiUrl;
+      const params = new URLSearchParams();
+      params.set('offset', String(offset));
+      params.set('limit', String(batchSize));
+      url += (url.includes('?') ? '&' : '?') + params.toString();
+
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: this.authHeader,
+          Accept: 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error(`Gagal mengambil data Pegawai dari SIMPEG: HTTP ${res.status} ${res.statusText}`);
+      }
+
+      const json: any = await res.json();
+      const rawList: any[] = Array.isArray(json) ? json : (json.result ?? json.data ?? []);
+      allRawItems.push(...rawList);
+
+      const totalCount = typeof json.count === 'number' ? json.count : rawList.length;
+      if (rawList.length === 0 || allRawItems.length >= totalCount || !json.count) {
+        break;
+      }
+      offset += batchSize;
+    }
+
+    return this.mapPegawaiItems(allRawItems);
+  }
+}

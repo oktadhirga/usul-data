@@ -35,6 +35,8 @@
 		CheckCircle2,
 		CloudDownload,
 		AlertTriangle,
+		ChevronLeft,
+		ChevronRight,
 		Filter
 	} from 'lucide-svelte';
 
@@ -44,6 +46,10 @@
 	let selectedUnor = $state<string>('');
 	let searchQuery = $state('');
 	let alertMessage = $state<{ type: 'success' | 'destructive'; title: string; desc: string } | null>(null);
+	let currentPage = $state(1);
+	let pageSize = $state(10);
+	let totalItems = $state(0);
+	let totalPages = $state(1);
 
 	const userUnorName = $derived(() => {
 		if (!authState.user?.kodeUnor) return '';
@@ -112,9 +118,13 @@
 		}
 	}
 
-	async function loadPegawai() {
+	async function loadPegawai(page = currentPage) {
 		isLoading = true;
-		const params: { kode_unor?: string; search?: string } = {};
+		currentPage = page;
+		const params: { kode_unor?: string; search?: string; page?: number; limit?: number } = {
+			page: currentPage,
+			limit: pageSize
+		};
 		if (selectedUnor) params.kode_unor = selectedUnor;
 		if (searchQuery.trim()) params.search = searchQuery.trim();
 
@@ -122,6 +132,14 @@
 		isLoading = false;
 		if (res.success && Array.isArray(res.data)) {
 			pegawaiList = res.data;
+			if (res.pagination) {
+				totalItems = res.pagination.totalItems;
+				totalPages = res.pagination.totalPages;
+				currentPage = res.pagination.page;
+			} else {
+				totalItems = res.data.length;
+				totalPages = 1;
+			}
 		} else {
 			alertMessage = {
 				type: 'destructive',
@@ -166,12 +184,14 @@
 	});
 
 	function handleFilterChange() {
-		loadPegawai();
+		currentPage = 1;
+		loadPegawai(1);
 	}
 
 	function handleSearchSubmit(e: Event) {
 		e.preventDefault();
-		loadPegawai();
+		currentPage = 1;
+		loadPegawai(1);
 	}
 
 	function resetFilter() {
@@ -179,8 +199,9 @@
 			selectedUnor = '';
 		}
 		searchQuery = '';
+		currentPage = 1;
 		goto('/pegawai', { replaceState: true });
-		loadPegawai();
+		loadPegawai(1);
 	}
 
 	function openCreateDialog() {
@@ -461,7 +482,7 @@
 						{#each pegawaiList as item, index}
 							<TableRow class="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
 								<TableCell class="text-xs text-slate-400 dark:text-slate-500 font-mono text-center">
-									{index + 1}
+									{(currentPage - 1) * pageSize + index + 1}
 								</TableCell>
 								<TableCell class="font-mono text-xs text-indigo-600 dark:text-indigo-400">
 									{item.nip}
@@ -530,6 +551,56 @@
 						{/each}
 					</TableBody>
 				</Table>
+
+				<!-- Pagination Controls -->
+				{#if totalItems > 0}
+					<div class="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+						<div class="flex items-center gap-2">
+							<span>Baris per halaman:</span>
+							<select
+								class="h-8 px-2 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+								bind:value={pageSize}
+								onchange={() => { currentPage = 1; loadPegawai(1); }}
+							>
+								<option value={10}>10</option>
+								<option value={25}>25</option>
+								<option value={50}>50</option>
+								<option value={100}>100</option>
+							</select>
+							<span class="ml-2">
+								Menampilkan {Math.min((currentPage - 1) * pageSize + 1, totalItems)} - {Math.min(currentPage * pageSize, totalItems)} dari {totalItems.toLocaleString('id-ID')} pegawai
+							</span>
+						</div>
+
+						<div class="flex items-center gap-1.5">
+							<Button
+								variant="outline"
+								size="sm"
+								class="h-8 px-2.5 text-xs gap-1"
+								disabled={currentPage <= 1 || isLoading}
+								onclick={() => loadPegawai(currentPage - 1)}
+							>
+								<ChevronLeft class="h-3.5 w-3.5" />
+								<span>Sebelumnya</span>
+							</Button>
+
+							<span class="px-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+								Halaman {currentPage} dari {Math.max(1, totalPages)}
+							</span>
+
+							<Button
+								variant="outline"
+								size="sm"
+								class="h-8 px-2.5 text-xs gap-1"
+								disabled={currentPage >= totalPages || isLoading}
+								onclick={() => loadPegawai(currentPage + 1)}
+							>
+								<span>Selanjutnya</span>
+								<ChevronRight class="h-3.5 w-3.5" />
+							</Button>
+						</div>
+					</div>
+				{/if}
 			{/if}
 		</CardContent>
 	</Card>

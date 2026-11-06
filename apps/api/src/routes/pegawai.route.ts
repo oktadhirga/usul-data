@@ -6,17 +6,28 @@ export const pegawaiRoute = new Elysia({ prefix: '/pegawai' })
   .use(authContext)
   .use(requireAuth)
   .use(resolveUnorScope)
-  // GET /api/pegawai - Daftar Pegawai dengan filter kode_unor & pencarian nama/nip
+  // GET /api/pegawai - Daftar Pegawai dengan filter kode_unor, pencarian nama/nip, & pagination
   .get(
     '/',
     async ({ query, scopeUnor }) => {
       try {
-        const data = await PegawaiService.getAll({
+        const result = await PegawaiService.getAll({
           kodeUnor: query.kode_unor ?? null,
           search: query.search ?? null,
-          scopeUnor
+          scopeUnor,
+          page: query.page !== undefined ? Number(query.page) : (query.limit !== undefined ? 1 : null),
+          limit: query.limit !== undefined ? Number(query.limit) : null
         });
-        return { success: true, data };
+
+        if (Array.isArray(result)) {
+          return { success: true, data: result };
+        }
+
+        return {
+          success: true,
+          data: result.data,
+          pagination: result.pagination
+        };
       } catch (err: any) {
         return { success: false, data: [], message: err.message ?? 'Database query error' };
       }
@@ -24,7 +35,9 @@ export const pegawaiRoute = new Elysia({ prefix: '/pegawai' })
     {
       query: t.Object({
         kode_unor: t.Optional(t.String()),
-        search: t.Optional(t.String())
+        search: t.Optional(t.String()),
+        page: t.Optional(t.String()),
+        limit: t.Optional(t.String())
       })
     }
   )

@@ -415,7 +415,7 @@ describe('SimpegProvider — Mock vs HTTP', () => {
 
     expect(urlsCalled).toHaveLength(2);
     expect(urlsCalled[0]).toBe('https://simpeg.example.go.id/api/unor');
-    expect(urlsCalled[1]).toBe('https://simpeg.example.go.id/api/pegawai');
+    expect(urlsCalled[1]).toContain('https://simpeg.example.go.id/api/pegawai');
   });
 });
 

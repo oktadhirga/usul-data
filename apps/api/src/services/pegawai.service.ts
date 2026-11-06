@@ -1,4 +1,4 @@
-import { db, pegawai, unor, eq, and, or, like, type Pegawai, type NewPegawai, type PegawaiWithUnor } from '@usul-data/shared';
+import { db, pegawai, unor, eq, and, or, like, sql, type Pegawai, type NewPegawai, type PegawaiWithUnor } from '@usul-data/shared';
 import type { AuthUser } from '../middleware/auth';
 import { UnorService } from './unor.service';
 
@@ -6,10 +6,24 @@ export interface PegawaiFilterParams {
   kodeUnor?: string | null;
   search?: string | null;
   scopeUnor?: string | null;
+  page?: number | null;
+  limit?: number | null;
+}
+
+export interface PegawaiPaginationMeta {
+  page: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export interface PegawaiQueryResult {
+  data: PegawaiWithUnor[];
+  pagination: PegawaiPaginationMeta;
 }
 
 export class PegawaiService {
-  static async getAll(params: PegawaiFilterParams): Promise<PegawaiWithUnor[]> {
+  static async getAll(params: PegawaiFilterParams): Promise<PegawaiWithUnor[] | PegawaiQueryResult> {
     // Penegakan scope: Jika scopeUnor ada (AdminOPD), paksa filter ke kodeUnor milik user
     const effectiveKodeUnor = params.scopeUnor || params.kodeUnor || null;
 
@@ -30,7 +44,48 @@ export class PegawaiService {
       );
     }
 
-    let query = db
+    const whereClause =
+      conditions.length === 1
+        ? conditions[0]
+        : conditions.length > 1
+        ? and(...conditions)
+        : undefined;
+
+    // Jika tidak meminta pagination (misal untuk dropdown atau unit test lama), return array langsung
+    if (!params.page && !params.limit) {
+      let query = db
+        .select({
+          id: pegawai.id,
+          nip: pegawai.nip,
+          nama: pegawai.nama,
+          jabatan: pegawai.jabatan,
+          kodeUnor: pegawai.kodeUnor,
+          namaUnor: unor.namaUnor
+        })
+        .from(pegawai)
+        .leftJoin(unor, eq(pegawai.kodeUnor, unor.kodeUnor));
+
+      if (whereClause) {
+        return await query.where(whereClause);
+      }
+      return await query;
+    }
+
+    // Hitung total data
+    let countQuery = db
+      .select({ count: sql<number>`count(*)` })
+      .from(pegawai)
+      .leftJoin(unor, eq(pegawai.kodeUnor, unor.kodeUnor));
+
+    const totalCountRes = whereClause ? await countQuery.where(whereClause) : await countQuery;
+    const totalItems = Number(totalCountRes[0]?.count || 0);
+
+    const page = Math.max(1, Number(params.page) || 1);
+    const limit = Math.max(1, Number(params.limit) || 10);
+    const offset = (page - 1) * limit;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    let dataQuery = db
       .select({
         id: pegawai.id,
         nip: pegawai.nip,
@@ -42,13 +97,21 @@ export class PegawaiService {
       .from(pegawai)
       .leftJoin(unor, eq(pegawai.kodeUnor, unor.kodeUnor));
 
-    if (conditions.length === 1) {
-      return await query.where(conditions[0]);
-    } else if (conditions.length > 1) {
-      return await query.where(and(...conditions));
+    if (whereClause) {
+      dataQuery = dataQuery.where(whereClause) as any;
     }
 
-    return await query;
+    const data = await dataQuery.limit(limit).offset(offset);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages
+      }
+    };
   }
 
   static async getById(id: number, scopeUnor?: string | null): Promise<PegawaiWithUnor | null> {
