@@ -18,7 +18,7 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
 |---|---|---|---|
 | **Autentikasi & Otorisasi** | Selesai | `users` / `/login` | Menggunakan JWT. Role yang tersedia: `Admin`, `AdminOPD`. |
 | **Manajemen User** | Selesai | `users` / `/users` | CRUD User, dengan relasi ke Unit Organisasi (Kode UNOR). |
-| **Manajemen Unit Organisasi (UNOR)** | Selesai | `unor` / `/unor` | CRUD UNOR. Data master untuk unit kerja pegawai & user OPD. |
+| **Manajemen Unit Organisasi (UNOR)** | Selesai | `unor` / `/unor` | CRUD UNOR. Data master untuk unit kerja pegawai & user OPD. Dilengkapi pencarian instan (nama/kode), indikator counter hasil filter, dan kartu unit kerja interaktif yang ringkas. |
 | **Manajemen Pegawai** | Selesai | `pegawai` / `/pegawai` | CRUD Pegawai. Terhubung dengan tabel UNOR. Dilengkapi pagination backend & frontend (10/25/50/100 per halaman) agar responsif dan nyaman untuk ribuan data. |
 | **Profil Pengguna** | Selesai | `users` / `/profile` | Menampilkan info user yang sedang login. |
 | **Usulan Ubah Data Pegawai** | Selesai | `usulan` / `/usulan`, `/usulan/baru` | Pengajuan perubahan data via wizard 5 langkah, upload berkas PDF (maks 1 MB), pembatalan usulan, edit & ajukan kembali usulan dibatalkan/draft, serta hapus usulan secara permanen (DB cascade & berkas fisik). |
