@@ -11,6 +11,7 @@
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
+	import UnorCombobox from '$lib/components/UnorCombobox.svelte';
 	import {
 		Shield,
 		Building2,
@@ -216,7 +217,7 @@
 	</div>
 
 	<!-- Interactive Filter Toolbar -->
-	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm">
+	<Card class="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm">
 		<CardContent class="p-4">
 			<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
 				<div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -275,19 +276,17 @@
 
 					<!-- Filter UNOR (Hanya Admin Pusat) -->
 					{#if authState.isAdmin}
-						<div>
+						<div class="sm:min-w-[190px]">
 							<label for="filter-unor" class="block text-[11px] text-slate-600 dark:text-slate-400 mb-1">Unit Organisasi</label>
-							<select
+							<UnorCombobox
 								id="filter-unor"
 								bind:value={filterKodeUnor}
+								unors={unorList}
+								allOptionLabel="Seluruh UNOR"
+								allValue="all"
+								size="sm"
 								onchange={loadStats}
-								class="w-full h-8 px-2.5 text-xs rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 truncate"
-							>
-								<option value="all">Seluruh UNOR</option>
-								{#each unorList as u}
-									<option value={u.kodeUnor}>{u.namaUnor}</option>
-								{/each}
-							</select>
+							/>
 						</div>
 					{:else}
 						<div class="flex flex-col justify-end">
