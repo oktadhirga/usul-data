@@ -128,6 +128,20 @@ export class SimpegSyncService {
       }
     }
 
+    // Bersihkan sub-unit lama (10 digit yang bukan unit induk) yang tidak memiliki relasi dengan pegawai/users/usulan
+    try {
+      await db.execute(sql`
+        DELETE FROM unor 
+        WHERE CHAR_LENGTH(kode_unor) = 10 
+          AND RIGHT(kode_unor, 8) != '00000000'
+          AND kode_unor NOT IN (SELECT DISTINCT kode_unor FROM pegawai)
+          AND kode_unor NOT IN (SELECT DISTINCT kode_unor FROM users WHERE kode_unor IS NOT NULL)
+          AND kode_unor NOT IN (SELECT DISTINCT kode_unor FROM usulan_perubahan WHERE kode_unor IS NOT NULL)
+      `);
+    } catch {
+      // Lanjutkan jika tabel belum ada atau saat mock unit test
+    }
+
     const result: SyncResult = {
       success: errors.length === 0,
       target: 'unor',

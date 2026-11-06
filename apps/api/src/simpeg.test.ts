@@ -480,6 +480,34 @@ describe('HttpSimpegProvider — Trenggalek API Schema & Basic Auth', () => {
     });
   });
 
+  it('memfilter hanya unit induk (id 10 digit berakhiran 00000000) dan mengabaikan sub-unit', async () => {
+    const { HttpSimpegProvider } = await import('./services/simpeg-providers/http.provider');
+
+    global.fetch = mock(async () => {
+      return new Response(
+        JSON.stringify({
+          count: 4,
+          result: [
+            { id: '0100000000', nama: 'SEKRETARIAT DAERAH' },
+            { id: '1000000000', nama: 'DINAS PENDIDIKAN' },
+            { id: '1010010000', nama: 'KOORDINATOR WILAYAH BIDANG PENDIDIKAN' },
+            { id: '1010010201', nama: 'SDN 1 DAWUHAN' }
+          ]
+        }),
+        { status: 200 }
+      );
+    }) as any;
+
+    const provider = new HttpSimpegProvider({
+      unorUrl: 'https://bkdtrenggalek.net/api_tes/unit_kerja'
+    });
+
+    const items = await provider.fetchUnor();
+    expect(items).toHaveLength(2);
+    expect(items[0].kodeUnor).toBe('0100000000');
+    expect(items[1].kodeUnor).toBe('1000000000');
+  });
+
   it('memetakan format response pegawai (nip, nama_lengkap, gelar, unit_kerja_id) ke SimpegPegawaiItem', async () => {
     const { HttpSimpegProvider } = await import('./services/simpeg-providers/http.provider');
 

@@ -55,10 +55,19 @@ export class HttpSimpegProvider implements SimpegProvider {
     const json: any = await res.json();
     const rawList: any[] = Array.isArray(json) ? json : (json.result ?? json.data ?? []);
 
-    return rawList.map((item) => ({
+    const mapped = rawList.map((item) => ({
       kodeUnor: String(item.id ?? item.kodeUnor ?? item.kode ?? '').trim(),
       namaUnor: String(item.nama ?? item.namaUnor ?? item.nama_unor ?? '').trim()
     }));
+
+    // Filter khusus: jika kode 10 digit (skema SIMPEG), hanya ambil unit induk (akhiran 00000000)
+    return mapped.filter((item) => {
+      if (!item.kodeUnor) return false;
+      if (item.kodeUnor.length === 10) {
+        return item.kodeUnor.endsWith('00000000');
+      }
+      return true;
+    });
   }
 
   private mapPegawaiItems(rawList: any[]): SimpegPegawaiItem[] {
