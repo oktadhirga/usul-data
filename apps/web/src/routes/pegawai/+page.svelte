@@ -415,6 +415,9 @@
 								<TableCell class="text-xs text-slate-400 dark:text-slate-500 font-mono text-center">
 									{index + 1}
 								</TableCell>
+								<TableCell class="font-mono text-xs text-indigo-600 dark:text-indigo-400">
+									{item.nip}
+								</TableCell>
 								<TableCell>
 									<div class="flex items-center gap-3">
 										<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-semibold text-xs border border-slate-200 dark:border-slate-700">
@@ -429,9 +432,6 @@
 											</a>
 										</div>
 									</div>
-								</TableCell>
-								<TableCell class="font-mono text-xs text-indigo-600 dark:text-indigo-400">
-									{item.nip}
 								</TableCell>
 								<TableCell class="text-xs text-slate-700 dark:text-slate-300">
 									{item.jabatan}
