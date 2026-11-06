@@ -19,14 +19,14 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
 | **Autentikasi & Otorisasi** | Selesai | `users` / `/login` | Menggunakan JWT. Role yang tersedia: `Admin`, `AdminOPD`. |
 | **Manajemen User** | Selesai | `users` / `/users` | CRUD User, dengan relasi ke Unit Organisasi (Kode UNOR). |
 | **Manajemen Unit Organisasi (UNOR)** | Selesai | `unor` / `/unor` | CRUD UNOR. Data master untuk unit kerja pegawai & user OPD. |
-| **Manajemen Pegawai** | Selesai | `pegawai` / `/pegawai` | CRUD Pegawai. Terhubung dengan tabel UNOR. |
+| **Manajemen Pegawai** | Selesai | `pegawai` / `/pegawai` | CRUD Pegawai. Terhubung dengan tabel UNOR. Dilengkapi pagination backend & frontend (10/25/50/100 per halaman) agar responsif dan nyaman untuk ribuan data. |
 | **Profil Pengguna** | Selesai | `users` / `/profile` | Menampilkan info user yang sedang login. |
 | **Usulan Ubah Data Pegawai** | Selesai | `usulan` / `/usulan`, `/usulan/baru` | Pengajuan perubahan data via wizard 5 langkah, upload berkas PDF (maks 1 MB), pembatalan usulan, edit & ajukan kembali usulan dibatalkan/draft, serta hapus usulan secara permanen (DB cascade & berkas fisik). |
 | **Verifikasi Usulan Pegawai** | Selesai | `usulan` / `/verifikasi` | Dashboard Admin Pusat untuk verifikasi usulan masuk, preview dokumen PDF di tab baru, approval (memicu sinkronisasi update otomatis ke tabel pegawai), penolakan dengan catatan wajib, serta pencatatan audit log verifikator (`verified_by` username & `verified_at`). |
 | **Notifikasi In-App** | Selesai | `notifikasi` / Header Bell | Notifikasi perubahan status usulan (diajukan, disetujui, ditolak) untuk Admin & AdminOPD, icon lonceng di header, badge jumlah unread, popover dropdown interaktif, dan penanda dibaca. |
 | **Dashboard & Laporan Excel** | Selesai | `dashboard` / `/` | Dashboard ringkasan analitik usulan perubahan data aparatur sipil (5 Summary Cards: total, diajukan, disetujui, ditolak, draft/batal; distribusi per UNOR; distribusi per kategori; rekap aktivitas bulanan), filter interaktif tahun/bulan/status/UNOR, dan export laporan lengkap berformat Excel (.xlsx) dengan otorisasi RBAC (Admin Pusat vs AdminOPD). |
 | **Dark Mode & Light Mode** | Selesai | `web` / Header Toggle | Dukungan tema ganda (Light Mode sebagai default dan Dark Mode), toggle switch Sun/Moon di header (mobile & desktop) dan halaman login, pencegahan flash (anti-FOUC) di `app.html`, persistensi `localStorage`, serta adaptasi penuh styling Tailwind CSS v4 di seluruh halaman & komponen UI. |
-| **Integrasi API SIMPEG** | Selesai | `simpeg` / `/unor`, `/pegawai` | Sinkronisasi data terpisah dari API SIMPEG BKD Trenggalek (`/unit_kerja` dan `/pegawai`) via Basic Auth. Sinkronisasi UNOR manual di `/unor`, sinkronisasi Pegawai di `/pegawai` dengan validasi strict foreign key UNOR dan modal rekapitulasi laporan sinkronisasi. |
+| **Integrasi API SIMPEG** | Selesai | `simpeg` / `/unor`, `/pegawai` | Sinkronisasi data terpisah dari API SIMPEG BKD Trenggalek (`/unit_kerja` dan `/pegawai`) via Basic Auth. Dilengkapi auto-pagination batch loop untuk menarik seluruh 9.800+ pegawai secara tuntas, validasi strict foreign key UNOR, dan modal laporan sinkronisasi. |
 
 ## 3. Keputusan Arsitektur Penting
 
