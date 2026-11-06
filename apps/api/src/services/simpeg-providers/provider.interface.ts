@@ -15,3 +15,4 @@ export interface SimpegProvider {
   fetchUnor(): Promise<SimpegUnorItem[]>;
   fetchPegawai(options?: { offset?: number; limit?: number }): Promise<SimpegPegawaiItem[]>;
 }
+

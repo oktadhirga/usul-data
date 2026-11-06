@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { syncSimpegPegawai, type SimpegSyncResult } from '$lib/api/simpeg';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -32,6 +33,8 @@
 		Loader2,
 		AlertCircle,
 		CheckCircle2,
+		CloudDownload,
+		AlertTriangle,
 		Filter
 	} from 'lucide-svelte';
 
@@ -71,6 +74,34 @@
 
 	// Delete dialog states
 	let isDeleteOpen = $state(false);
+		// State Sinkronisasi SIMPEG
+	let isSyncing = $state(false);
+	let syncResult = $state<SimpegSyncResult | null>(null);
+	let isSyncResultOpen = $state(false);
+
+	async function handleSyncSimpeg() {
+		isSyncing = true;
+		alertMessage = null;
+		const res = await syncSimpegPegawai();
+		isSyncing = false;
+
+		if (res.success && res.data) {
+			syncResult = res.data;
+			isSyncResultOpen = true;
+			await loadPegawai();
+		} else if (res.data) {
+			syncResult = res.data;
+			isSyncResultOpen = true;
+			await loadPegawai();
+		} else {
+			alertMessage = {
+				type: 'destructive',
+				title: 'Sinkronisasi Gagal',
+				desc: res.message || 'Gagal menarik data pegawai dari SIMPEG.'
+			};
+		}
+	}
+
 	let deletingPegawai = $state<PegawaiItem | null>(null);
 	let isDeleting = $state(false);
 
@@ -297,6 +328,23 @@
 				<RefreshCw class={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
 				<span class="hidden sm:inline">Segarkan</span>
 			</Button>
+
+						{#if authState.isAdmin}
+				<Button
+					size="sm"
+					class="gap-1.5 text-xs h-9 bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm cursor-pointer disabled:opacity-50"
+					onclick={handleSyncSimpeg}
+					disabled={isSyncing || isLoading}
+				>
+					{#if isSyncing}
+						<Loader2 class="h-3.5 w-3.5 animate-spin" />
+						<span>Menarik dari SIMPEG...</span>
+					{:else}
+						<CloudDownload class="h-4 w-4" />
+						<span>Tarik Data Pegawai (SIMPEG)</span>
+					{/if}
+				</Button>
+			{/if}
 
 			<Button class="gap-1.5 text-xs h-9 bg-indigo-600 hover:bg-indigo-500 text-white" onclick={openCreateDialog}>
 				<Plus class="h-4 w-4" />
@@ -709,6 +757,65 @@
 				{:else}
 					<span>Ya, Hapus</span>
 				{/if}
+			</Button>
+		</div>
+	</div>
+</Dialog>
+
+<!-- Modal Hasil Sinkronisasi Pegawai -->
+<Dialog
+	bind:open={isSyncResultOpen}
+	title="Hasil Sinkronisasi Pegawai dari SIMPEG"
+	description="Laporan rekapitulasi data Pegawai yang ditarik dari SIMPEG BKD."
+	onclose={() => (isSyncResultOpen = false)}
+>
+	<div class="space-y-4">
+		{#if syncResult}
+			<div class="grid grid-cols-2 gap-3 text-center">
+				<div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+					<p class="text-xs text-slate-500 dark:text-slate-400">Total Ditarik</p>
+					<p class="text-xl font-bold text-slate-900 dark:text-white mt-0.5">{syncResult.totalFetched}</p>
+				</div>
+				<div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+					<p class="text-xs text-emerald-600 dark:text-emerald-400">Berhasil Disinkron</p>
+					<p class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">{syncResult.totalUpserted}</p>
+				</div>
+			</div>
+
+			{#if syncResult.errors && syncResult.errors.length > 0}
+				<div class="space-y-2">
+					<div class="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+						<AlertTriangle class="h-4 w-4" />
+						<span>Pegawai Dilewati ({syncResult.errors.length})</span>
+					</div>
+					<p class="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-2.5 rounded-lg">
+						Terdapat pegawai yang dilewati karena kode Unit Organisasinya belum terdaftar di database lokal. Silakan buka menu <strong>Master UNOR</strong> dan klik <strong>"Tarik Data UNOR (SIMPEG)"</strong> terlebih dahulu.
+					</p>
+					<div class="max-h-48 overflow-y-auto space-y-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
+						{#each syncResult.errors as err}
+							<div class="text-[11px] text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-900 pb-1 last:border-none">
+								<span class="font-mono font-medium text-slate-800 dark:text-slate-200">[{err.identifier}]:</span>
+								<span>{err.message}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{:else}
+				<div class="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-2.5 text-xs text-emerald-700 dark:text-emerald-300">
+					<CheckCircle2 class="h-4 w-4 shrink-0" />
+					<span>Seluruh data Pegawai berhasil diperbarui dan diselaraskan tanpa kendala.</span>
+				</div>
+			{/if}
+		{/if}
+
+		<div class="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+			<Button
+				variant="default"
+				size="sm"
+				class="text-xs"
+				onclick={() => (isSyncResultOpen = false)}
+			>
+				Tutup
 			</Button>
 		</div>
 	</div>
