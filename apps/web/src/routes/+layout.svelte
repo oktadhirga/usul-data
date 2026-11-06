@@ -230,36 +230,6 @@
 					</a>
 				</nav>
 			</div>
-
-			<!-- User Info & Logout in Sidebar bottom -->
-			<div class="border-t border-slate-200 dark:border-slate-800/80 pt-4 space-y-3">
-				{#if authState.user}
-					<div class="flex items-center gap-3 px-2">
-						<div class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-semibold text-xs text-indigo-600 dark:text-indigo-400">
-							{authState.user.username.slice(0, 2).toUpperCase()}
-						</div>
-						<div class="flex-1 min-w-0">
-							<p class="truncate text-sm font-semibold text-slate-900 dark:text-white leading-tight">
-								{authState.user.username}
-							</p>
-							<div class="flex items-center gap-1.5 mt-0.5">
-								<Badge variant={authState.isAdmin ? 'default' : 'secondary'} class="text-[10px] py-0 px-1.5 font-normal">
-									{authState.user.role}
-								</Badge>
-							</div>
-						</div>
-					</div>
-				{/if}
-
-				<Button
-					variant="ghost"
-					class="w-full justify-start text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-rose-950/40 text-xs h-9"
-					onclick={handleLogout}
-				>
-					<LogOut class="h-3.5 w-3.5" />
-					<span>Keluar Sistem</span>
-				</Button>
-			</div>
 		</aside>
 
 		<!-- Main Content Area -->
