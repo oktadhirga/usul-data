@@ -37,7 +37,10 @@
 		AlertTriangle,
 		ChevronLeft,
 		ChevronRight,
-		Filter
+		Filter,
+		ChevronsUpDown,
+		Check,
+		X
 	} from 'lucide-svelte';
 
 	let pegawaiList = $state<PegawaiItem[]>([]);
@@ -56,6 +59,57 @@
 		const found = unorList.find((u) => u.kodeUnor === authState.user?.kodeUnor);
 		return found ? found.namaUnor : authState.user.kodeUnor;
 	});
+
+	// State Searchable UNOR Filter Combobox
+	let isUnorDropdownOpen = $state(false);
+	let unorFilterSearch = $state('');
+	let unorDropdownRef = $state<HTMLDivElement | null>(null);
+	let unorSearchInputRef = $state<HTMLInputElement | null>(null);
+
+	const selectedUnorLabel = $derived(() => {
+		if (!selectedUnor) return 'Semua Unit Organisasi';
+		const found = unorList.find((u) => u.kodeUnor === selectedUnor);
+		return found ? found.namaUnor : selectedUnor;
+	});
+
+	const filteredUnorList = $derived(
+		unorList.filter((u) => {
+			const q = unorFilterSearch.trim().toLowerCase();
+			if (!q) return true;
+			return (
+				u.namaUnor.toLowerCase().includes(q) ||
+				u.kodeUnor.toLowerCase().includes(q)
+			);
+		})
+	);
+
+	function toggleUnorDropdown() {
+		isUnorDropdownOpen = !isUnorDropdownOpen;
+		if (isUnorDropdownOpen) {
+			unorFilterSearch = '';
+			setTimeout(() => {
+				unorSearchInputRef?.focus();
+			}, 50);
+		}
+	}
+
+	function selectUnor(kode: string) {
+		selectedUnor = kode;
+		isUnorDropdownOpen = false;
+		handleFilterChange();
+	}
+
+	function handleWindowClick(e: MouseEvent) {
+		if (isUnorDropdownOpen && unorDropdownRef && !unorDropdownRef.contains(e.target as Node)) {
+			isUnorDropdownOpen = false;
+		}
+	}
+
+	function handleWindowKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape' && isUnorDropdownOpen) {
+			isUnorDropdownOpen = false;
+		}
+	}
 
 	// Create dialog states
 	let isCreateOpen = $state(false);
@@ -320,6 +374,8 @@
 	<title>Daftar Pegawai - ASN-Sync</title>
 </svelte:head>
 
+<svelte:window onclick={handleWindowClick} onkeydown={handleWindowKeydown} />
+
 <div class="space-y-6 max-w-7xl mx-auto">
 	<!-- Page Header -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -397,21 +453,107 @@
 	<!-- Filter & Search Bar -->
 	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
 		<form onsubmit={handleSearchSubmit} class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-			<!-- UNOR Filter (Untuk Admin bisa pilih, untuk AdminOPD terkunci) -->
-			<div class="sm:w-72">
-				<label for="filter-unor" class="sr-only">Filter Unit Organisasi</label>
+			<!-- UNOR Filter (Searchable combobox untuk Admin, terkunci untuk AdminOPD) -->
+			<div class="sm:w-80 relative" bind:this={unorDropdownRef}>
+				<label for="filter-unor-trigger" class="sr-only">Filter Unit Organisasi</label>
 				{#if authState.isAdmin}
-					<select
-						id="filter-unor"
-						class="w-full h-10 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
-						bind:value={selectedUnor}
-						onchange={handleFilterChange}
-					>
-						<option value="">Semua Unit Organisasi</option>
-						{#each unorList as u}
-							<option value={u.kodeUnor}>{u.namaUnor}</option>
-						{/each}
-					</select>
+					<!-- Trigger Combobox Button -->
+					<div class="relative">
+						<button
+							id="filter-unor-trigger"
+							type="button"
+							class="w-full h-10 pl-9 pr-8 text-left rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 flex items-center justify-between transition-colors shadow-2xs hover:border-slate-400 dark:hover:border-slate-700 cursor-pointer"
+							onclick={toggleUnorDropdown}
+							aria-expanded={isUnorDropdownOpen}
+						>
+							<Building2 class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
+							<span class="truncate block font-medium pr-1">
+								{selectedUnorLabel()}
+							</span>
+							<ChevronsUpDown class="h-3.5 w-3.5 text-slate-400 shrink-0" />
+						</button>
+
+						{#if selectedUnor}
+							<button
+								type="button"
+								class="absolute right-7 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+								onclick={(e) => {
+									e.stopPropagation();
+									selectUnor('');
+								}}
+								title="Reset filter unit organisasi"
+							>
+								<X class="h-3 w-3" />
+							</button>
+						{/if}
+					</div>
+
+					<!-- Searchable Popover Dropdown -->
+					{#if isUnorDropdownOpen}
+						<div class="absolute left-0 top-full mt-1.5 w-full sm:w-96 max-w-[95vw] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl z-50 overflow-hidden">
+							<!-- Search Input inside Dropdown -->
+							<div class="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60 relative">
+								<Search class="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+								<input
+									bind:this={unorSearchInputRef}
+									type="text"
+									placeholder="Ketik untuk mencari unit kerja..."
+									class="w-full h-8 pl-8 pr-7 text-xs rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+									bind:value={unorFilterSearch}
+								/>
+								{#if unorFilterSearch}
+									<button
+										type="button"
+										class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+										onclick={() => (unorFilterSearch = '')}
+									>
+										<X class="h-3 w-3" />
+									</button>
+								{/if}
+							</div>
+
+							<!-- Options List -->
+							<div class="max-h-64 overflow-y-auto p-1.5 space-y-0.5 text-xs">
+								<!-- Option: Semua UNOR -->
+								<button
+									type="button"
+									class="w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between transition-colors {selectedUnor === '' ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'}"
+									onclick={() => selectUnor('')}
+								>
+									<span class="flex items-center gap-2">
+										<Building2 class="h-3.5 w-3.5 opacity-60" />
+										<span>Semua Unit Organisasi</span>
+									</span>
+									{#if selectedUnor === ''}
+										<Check class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+									{/if}
+								</button>
+
+								<!-- Filtered UNOR Items -->
+								{#each filteredUnorList as u}
+									<button
+										type="button"
+										class="w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between gap-2 transition-colors {selectedUnor === u.kodeUnor ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/70'}"
+										onclick={() => selectUnor(u.kodeUnor)}
+									>
+										<div class="flex flex-col min-w-0 pr-1">
+											<span class="truncate leading-snug">{u.namaUnor}</span>
+											<span class="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">{u.kodeUnor}</span>
+										</div>
+										{#if selectedUnor === u.kodeUnor}
+											<Check class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+										{/if}
+									</button>
+								{/each}
+
+								{#if filteredUnorList.length === 0}
+									<div class="py-6 text-center text-slate-400 dark:text-slate-500 text-xs">
+										Tidak ada unit kerja cocok dengan "{unorFilterSearch}"
+									</div>
+								{/if}
+							</div>
+						</div>
+					{/if}
 				{:else}
 					<div class="h-10 px-3 flex items-center gap-2 rounded-md bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs">
 						<Building2 class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
