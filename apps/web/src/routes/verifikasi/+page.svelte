@@ -20,6 +20,7 @@
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import UnorCombobox from '$lib/components/UnorCombobox.svelte';
 	import {
 		CheckCheck,
 		CheckCircle2,
@@ -361,7 +362,7 @@
 	</div>
 
 	<!-- Filter & Search Section -->
-	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+	<Card class="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
 		<CardContent class="p-4 space-y-4">
 			<div class="grid grid-cols-1 gap-3 md:grid-cols-4">
 				<!-- Search -->
@@ -413,16 +414,13 @@
 				<!-- Filter UNOR -->
 				<div>
 					<Label class="text-xs text-slate-600 dark:text-slate-400 mb-1.5 block">Unit Organisasi (UNOR)</Label>
-					<select
+					<UnorCombobox
 						bind:value={selectedUnor}
+						unors={unorList}
+						allOptionLabel="Semua Unit Organisasi"
+						allowClear={true}
 						onchange={loadUsulan}
-						class="w-full h-10 rounded-md border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950/60 px-3 py-2 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-					>
-						<option value="">Semua Unit Organisasi</option>
-						{#each unorList as u}
-							<option value={u.kodeUnor}>{u.namaUnor} ({u.kodeUnor})</option>
-						{/each}
-					</select>
+					/>
 				</div>
 			</div>
 		</CardContent>

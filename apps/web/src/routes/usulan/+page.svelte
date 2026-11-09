@@ -12,6 +12,7 @@
 		type UsulanStatus,
 	} from "$lib/api/usulan";
 	import { fetchUnorList, type UnorItem } from "$lib/api/pegawai";
+	import UnorCombobox from "$lib/components/UnorCombobox.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import {
 		Card,
@@ -394,7 +395,7 @@
 	</div>
 
 	<!-- Filter Bar -->
-	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-sm">
+	<Card class="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-sm">
 		<CardContent class="p-4">
 			<div class="flex flex-col md:flex-row items-center gap-4">
 				<div
@@ -426,19 +427,15 @@
 
 				<!-- Admin UNOR Filter -->
 				{#if authState.isAdmin}
-					<div class="w-full md:w-64">
-						<select
+					<div class="w-full md:w-72">
+						<UnorCombobox
 							bind:value={selectedUnor}
+							unors={unorList}
+							allOptionLabel="Semua Unit Organisasi"
+							allowClear={true}
+							size="sm"
 							onchange={loadUsulan}
-							class="w-full rounded-md border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-						>
-							<option value="">Semua Unit Organisasi</option>
-							{#each unorList as u}
-								<option value={u.kodeUnor}
-									>{u.namaUnor} ({u.kodeUnor})</option
-								>
-							{/each}
-						</select>
+						/>
 					</div>
 				{/if}
 			</div>

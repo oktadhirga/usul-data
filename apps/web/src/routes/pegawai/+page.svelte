@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { syncSimpegPegawai, type SimpegSyncResult } from '$lib/api/simpeg';
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
@@ -20,6 +21,7 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { Dialog } from '$lib/components/ui/dialog';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
+	import UnorCombobox from '$lib/components/UnorCombobox.svelte';
 	import {
 		Briefcase,
 		Plus,
@@ -32,7 +34,14 @@
 		Loader2,
 		AlertCircle,
 		CheckCircle2,
-		Filter
+		CloudDownload,
+		AlertTriangle,
+		ChevronLeft,
+		ChevronRight,
+		Filter,
+		ChevronsUpDown,
+		Check,
+		X
 	} from 'lucide-svelte';
 
 	let pegawaiList = $state<PegawaiItem[]>([]);
@@ -41,6 +50,10 @@
 	let selectedUnor = $state<string>('');
 	let searchQuery = $state('');
 	let alertMessage = $state<{ type: 'success' | 'destructive'; title: string; desc: string } | null>(null);
+	let currentPage = $state(1);
+	let pageSize = $state(10);
+	let totalItems = $state(0);
+	let totalPages = $state(1);
 
 	const userUnorName = $derived(() => {
 		if (!authState.user?.kodeUnor) return '';
@@ -71,6 +84,34 @@
 
 	// Delete dialog states
 	let isDeleteOpen = $state(false);
+		// State Sinkronisasi SIMPEG
+	let isSyncing = $state(false);
+	let syncResult = $state<SimpegSyncResult | null>(null);
+	let isSyncResultOpen = $state(false);
+
+	async function handleSyncSimpeg() {
+		isSyncing = true;
+		alertMessage = null;
+		const res = await syncSimpegPegawai();
+		isSyncing = false;
+
+		if (res.success && res.data) {
+			syncResult = res.data;
+			isSyncResultOpen = true;
+			await loadPegawai();
+		} else if (res.data) {
+			syncResult = res.data;
+			isSyncResultOpen = true;
+			await loadPegawai();
+		} else {
+			alertMessage = {
+				type: 'destructive',
+				title: 'Sinkronisasi Gagal',
+				desc: res.message || 'Gagal menarik data pegawai dari SIMPEG.'
+			};
+		}
+	}
+
 	let deletingPegawai = $state<PegawaiItem | null>(null);
 	let isDeleting = $state(false);
 
@@ -81,9 +122,13 @@
 		}
 	}
 
-	async function loadPegawai() {
+	async function loadPegawai(page = currentPage) {
 		isLoading = true;
-		const params: { kode_unor?: string; search?: string } = {};
+		currentPage = page;
+		const params: { kode_unor?: string; search?: string; page?: number; limit?: number } = {
+			page: currentPage,
+			limit: pageSize
+		};
 		if (selectedUnor) params.kode_unor = selectedUnor;
 		if (searchQuery.trim()) params.search = searchQuery.trim();
 
@@ -91,6 +136,14 @@
 		isLoading = false;
 		if (res.success && Array.isArray(res.data)) {
 			pegawaiList = res.data;
+			if (res.pagination) {
+				totalItems = res.pagination.totalItems;
+				totalPages = res.pagination.totalPages;
+				currentPage = res.pagination.page;
+			} else {
+				totalItems = res.data.length;
+				totalPages = 1;
+			}
 		} else {
 			alertMessage = {
 				type: 'destructive',
@@ -135,12 +188,14 @@
 	});
 
 	function handleFilterChange() {
-		loadPegawai();
+		currentPage = 1;
+		loadPegawai(1);
 	}
 
 	function handleSearchSubmit(e: Event) {
 		e.preventDefault();
-		loadPegawai();
+		currentPage = 1;
+		loadPegawai(1);
 	}
 
 	function resetFilter() {
@@ -148,8 +203,9 @@
 			selectedUnor = '';
 		}
 		searchQuery = '';
+		currentPage = 1;
 		goto('/pegawai', { replaceState: true });
-		loadPegawai();
+		loadPegawai(1);
 	}
 
 	function openCreateDialog() {
@@ -298,6 +354,23 @@
 				<span class="hidden sm:inline">Segarkan</span>
 			</Button>
 
+						{#if authState.isAdmin}
+				<Button
+					size="sm"
+					class="gap-1.5 text-xs h-9 bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm cursor-pointer disabled:opacity-50"
+					onclick={handleSyncSimpeg}
+					disabled={isSyncing || isLoading}
+				>
+					{#if isSyncing}
+						<Loader2 class="h-3.5 w-3.5 animate-spin" />
+						<span>Menarik dari SIMPEG...</span>
+					{:else}
+						<CloudDownload class="h-4 w-4" />
+						<span>Tarik Data Pegawai (SIMPEG)</span>
+					{/if}
+				</Button>
+			{/if}
+
 			<Button class="gap-1.5 text-xs h-9 bg-indigo-600 hover:bg-indigo-500 text-white" onclick={openCreateDialog}>
 				<Plus class="h-4 w-4" />
 				<span>Tambah Pegawai</span>
@@ -326,23 +399,20 @@
 	{/if}
 
 	<!-- Filter & Search Bar -->
-	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
+	<Card class="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
 		<form onsubmit={handleSearchSubmit} class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-			<!-- UNOR Filter (Untuk Admin bisa pilih, untuk AdminOPD terkunci) -->
-			<div class="sm:w-72">
-				<label for="filter-unor" class="sr-only">Filter Unit Organisasi</label>
+			<!-- UNOR Filter (Searchable combobox untuk Admin, terkunci untuk AdminOPD) -->
+			<div class="sm:w-80">
+				<label for="filter-unor-trigger" class="sr-only">Filter Unit Organisasi</label>
 				{#if authState.isAdmin}
-					<select
-						id="filter-unor"
-						class="w-full h-10 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+					<UnorCombobox
+						id="filter-unor-trigger"
 						bind:value={selectedUnor}
+						unors={unorList}
+						allOptionLabel="Semua Unit Organisasi"
+						allowClear={true}
 						onchange={handleFilterChange}
-					>
-						<option value="">Semua Unit Organisasi</option>
-						{#each unorList as u}
-							<option value={u.kodeUnor}>{u.namaUnor}</option>
-						{/each}
-					</select>
+					/>
 				{:else}
 					<div class="h-10 px-3 flex items-center gap-2 rounded-md bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs">
 						<Building2 class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
@@ -380,7 +450,7 @@
 	</Card>
 
 	<!-- Pegawai Table -->
-	<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+	<Card class="relative z-0 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
 		<CardContent class="p-0">
 			{#if isLoading}
 				<div class="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
@@ -413,7 +483,10 @@
 						{#each pegawaiList as item, index}
 							<TableRow class="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
 								<TableCell class="text-xs text-slate-400 dark:text-slate-500 font-mono text-center">
-									{index + 1}
+									{(currentPage - 1) * pageSize + index + 1}
+								</TableCell>
+								<TableCell class="font-mono text-xs text-indigo-600 dark:text-indigo-400">
+									{item.nip}
 								</TableCell>
 								<TableCell>
 									<div class="flex items-center gap-3">
@@ -429,9 +502,6 @@
 											</a>
 										</div>
 									</div>
-								</TableCell>
-								<TableCell class="font-mono text-xs text-indigo-600 dark:text-indigo-400">
-									{item.nip}
 								</TableCell>
 								<TableCell class="text-xs text-slate-700 dark:text-slate-300">
 									{item.jabatan}
@@ -482,6 +552,56 @@
 						{/each}
 					</TableBody>
 				</Table>
+
+				<!-- Pagination Controls -->
+				{#if totalItems > 0}
+					<div class="px-4 py-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+						<div class="flex items-center gap-2">
+							<span>Baris per halaman:</span>
+							<select
+								class="h-8 px-2 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
+								bind:value={pageSize}
+								onchange={() => { currentPage = 1; loadPegawai(1); }}
+							>
+								<option value={10}>10</option>
+								<option value={25}>25</option>
+								<option value={50}>50</option>
+								<option value={100}>100</option>
+							</select>
+							<span class="ml-2">
+								Menampilkan {Math.min((currentPage - 1) * pageSize + 1, totalItems)} - {Math.min(currentPage * pageSize, totalItems)} dari {totalItems.toLocaleString('id-ID')} pegawai
+							</span>
+						</div>
+
+						<div class="flex items-center gap-1.5">
+							<Button
+								variant="outline"
+								size="sm"
+								class="h-8 px-2.5 text-xs gap-1"
+								disabled={currentPage <= 1 || isLoading}
+								onclick={() => loadPegawai(currentPage - 1)}
+							>
+								<ChevronLeft class="h-3.5 w-3.5" />
+								<span>Sebelumnya</span>
+							</Button>
+
+							<span class="px-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+								Halaman {currentPage} dari {Math.max(1, totalPages)}
+							</span>
+
+							<Button
+								variant="outline"
+								size="sm"
+								class="h-8 px-2.5 text-xs gap-1"
+								disabled={currentPage >= totalPages || isLoading}
+								onclick={() => loadPegawai(currentPage + 1)}
+							>
+								<span>Selanjutnya</span>
+								<ChevronRight class="h-3.5 w-3.5" />
+							</Button>
+						</div>
+					</div>
+				{/if}
 			{/if}
 		</CardContent>
 	</Card>
@@ -534,16 +654,13 @@
 		<div class="space-y-1.5">
 			<Label for="create-unor" class="text-xs text-slate-700 dark:text-slate-300">Unit Organisasi (UNOR) *</Label>
 			{#if authState.isAdmin}
-				<select
+				<UnorCombobox
 					id="create-unor"
-					required
-					class="w-full h-10 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
 					bind:value={createForm.kodeUnor}
-				>
-					{#each unorList as u}
-						<option value={u.kodeUnor}>{u.namaUnor}</option>
-					{/each}
-				</select>
+					unors={unorList}
+					placeholder="Pilih Unit Organisasi..."
+					required
+				/>
 			{:else}
 				<Input
 					id="create-unor"
@@ -630,16 +747,13 @@
 		{#if authState.isAdmin}
 			<div class="space-y-1.5">
 				<Label for="edit-unor" class="text-xs text-slate-700 dark:text-slate-300">Unit Organisasi (UNOR) *</Label>
-				<select
+				<UnorCombobox
 					id="edit-unor"
-					required
-					class="w-full h-10 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:border-indigo-500"
 					bind:value={editForm.kodeUnor}
-				>
-					{#each unorList as u}
-						<option value={u.kodeUnor}>{u.namaUnor}</option>
-					{/each}
-				</select>
+					unors={unorList}
+					placeholder="Pilih Unit Organisasi..."
+					required
+				/>
 			</div>
 		{/if}
 
@@ -709,6 +823,65 @@
 				{:else}
 					<span>Ya, Hapus</span>
 				{/if}
+			</Button>
+		</div>
+	</div>
+</Dialog>
+
+<!-- Modal Hasil Sinkronisasi Pegawai -->
+<Dialog
+	bind:open={isSyncResultOpen}
+	title="Hasil Sinkronisasi Pegawai dari SIMPEG"
+	description="Laporan rekapitulasi data Pegawai yang ditarik dari SIMPEG BKD."
+	onclose={() => (isSyncResultOpen = false)}
+>
+	<div class="space-y-4">
+		{#if syncResult}
+			<div class="grid grid-cols-2 gap-3 text-center">
+				<div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+					<p class="text-xs text-slate-500 dark:text-slate-400">Total Ditarik</p>
+					<p class="text-xl font-bold text-slate-900 dark:text-white mt-0.5">{syncResult.totalFetched}</p>
+				</div>
+				<div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60">
+					<p class="text-xs text-emerald-600 dark:text-emerald-400">Berhasil Disinkron</p>
+					<p class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">{syncResult.totalUpserted}</p>
+				</div>
+			</div>
+
+			{#if syncResult.errors && syncResult.errors.length > 0}
+				<div class="space-y-2">
+					<div class="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+						<AlertTriangle class="h-4 w-4" />
+						<span>Pegawai Dilewati ({syncResult.errors.length})</span>
+					</div>
+					<p class="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-2.5 rounded-lg">
+						Terdapat pegawai yang dilewati karena kode Unit Organisasinya belum terdaftar di database lokal. Silakan buka menu <strong>Master UNOR</strong> dan klik <strong>"Tarik Data UNOR (SIMPEG)"</strong> terlebih dahulu.
+					</p>
+					<div class="max-h-48 overflow-y-auto space-y-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs">
+						{#each syncResult.errors as err}
+							<div class="text-[11px] text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-900 pb-1 last:border-none">
+								<span class="font-mono font-medium text-slate-800 dark:text-slate-200">[{err.identifier}]:</span>
+								<span>{err.message}</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{:else}
+				<div class="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-2.5 text-xs text-emerald-700 dark:text-emerald-300">
+					<CheckCircle2 class="h-4 w-4 shrink-0" />
+					<span>Seluruh data Pegawai berhasil diperbarui dan diselaraskan tanpa kendala.</span>
+				</div>
+			{/if}
+		{/if}
+
+		<div class="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+			<Button
+				variant="default"
+				size="sm"
+				class="text-xs"
+				onclick={() => (isSyncResultOpen = false)}
+			>
+				Tutup
 			</Button>
 		</div>
 	</div>

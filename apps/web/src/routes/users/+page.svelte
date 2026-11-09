@@ -10,6 +10,7 @@
 		type UserItem
 	} from '$lib/api/users';
 	import { fetchUnorList, type UnorItem } from '$lib/api/pegawai';
+	import UnorCombobox from '$lib/components/UnorCombobox.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -440,20 +441,14 @@
 			{#if createForm.role === 'AdminOPD'}
 				<div class="space-y-1.5">
 					<Label for="c-kodeUnor" class="text-xs">Unit Organisasi (UNOR)</Label>
-					<select
+					<UnorCombobox
 						id="c-kodeUnor"
-						class="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 						bind:value={createForm.kodeUnor}
-						required
+						unors={unorList}
+						placeholder="-- Pilih Unit Organisasi --"
 						disabled={isCreating || isLoadingUnor}
-					>
-						<option value="" disabled>-- Pilih Unit Organisasi --</option>
-						{#each unorList as u}
-							<option value={u.kodeUnor}>
-								{u.namaUnor} ({u.kodeUnor})
-							</option>
-						{/each}
-					</select>
+						required
+					/>
 					<p class="text-[11px] text-slate-400">
 						Akun AdminOPD akan difilter hanya dapat mengakses data dengan unit organisasi ini.
 					</p>
@@ -538,20 +533,14 @@
 			{#if editForm.role === 'AdminOPD'}
 				<div class="space-y-1.5">
 					<Label for="e-kodeUnor" class="text-xs">Unit Organisasi (UNOR)</Label>
-					<select
+					<UnorCombobox
 						id="e-kodeUnor"
-						class="flex h-10 w-full rounded-lg border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-900/90 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
 						bind:value={editForm.kodeUnor}
-						required
+						unors={unorList}
+						placeholder="-- Pilih Unit Organisasi --"
 						disabled={isUpdating || isLoadingUnor}
-					>
-						<option value="" disabled>-- Pilih Unit Organisasi --</option>
-						{#each unorList as u}
-							<option value={u.kodeUnor}>
-								{u.namaUnor} ({u.kodeUnor})
-							</option>
-						{/each}
-					</select>
+						required
+					/>
 				</div>
 			{/if}
 		</form>

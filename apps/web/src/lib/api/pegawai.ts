@@ -15,6 +15,13 @@ export interface PegawaiItem {
 	namaUnor?: string | null;
 }
 
+export interface PaginationMeta {
+	page: number;
+	limit: number;
+	totalItems: number;
+	totalPages: number;
+}
+
 function getAuthHeaders(): HeadersInit {
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
@@ -28,11 +35,20 @@ function getAuthHeaders(): HeadersInit {
 export async function fetchPegawaiList(params?: {
 	kode_unor?: string;
 	search?: string;
-}): Promise<{ success: boolean; data: PegawaiItem[]; message?: string }> {
+	page?: number;
+	limit?: number;
+}): Promise<{
+	success: boolean;
+	data: PegawaiItem[];
+	pagination?: PaginationMeta;
+	message?: string;
+}> {
 	try {
 		const searchParams = new URLSearchParams();
 		if (params?.kode_unor) searchParams.set('kode_unor', params.kode_unor);
 		if (params?.search) searchParams.set('search', params.search);
+		if (params?.page) searchParams.set('page', String(params.page));
+		if (params?.limit) searchParams.set('limit', String(params.limit));
 
 		const url = `/api/pegawai${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
 		const res = await fetch(url, {

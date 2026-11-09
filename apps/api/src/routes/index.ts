@@ -7,8 +7,8 @@ import { pegawaiRoute } from './pegawai.route';
 import { usulanRoute, uploadsRoute } from './usulan.route';
 import { notificationRoute } from './notification.route';
 import { dashboardRoute } from './dashboard.route';
+import { simpegRoute } from './simpeg.route';
 import { authContext, requireAuth, resolveUnorScope } from '../middleware/auth';
-
 
 export const appRoutes = new Elysia({ prefix: '/api' })
   .use(healthRoute)
@@ -20,6 +20,7 @@ export const appRoutes = new Elysia({ prefix: '/api' })
   .use(uploadsRoute)
   .use(notificationRoute)
   .use(dashboardRoute)
+  .use(simpegRoute)
   // Demo endpoint untuk memverifikasi scoping kode_unor (resolveUnorScope)
   .use(authContext)
   .use(requireAuth)
@@ -37,4 +38,3 @@ export const appRoutes = new Elysia({ prefix: '/api' })
           : `Admin OPD: Data dibatasi untuk kode UNOR ${scopeUnor}`
     };
   });
-
