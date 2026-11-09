@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { users, unor, pegawai } from './schema';
+import { users, unor, pegawai, usulanDokumen } from './schema';
 
 describe('Shared Schema', () => {
   it('should define users table with proper columns', () => {
@@ -25,6 +25,15 @@ describe('Shared Schema', () => {
     expect(pegawai.nama).toBeDefined();
     expect(pegawai.jabatan).toBeDefined();
     expect(pegawai.kodeUnor).toBeDefined();
+  });
+
+  it('should define usulan_dokumen table with drive_file_id column', () => {
+    expect(usulanDokumen).toBeDefined();
+    expect(usulanDokumen.id).toBeDefined();
+    expect(usulanDokumen.usulanId).toBeDefined();
+    expect(usulanDokumen.namaDokumen).toBeDefined();
+    expect(usulanDokumen.pathFile).toBeDefined();
+    expect(usulanDokumen.driveFileId).toBeDefined();
   });
 });
 

@@ -7,6 +7,7 @@
 		fetchUsulanDetail,
 		approveUsulan,
 		rejectUsulan,
+		resolveDocUrl,
 		type UsulanItem,
 		type UsulanStatus,
 		type KategoriUbah
@@ -705,7 +706,7 @@
 								</div>
 								<!-- Preview Dokumen: Buka di Tab Baru sesuai spesifikasi -->
 								<a
-									href={doc.pathFile}
+									href={resolveDocUrl(doc.pathFile)}
 									target="_blank"
 									rel="noopener noreferrer"
 									class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 shrink-0 px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"

@@ -8,6 +8,7 @@
 		cancelUsulan,
 		submitUsulan,
 		deleteUsulan,
+		resolveDocUrl,
 		type UsulanItem,
 		type UsulanStatus,
 	} from "$lib/api/usulan";
@@ -858,9 +859,7 @@
 									</div>
 								</div>
 								<a
-									href={doc.pathFile.startsWith("/api")
-										? doc.pathFile
-										: `/api${doc.pathFile}`}
+									href={resolveDocUrl(doc.pathFile)}
 									target="_blank"
 									rel="noopener noreferrer"
 									class="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1 text-xs text-indigo-600 dark:text-indigo-300 transition-colors shrink-0 ml-2"

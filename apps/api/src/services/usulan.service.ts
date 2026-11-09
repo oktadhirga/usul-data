@@ -19,6 +19,7 @@ import {
 import type { AuthUser } from '../middleware/auth';
 import { PegawaiService } from './pegawai.service';
 import { NotificationService } from './notification.service';
+import { createDriveProvider } from './drive-providers/factory';
 import path from 'path';
 import fs from 'fs';
 
@@ -264,19 +265,26 @@ export class UsulanService {
       throw new Error('Ukuran file melebihi batas maksimal 1 MB');
     }
 
-    const uploadDir = this.getUploadDir();
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const uniqueFileName = `${usulanId}_${Date.now()}_${sanitizedName}`;
-    const targetFilePath = path.join(uploadDir, uniqueFileName);
-
     const arrayBuffer = await file.arrayBuffer();
-    await Bun.write(targetFilePath, Buffer.from(arrayBuffer));
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload ke Drive Provider (Mock atau Google Drive)
+    const driveProvider = createDriveProvider();
+    const driveResult = await driveProvider.uploadFile({
+      nip: existing.nipPegawai || 'unknown',
+      fileName: uniqueFileName,
+      mimeType: 'application/pdf',
+      buffer
+    });
 
     const docName = namaDokumen && namaDokumen.trim() ? namaDokumen.trim() : file.name;
     const [insertResult] = await db.insert(usulanDokumen).values({
       usulanId,
       namaDokumen: docName,
-      pathFile: `/uploads/${uniqueFileName}`,
+      pathFile: driveResult.webViewLink,
+      driveFileId: driveResult.fileId,
       tipeDokumen: 'application/pdf',
       ukuranBytes: file.size
     });
@@ -287,7 +295,8 @@ export class UsulanService {
       data: {
         id: Number(insertResult.insertId),
         namaDokumen: docName,
-        pathFile: `/uploads/${uniqueFileName}`,
+        pathFile: driveResult.webViewLink,
+        driveFileId: driveResult.fileId,
         ukuranBytes: file.size
       }
     };
@@ -448,15 +457,25 @@ export class UsulanService {
       }
     }
 
-    // Hapus file dokumen terkait dari disk
+    // Hapus file dokumen terkait dari Google Drive / disk
     if (existing.dokumen && existing.dokumen.length > 0) {
+      const driveProvider = createDriveProvider();
       for (const doc of existing.dokumen) {
-        const filePath = this.resolveUploadedFilePath(path.basename(doc.pathFile));
-        if (filePath && fs.existsSync(filePath)) {
+        if (doc.driveFileId) {
           try {
-            fs.unlinkSync(filePath);
+            await driveProvider.trashFile(doc.driveFileId);
           } catch (e) {
-            console.error(`Gagal menghapus file berkas ${filePath}:`, e);
+            console.error(`Gagal memindahkan file Google Drive ${doc.driveFileId} ke sampah:`, e);
+          }
+        }
+        if (doc.pathFile && !doc.pathFile.startsWith('http')) {
+          const filePath = this.resolveUploadedFilePath(path.basename(doc.pathFile));
+          if (filePath && fs.existsSync(filePath)) {
+            try {
+              fs.unlinkSync(filePath);
+            } catch (e) {
+              console.error(`Gagal menghapus file berkas lokal ${filePath}:`, e);
+            }
           }
         }
       }

@@ -26,9 +26,21 @@ export interface UsulanDokumen {
 	usulanId?: number;
 	namaDokumen: string;
 	pathFile: string;
+	driveFileId?: string | null;
 	tipeDokumen: string;
 	ukuranBytes?: number | null;
 	createdAt?: string;
+}
+
+export function resolveDocUrl(pathFile: string): string {
+	if (!pathFile) return '#';
+	if (pathFile.startsWith('http://') || pathFile.startsWith('https://')) {
+		return pathFile;
+	}
+	if (pathFile.startsWith('/api')) {
+		return pathFile;
+	}
+	return `/api${pathFile}`;
 }
 
 export interface UsulanItem {

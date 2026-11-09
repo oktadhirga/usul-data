@@ -10,6 +10,7 @@
 		submitUsulan,
 		fetchUsulanDetail,
 		updateUsulan,
+		resolveDocUrl,
 		type JenisUsulan,
 		type KategoriUbah,
 		type UsulanDokumen
@@ -872,7 +873,7 @@
 									</span>
 								</div>
 								<a
-									href={doc.pathFile.startsWith('/api') ? doc.pathFile : `/api${doc.pathFile}`}
+									href={resolveDocUrl(doc.pathFile)}
 									target="_blank"
 									rel="noopener noreferrer"
 									class="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2 py-0.5 text-xs text-indigo-600 dark:text-indigo-300 transition-colors shrink-0 ml-2"

@@ -56,6 +56,7 @@ export const usulanDokumen = mysqlTable('usulan_dokumen', {
     .references(() => usulanPerubahan.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
   namaDokumen: varchar('nama_dokumen', { length: 255 }).notNull(),
   pathFile: varchar('path_file', { length: 500 }).notNull(),
+  driveFileId: varchar('drive_file_id', { length: 100 }),
   tipeDokumen: varchar('tipe_dokumen', { length: 100 }).notNull(),
   ukuranBytes: int('ukuran_bytes'),
   createdAt: timestamp('created_at').defaultNow().notNull()
