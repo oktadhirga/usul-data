@@ -277,6 +277,48 @@ describe('Google Drive Storage Feature (TDD)', () => {
       expect(res.data.driveFileId).toBeDefined();
     });
 
+    it('formats uploaded file name as NIP_jenisfile (e.g. 19891003200903000_IjazahSMK.pdf)', async () => {
+      process.env.STORAGE_DRIVER = 'local';
+      spyOn(UsulanService, 'getById').mockResolvedValueOnce({
+        id: 106,
+        pegawaiId: 3,
+        kodeUnor: 'UNOR_TEST',
+        status: 'draft',
+        nipPegawai: '19891003200903000',
+        namaPegawai: 'Agus Setiawan',
+        jabatanPegawai: 'Pengadministrasi Umum',
+        namaUnor: 'Dinas Pendidikan',
+        catatan: null,
+        verifiedBy: null,
+        verifiedAt: null,
+        catatanVerifikasi: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        details: [],
+        dokumen: []
+      });
+
+      spyOn(db, 'insert').mockReturnValueOnce({
+        values: () => Promise.resolve([{ insertId: 88 }])
+      } as any);
+
+      const fakePdf = new File(['%PDF-1.4 dummy'], 'scan_ijazah_asli.pdf', {
+        type: 'application/pdf'
+      });
+
+      const res = await UsulanService.uploadDokumen(
+        106,
+        fakePdf,
+        'Ijazah SMK',
+        { id: 1, username: 'admin', role: 'Admin', kodeUnor: null }
+      );
+
+      expect(res.success).toBe(true);
+      expect(res.data.namaDokumen).toBe('Ijazah SMK');
+      // Verifikasi format nama berkas pada pathFile lokal: 19891003200903000_IjazahSMK.pdf
+      expect(res.data.pathFile).toContain('19891003200903000_IjazahSMK');
+    });
+
     it('deleteUsulan trashes files in Google Drive provider', async () => {
       const mockProvider = new MockDriveProvider();
       const uploaded = await mockProvider.uploadFile({

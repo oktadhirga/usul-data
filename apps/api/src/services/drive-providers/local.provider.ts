@@ -30,13 +30,22 @@ export class LocalStorageProvider implements DriveStorageProvider {
   }
 
   async uploadFile(options: UploadFileOptions): Promise<UploadFileResult> {
-    const targetFilePath = path.join(this.uploadDir, options.fileName);
+    let finalFileName = options.fileName;
+    let targetFilePath = path.join(this.uploadDir, finalFileName);
+
+    if (fs.existsSync(targetFilePath)) {
+      const ext = path.extname(options.fileName) || '.pdf';
+      const base = path.basename(options.fileName, ext);
+      finalFileName = `${base}_${Date.now()}${ext}`;
+      targetFilePath = path.join(this.uploadDir, finalFileName);
+    }
+
     await Bun.write(targetFilePath, options.buffer);
 
     return {
-      fileId: `local_${options.fileName}`,
-      webViewLink: `/uploads/${options.fileName}`,
-      fileName: options.fileName,
+      fileId: `local_${finalFileName}`,
+      webViewLink: `/uploads/${finalFileName}`,
+      fileName: finalFileName,
       nip: options.nip
     };
   }
@@ -58,3 +67,4 @@ export class LocalStorageProvider implements DriveStorageProvider {
     return false;
   }
 }
+

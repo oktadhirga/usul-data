@@ -265,16 +265,23 @@ export class UsulanService {
       throw new Error('Ukuran file melebihi batas maksimal 1 MB');
     }
 
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const uniqueFileName = `${usulanId}_${Date.now()}_${sanitizedName}`;
+    // Format nama berkas otomatis: NIP_jenisfile.pdf (contoh: 19891003200903000_IjazahSMK.pdf)
+    const nip = existing.nipPegawai ? existing.nipPegawai.replace(/[^0-9]/g, '') : 'ASN';
+    const rawDocTitle = namaDokumen && namaDokumen.trim()
+      ? namaDokumen.trim()
+      : path.parse(file.name).name;
+    const cleanDocTitle = rawDocTitle.replace(/[^a-zA-Z0-9]/g, '');
+    const jenisFile = cleanDocTitle.length > 0 ? cleanDocTitle : 'Dokumen';
+    const formattedFileName = `${nip}_${jenisFile}.pdf`;
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload ke Drive Provider (Mock atau Google Drive)
+    // Upload ke Drive Provider (Mock, Google Drive, atau Local)
     const driveProvider = createDriveProvider();
     const driveResult = await driveProvider.uploadFile({
-      nip: existing.nipPegawai || 'unknown',
-      fileName: uniqueFileName,
+      nip,
+      fileName: formattedFileName,
       mimeType: 'application/pdf',
       buffer
     });

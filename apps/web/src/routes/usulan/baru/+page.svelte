@@ -928,14 +928,55 @@
 							</Badge>
 						</div>
 
-						<div class="space-y-1">
-							<Label class="text-xs text-slate-600 dark:text-slate-400">Judul / Keterangan Dokumen:</Label>
+						<div class="space-y-1.5">
+							<Label class="text-xs text-slate-600 dark:text-slate-400">Jenis / Nama Dokumen:</Label>
 							<Input
 								type="text"
-								placeholder="contoh: SK Jabatan Fungsional Terakhir"
+								list="jenis-dokumen-options"
+								placeholder="contoh: IjazahSMK, KTP, SK Jabatan, dsb."
 								bind:value={documentName}
 								class="text-xs"
 							/>
+							<datalist id="jenis-dokumen-options">
+								<option value="KTP"></option>
+								<option value="KartuKeluarga"></option>
+								<option value="IjazahSMK"></option>
+								<option value="IjazahSMA"></option>
+								<option value="IjazahD3"></option>
+								<option value="IjazahS1"></option>
+								<option value="IjazahS2"></option>
+								<option value="TranskripNilai"></option>
+								<option value="SKPangkat"></option>
+								<option value="SKJabatan"></option>
+								<option value="SKCPNS"></option>
+								<option value="SKPNS"></option>
+								<option value="AktaNikah"></option>
+								<option value="SertifikatDiklat"></option>
+							</datalist>
+
+							<!-- Quick pills -->
+							<div class="flex flex-wrap items-center gap-1.5 pt-1">
+								<span class="text-[10px] text-slate-500">Pilihan cepat:</span>
+								{#each ['KTP', 'IjazahSMK', 'IjazahS1', 'SKPangkat', 'SKJabatan'] as quickOpt}
+									<button
+										type="button"
+										onclick={() => { documentName = quickOpt; }}
+										class="rounded bg-slate-200/80 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-[11px] px-2 py-0.5 text-slate-700 dark:text-slate-300 transition-colors"
+									>
+										{quickOpt}
+									</button>
+								{/each}
+							</div>
+
+							<!-- Preview Nama Berkas Otomatis -->
+							<div class="mt-2.5 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/30 p-2.5 text-xs">
+								<p class="text-[11px] text-slate-600 dark:text-slate-400">
+									Nama berkas yang akan disimpan secara otomatis:
+								</p>
+								<p class="font-mono text-xs font-bold text-indigo-700 dark:text-indigo-300 mt-0.5">
+									{selectedPegawai?.nip ? selectedPegawai.nip.replace(/[^0-9]/g, '') : 'NIP'}_{((documentName.trim() || attachedFile.name.replace(/\.[^/.]+$/, '')).replace(/[^a-zA-Z0-9]/g, '') || 'Dokumen')}.pdf
+								</p>
+							</div>
 						</div>
 					</div>
 				{/if}
