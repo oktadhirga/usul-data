@@ -16,3 +16,4 @@ export interface DriveStorageProvider {
   uploadFile(options: UploadFileOptions): Promise<UploadFileResult>;
   trashFile(fileId: string): Promise<boolean>;
 }
+
