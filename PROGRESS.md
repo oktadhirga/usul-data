@@ -5,12 +5,12 @@
 > "aplikasi ini sekarang sudah bisa apa, dan kenapa dibangun begitu" tanpa harus
 > baca seluruh git history atau semua PRD satu-satu.
 
-Terakhir diupdate: 6 November 2026
+Terakhir diupdate: 10 November 2026
 
 ---
 
 ## 1. Ringkasan Aplikasi
-Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negara (**ASN-Sync**) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, verifikasi usulan oleh Admin Pusat, dashboard analitik & ekspor Excel, tema tampilan Dark/Light Mode, serta integrasi penarikan data dari API SIMPEG BKD Trenggalek.
+Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negara (**ASN-Sync**) yang dikembangkan dengan arsitektur monorepo (Bun workspaces). Aplikasi ini memiliki backend API berbasis ElysiaJS dan frontend web berbasis SvelteKit 5. Database dikelola menggunakan Drizzle ORM dan MySQL. Saat ini, aplikasi memiliki fitur manajemen user, unit organisasi (UNOR), pegawai, pengajuan usulan perubahan data pegawai, verifikasi usulan oleh Admin Pusat, dashboard analitik & ekspor Excel, tema tampilan Dark/Light Mode, integrasi penarikan data dari API SIMPEG BKD Trenggalek, serta sistem penyimpanan berkas pendukung usulan yang fleksibel (Google Drive 2 TB cloud storage dan local server disk storage) dengan format penamaan otomatis `[NIP]_[jenisfile].pdf`.
 
 ## 2. Fitur yang Sudah Ada
 
