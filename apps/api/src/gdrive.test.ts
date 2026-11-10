@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, spyOn, mock } from 'bun:test';
 import { MockDriveProvider } from './services/drive-providers/mock.provider';
 import { GoogleDriveProvider } from './services/drive-providers/google.provider';
+import { LocalStorageProvider } from './services/drive-providers/local.provider';
 import { createDriveProvider } from './services/drive-providers/factory';
 import { UsulanService } from './services/usulan.service';
-import { db, usulanDokumen } from '@usul-data/shared';
-import { eq } from 'drizzle-orm';
+import { db } from '@usul-data/shared';
 import fs from 'node:fs';
 
 describe('Google Drive Storage Feature (TDD)', () => {
@@ -175,15 +175,64 @@ describe('Google Drive Storage Feature (TDD)', () => {
     });
   });
 
-  describe('Factory', () => {
-    it('creates MockDriveProvider when MOCK_GDRIVE=true', () => {
+  describe('LocalStorageProvider (Disk Engine)', () => {
+    it('saves file to disk and provides local webViewLink', async () => {
+      const provider = new LocalStorageProvider();
+      const testBuffer = Buffer.from('LOCAL_TEST_PDF_BUFFER');
+      const fileName = `test_local_${Date.now()}.pdf`;
+
+      const result = await provider.uploadFile({
+        nip: '198501012010011001',
+        fileName,
+        mimeType: 'application/pdf',
+        buffer: testBuffer
+      });
+
+      expect(result.fileId).toBe(`local_${fileName}`);
+      expect(result.webViewLink).toBe(`/uploads/${fileName}`);
+      expect(result.fileName).toBe(fileName);
+
+      // Verify file physically exists on disk
+      const filePath = `${provider.getUploadDir()}/${fileName}`;
+      expect(fs.existsSync(filePath)).toBe(true);
+
+      // Verify trash removes the file from disk
+      const trashSuccess = await provider.trashFile(result.fileId);
+      expect(trashSuccess).toBe(true);
+      expect(fs.existsSync(filePath)).toBe(false);
+    });
+  });
+
+  describe('Factory & Storage Driver Switch', () => {
+    it('creates LocalStorageProvider when STORAGE_DRIVER=local', () => {
+      process.env.STORAGE_DRIVER = 'local';
+      const provider = createDriveProvider();
+      expect(provider instanceof LocalStorageProvider).toBe(true);
+    });
+
+    it('creates MockDriveProvider when STORAGE_DRIVER=gdrive and MOCK_GDRIVE=true', () => {
+      process.env.STORAGE_DRIVER = 'gdrive';
       process.env.MOCK_GDRIVE = 'true';
       const provider = createDriveProvider();
       expect(provider instanceof MockDriveProvider).toBe(true);
     });
+
+    it('creates GoogleDriveProvider when STORAGE_DRIVER=gdrive and real credentials exist', () => {
+      process.env.STORAGE_DRIVER = 'gdrive';
+      process.env.MOCK_GDRIVE = 'false';
+      process.env.GDRIVE_CLIENT_ID = 'test_id';
+      process.env.GDRIVE_REFRESH_TOKEN = 'test_token';
+      const provider = createDriveProvider();
+      expect(provider instanceof GoogleDriveProvider).toBe(true);
+    });
   });
 
   describe('UsulanService Drive Integration', () => {
+    beforeEach(() => {
+      process.env.STORAGE_DRIVER = 'gdrive';
+      process.env.MOCK_GDRIVE = 'true';
+    });
+
     it('uploadDokumen uploads to drive provider and saves drive_file_id', async () => {
       // Setup mock data for existing usulan
       spyOn(UsulanService, 'getById').mockResolvedValueOnce({

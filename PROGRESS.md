@@ -27,19 +27,18 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
 | **Dashboard & Laporan Excel** | Selesai | `dashboard` / `/` | Dashboard ringkasan analitik usulan perubahan data aparatur sipil (5 Summary Cards: total, diajukan, disetujui, ditolak, draft/batal; distribusi per UNOR; distribusi per kategori; rekap aktivitas bulanan), filter interaktif tahun/bulan/status/UNOR, dan export laporan lengkap berformat Excel (.xlsx) dengan otorisasi RBAC (Admin Pusat vs AdminOPD). |
 | **Dark Mode & Light Mode** | Selesai | `web` / Header Toggle | Dukungan tema ganda (Light Mode sebagai default dan Dark Mode), toggle switch Sun/Moon di header (mobile & desktop) dan halaman login, pencegahan flash (anti-FOUC) di `app.html`, persistensi `localStorage`, serta adaptasi penuh styling Tailwind CSS v4 di seluruh halaman & komponen UI. |
 | **Integrasi API SIMPEG** | Selesai | `simpeg` / `/unor`, `/pegawai` | Sinkronisasi data terpisah dari API SIMPEG BKD Trenggalek (`/unit_kerja` dan `/pegawai`) via Basic Auth. Dilengkapi auto-pagination batch loop untuk menarik seluruh 9.800+ pegawai secara tuntas dalam hitungan detik (bulk upsert `ON DUPLICATE KEY UPDATE`), filter khusus Unit Induk (44 OPD berakhiran `00000000`) untuk penarikan UNOR, pembersihan sub-unit yatim, validasi strict foreign key UNOR, dan modal laporan sinkronisasi. |
-| **Penyimpanan Google Drive (Cloud Storage)** | Selesai | `usulan` / `drive-providers` | Penyimpanan berkas pendukung usulan (PDF) langsung ke Google Drive instansi menggunakan OAuth 2.0 (Refresh Token). Struktur pengarsipan otomatis per NIP (`Root Folder > NIP > file_usulan`), izin publik (*anyone with link can view*), tautan direct view Google Drive Viewer di web UI, soft-delete ke sampah Google Drive saat usulan dihapus permanen, serta Provider Pattern terisolasi (`MockDriveProvider` & `GoogleDriveProvider`) dengan flag `MOCK_GDRIVE`. |
+| **Penyimpanan Berkas (Storage Driver Switch: Local & Google Drive)** | Selesai | `usulan` / `drive-providers` | Penyimpanan berkas pendukung usulan (PDF) fleksibel dengan switch driver via `.env` (`STORAGE_DRIVER=local` atau `gdrive`). Pada mode `local`, file disimpan di disk server lokal (`/uploads/...`) dengan endpoint stream. Pada mode `gdrive`, berkas langsung diunggah ke Google Drive instansi menggunakan OAuth 2.0 (Refresh Token) dengan struktur folder per NIP, soft-delete ke sampah Google Drive, dan direct Google Drive Viewer. Provider Pattern mencakup `LocalStorageProvider`, `MockDriveProvider`, dan `GoogleDriveProvider`. |
 
 ## 3. Keputusan Arsitektur Penting
 
 - **Monorepo**: Menggunakan workspace `bun` (`apps/api`, `apps/web`, `packages/shared`) untuk mempermudah sharing kode dan typing.
 - **Backend API**: Menggunakan **ElysiaJS**.
-- **Fitur Penyimpanan Berkas Google Drive**:
-  - **Otentikasi OAuth 2.0 (Refresh Token)**: Memanfaatkan kuota penyimpanan 2 TB akun Google `@gmail.com` instansi tanpa batasan kuota 0 Byte Service Account. Kredensial disimpan aman di server `.env`, sehingga pengguna/Admin OPD mengunggah secara transparan tanpa popup/login Google.
-  - **Struktur Folder Terorganisir per NIP**: Dokumen usulan dikelompokkan otomatis di bawah folder NIP pegawai bersangkutan (`Root > [NIP] > [usulanId]_[timestamp]_[filename]`).
-  - **Izin Baca Publik & Direct Viewer**: File di Drive diberi izin `role: reader, type: anyone`. Database `usulan_dokumen` menyimpan `drive_file_id` dan `path_file` (URL Google Drive Viewer), sehingga dokumen langsung dibuka di tab baru tanpa membebani bandwidth/proxy server.
-  - **Soft Delete ke Sampah**: Saat usulan dihapus permanen di aplikasi, file di Google Drive dipindahkan ke sampah (`trashed: true`) untuk memberi masa tenggang pemulihan 30 hari jika terjadi ketidaksengajaan.
-  - **Provider Pattern**: Arsitektur `DriveStorageProvider` dengan `MockDriveProvider` (in-memory) dan `GoogleDriveProvider` (Google Drive v3 REST API). Test suite berjalan 100% cepat dan terisolasi tanpa memerlukan kredensial live.
-  - **Kompatibilitas Mundur (Backward Compatibility)**: Helper `resolveDocUrl` di frontend mendukung URL Google Drive eksternal maupun path berkas lokal lama (`/uploads/...`), dan penghapusan fisik berkas lokal tetap dipertahankan untuk data lama.
+- **Fitur Penyimpanan Berkas & Storage Driver Switch (`STORAGE_DRIVER`)**:
+  - **Satu Codebase, Beralih Instan via `.env`**: Cukup atur `STORAGE_DRIVER=local` atau `STORAGE_DRIVER=gdrive` di `.env` tanpa perlu berganti branch Git.
+  - **Driver `local`**: Berkas disimpan di direktori disk server (`/uploads/`), disajikan via route `/api/uploads/:filename`, dan dihapus dari disk saat usulan dihapus.
+  - **Driver `gdrive`**: Berkas diunggah ke Google Drive akun 2 TB instansi via OAuth 2.0 (`GDRIVE_REFRESH_TOKEN`), diatur izin publik baca, dan dipindahkan ke tempat sampah (*soft-delete*) saat usulan dihapus.
+  - **Struktur Folder Terorganisir per NIP**: Pada Google Drive, dokumen usulan dikelompokkan otomatis di bawah folder NIP pegawai bersangkutan (`Root > [NIP] > [usulanId]_[timestamp]_[filename]`).
+  - **Kompatibilitas Mundur (Backward Compatibility)**: Helper `resolveDocUrl` di frontend secara cerdas mendeteksi apakah berkas berada di Google Drive (URL absolut `https://...`) atau disk lokal (path relatif `/uploads/...`), sehingga berkas lokal lama dan berkas Google Drive baru dapat dibuka bersamaan secara transparan.
 - **Fitur Integrasi API SIMPEG**:
   - **Pemisahan Penarikan Data (Decoupled Sync)**: Jalur UNOR dan Pegawai dipisahkan secara independen. UNOR ditarik HANYA secara manual via tombol di halaman `/unor`. Pegawai dapat ditarik manual via tombol di `/pegawai` atau otomatis berkala.
   - **Strict UNOR Dependency**: Pegawai dari SIMPEG yang kode UNOR-nya belum terdaftar di database lokal akan di-SKIP (tidak disimpan) dan dicatat dalam daftar peringatan/error untuk menjaga integritas foreign key dan mencegah auto-create UNOR liar.
@@ -70,7 +69,7 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
 
 ## 4. Known Issues / Technical Debt
 
-- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 95 skenario pengujian komprehensif termasuk integrasi SIMPEG, Google Drive storage provider, notifikasi, dashboard stats, dan export excel).
+- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 98 skenario pengujian komprehensif termasuk integrasi SIMPEG, switch driver penyimpanan lokal & Google Drive, notifikasi, dashboard stats, dan export excel).
 
 ## 5. Yang Sedang Dikerjakan (In Progress)
 
