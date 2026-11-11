@@ -64,7 +64,25 @@ async function seed() {
       console.log('ℹ AdminOPD user "admin_opd" already exists');
     }
 
-    // 4. Pegawai
+    // 4. Verifikator
+    const existingVerifikator = await db.select().from(users).where(eq(users.username, 'verifikator')).limit(1);
+    if (existingVerifikator.length === 0) {
+      const verifikatorPasswordHash = await Bun.password.hash('verifikator123', {
+        algorithm: 'bcrypt',
+        cost: 10
+      });
+      await db.insert(users).values({
+        username: 'verifikator',
+        passwordHash: verifikatorPasswordHash,
+        role: 'Verifikator',
+        kodeUnor: null
+      });
+      console.log('✓ Created Verifikator: verifikator / verifikator123');
+    } else {
+      console.log('ℹ Verifikator user "verifikator" already exists');
+    }
+
+    // 5. Pegawai
     const existingPegawai = await db.select().from(pegawai).limit(1);
     if (existingPegawai.length === 0) {
       await db.insert(pegawai).values([

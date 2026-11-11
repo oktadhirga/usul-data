@@ -8,6 +8,7 @@ dist/
 build/
 .output/
 .svelte-kit/
+coverage/
 
 # Environment files
 .env

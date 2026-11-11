@@ -50,7 +50,16 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
   - Otorisasi data otomatis (RBAC): `AdminOPD` hanya memperoleh agregasi dan data laporan untuk UNOR miliknya (`scopeUnor`), sedangkan `Admin` Pusat mendapatkan statistik global lintas UNOR dengan kebebasan memilih filter spesifik.
   - Endpoint ekspor `GET /api/dashboard/export` menghasilkan file Microsoft Excel (.xlsx) menggunakan pustaka `exceljs`.
   - Halaman Dashboard SvelteKit 5 ditempatkan sebagai landing page utama (`/`) setelah autentikasi.
-- **Frontend Web**: Menggunakan **SvelteKit 5** dengan TailwindCSS 4.
+- **Frontend Web & Component Testing**:
+  - Menggunakan **SvelteKit 5** (Runes mode) dengan TailwindCSS 4.
+  - **Automated Component Testing**:
+    - Test runner: **Vitest** dengan environment DOM **`happy-dom`** yang terintegrasi penuh dengan runtime Bun monorepo.
+    - Pustaka: **`@testing-library/svelte`** v5, **`@testing-library/user-event`**, dan **`@testing-library/jest-dom/vitest`**.
+    - Global Setup (`apps/web/src/test-setup.ts`): Otomatisasi cleanup DOM per-test, registrasi matcher jest-dom, serta mocking modul bawaan SvelteKit (`$app/stores`, `$app/navigation`, `$app/environment`).
+    - Suite Pengujian Ter-colocate:
+      - Primitif UI: `Button` (`button.test.ts`), `Input` (`input.test.ts`), `Badge` (`badge.test.ts`), `Alert` (`alert.test.ts`).
+      - Komponen Interaktif: `ThemeToggle` (`ThemeToggle.test.ts`), `NotificationBell` (`NotificationBell.test.ts`).
+    - Skrip: `test` (`vitest run`), `test:watch` (`vitest`), `test:coverage` (`vitest run --coverage` via `@vitest/coverage-v8`). Terintegrasi langsung dengan perintah root `bun run test`.
 - **Fitur Dark Mode & Light Mode**:
   - Tailwind CSS v4 selector-based dark variant: Dikonfigurasikan melalui `@custom-variant dark (&:where(.dark, .dark *));`.
   - Default Tema: Light Mode secara default, dengan Dark Mode bertema deep navy-slate.
@@ -69,7 +78,7 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
 
 ## 4. Known Issues / Technical Debt
 
-- Belum ada implementasi test otomatis berbasis SvelteKit component (test backend Elysia telah mencakup 99 skenario pengujian komprehensif termasuk integrasi SIMPEG, switch driver penyimpanan lokal & Google Drive, notifikasi, dashboard stats, dan export excel).
+- Tidak ada technical debt kritis. Backend API Elysia telah memiliki 104 pengujian komprehensif, dan Frontend Web SvelteKit 5 telah dilengkapi dengan 27 pengujian otomatis komponen berbasis Vitest & Testing Library. Code review lima-sumbu telah dieksekusi dengan perbaikan dead code, parameter binding, dan RBAC hardening.
 
 ## 5. Yang Sedang Dikerjakan (In Progress)
 

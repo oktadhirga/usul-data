@@ -302,6 +302,10 @@
 	}
 
 	onMount(async () => {
+		if (authState.isVerifikator) {
+			goto("/verifikasi");
+			return;
+		}
 		await loadUnors();
 		await loadUsulan();
 	});
@@ -361,7 +365,7 @@
 				</Badge>
 			</div>
 			<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-				{#if authState.isAdmin}
+				{#if authState.isAdmin || authState.isVerifikator}
 					Pantau dan kelola seluruh usulan pembaruan data pegawai
 					lintas Unit Organisasi.
 				{:else}
@@ -385,13 +389,15 @@
 				Refresh
 			</Button>
 
-			<Button
-				class="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20"
-				onclick={() => goto("/usulan/baru")}
-			>
-				<Plus class="h-4 w-4 mr-2" />
-				Buat Usulan Baru
-			</Button>
+			{#if !authState.isVerifikator}
+				<Button
+					class="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20"
+					onclick={() => goto("/usulan/baru")}
+				>
+					<Plus class="h-4 w-4 mr-2" />
+					Buat Usulan Baru
+				</Button>
+			{/if}
 		</div>
 	</div>
 
@@ -426,8 +432,8 @@
 					{/each}
 				</div>
 
-				<!-- Admin UNOR Filter -->
-				{#if authState.isAdmin}
+				<!-- Admin & Verifikator UNOR Filter -->
+				{#if authState.isAdmin || authState.isVerifikator}
 					<div class="w-full md:w-72">
 						<UnorCombobox
 							bind:value={selectedUnor}
@@ -580,18 +586,18 @@
 										{getStatusLabel(item.status)}
 									</span>
 								</TableCell>
-								<TableCell class="text-right pr-6">
+								<TableCell class="text-right pr-6 whitespace-nowrap">
 									<div
-										class="flex items-center justify-end gap-1.5"
+										class="flex items-center justify-end gap-1.5 flex-nowrap"
 									>
 										<!-- Detail Action -->
 										<Button
 											variant="ghost"
 											size="sm"
-											class="h-8 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800"
+											class="h-8 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 whitespace-nowrap shrink-0"
 											onclick={() => openDetail(item.id)}
 										>
-											<Eye class="h-3.5 w-3.5 mr-1" />
+											<Eye class="h-3.5 w-3.5" />
 											Detail
 										</Button>
 
@@ -600,26 +606,27 @@
 											<Button
 												variant="outline"
 												size="sm"
-												class={item.status ===
-												"ditolak"
-													? "h-8 text-xs border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20"
-													: item.status ===
-													"dibatalkan"
-													? "h-8 text-xs border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
-													: "h-8 text-xs border-indigo-500/40 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20"}
+												class={`h-8 px-2.5 text-xs font-medium whitespace-nowrap shrink-0 ${
+													item.status === "ditolak"
+														? "border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-300 hover:bg-rose-500/20"
+														: item.status === "dibatalkan"
+														? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300 hover:bg-amber-500/20"
+														: "border-indigo-500/40 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/20"
+												}`}
 												onclick={() =>
 													goto(
 														`/usulan/baru?editId=${item.id}`,
 													)}
+												title={item.status === "ditolak" ? "Perbaiki dan ajukan ulang usulan ini" : undefined}
 											>
-												<Pencil
-													class="h-3.5 w-3.5 mr-1"
-												/>
-												{item.status === "ditolak"
-													? "Edit & Ajukan Ulang"
-													: item.status === "dibatalkan"
-													? "Edit Usulan"
-													: "Edit Draft"}
+												<Pencil class="h-3.5 w-3.5 shrink-0" />
+												<span>
+													{item.status === "ditolak"
+														? "Ajukan Ulang"
+														: item.status === "dibatalkan"
+														? "Edit Usulan"
+														: "Edit Draft"}
+												</span>
 											</Button>
 										{/if}
 
@@ -628,11 +635,11 @@
 											<Button
 												variant="ghost"
 												size="sm"
-												class="h-8 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+												class="h-8 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 whitespace-nowrap shrink-0"
 												onclick={() =>
 													confirmCancel(item.id)}
 											>
-												<Ban class="h-3.5 w-3.5 mr-1" />
+												<Ban class="h-3.5 w-3.5" />
 												Batalkan
 											</Button>
 										{/if}
@@ -642,14 +649,12 @@
 											<Button
 												variant="ghost"
 												size="sm"
-												class="h-8 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+												class="h-8 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 whitespace-nowrap shrink-0"
 												onclick={() =>
 													confirmDelete(item.id)}
 												title="Hapus Usulan Secara Permanen"
 											>
-												<Trash2
-													class="h-3.5 w-3.5 mr-1"
-												/>
+												<Trash2 class="h-3.5 w-3.5" />
 												Hapus
 											</Button>
 										{/if}
@@ -949,21 +954,23 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-2 flex-wrap">
 					{#if currentDetail.status === "draft" || currentDetail.status === "dibatalkan" || currentDetail.status === "ditolak"}
 						<Button
 							variant="outline"
-							class="border-indigo-300 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-xs"
+							class="border-indigo-300 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-xs whitespace-nowrap shrink-0"
 							onclick={() => {
 								const id = currentDetail?.id;
 								isDetailOpen = false;
 								if (id) goto(`/usulan/baru?editId=${id}`);
 							}}
 						>
-							<Pencil class="h-3.5 w-3.5 mr-1" />
-							{currentDetail.status === "draft"
-								? "Edit Draft"
-								: "Edit & Ajukan Ulang"}
+							<Pencil class="h-3.5 w-3.5" />
+							<span>
+								{currentDetail.status === "draft"
+									? "Edit Draft"
+									: "Perbaiki Usulan"}
+							</span>
 						</Button>
 					{/if}
 

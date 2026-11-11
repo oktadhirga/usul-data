@@ -44,7 +44,7 @@
 	let createForm = $state({
 		username: '',
 		password: '',
-		role: 'AdminOPD' as 'Admin' | 'AdminOPD',
+		role: 'AdminOPD' as 'Admin' | 'AdminOPD' | 'Verifikator',
 		kodeUnor: ''
 	});
 	let isCreating = $state(false);
@@ -55,7 +55,7 @@
 	let editForm = $state({
 		username: '',
 		password: '',
-		role: 'AdminOPD' as 'Admin' | 'AdminOPD',
+		role: 'AdminOPD' as 'Admin' | 'AdminOPD' | 'Verifikator',
 		kodeUnor: ''
 	});
 	let isUpdating = $state(false);
@@ -334,8 +334,11 @@
 									</div>
 								</TableCell>
 								<TableCell>
-									<Badge variant={u.role === 'Admin' ? 'default' : 'secondary'} class="text-[11px]">
-										{u.role === 'Admin' ? 'Admin Pusat' : 'Admin OPD'}
+									<Badge
+										variant={u.role === 'Admin' ? 'default' : u.role === 'Verifikator' ? 'outline' : 'secondary'}
+										class={`text-[11px] ${u.role === 'Verifikator' ? 'border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30' : ''}`}
+									>
+										{u.role === 'Admin' ? 'Admin Pusat' : u.role === 'Verifikator' ? 'Verifikator' : 'Admin OPD'}
 									</Badge>
 								</TableCell>
 								<TableCell>
@@ -434,6 +437,7 @@
 					disabled={isCreating}
 				>
 					<option value="AdminOPD">Admin OPD (Dibatasi per Unit Organisasi)</option>
+					<option value="Verifikator">Verifikator (Verifikasi & Monitoring Seluruh OPD)</option>
 					<option value="Admin">Admin Pusat (Akses Penuh)</option>
 				</select>
 			</div>
@@ -526,6 +530,7 @@
 					disabled={isUpdating}
 				>
 					<option value="AdminOPD">Admin OPD</option>
+					<option value="Verifikator">Verifikator</option>
 					<option value="Admin">Admin Pusat</option>
 				</select>
 			</div>

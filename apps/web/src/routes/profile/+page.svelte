@@ -122,8 +122,11 @@
 						<Shield class="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
 						Peran / Role:
 					</span>
-					<Badge variant={authState.isAdmin ? 'default' : 'secondary'} class="text-xs font-medium">
-						{authState.user?.role === 'Admin' ? 'Admin Pusat' : 'Admin OPD'}
+					<Badge
+						variant={authState.isAdmin ? 'default' : authState.isVerifikator ? 'outline' : 'secondary'}
+						class={`text-xs font-medium ${authState.isVerifikator ? 'border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30' : ''}`}
+					>
+						{authState.user?.role === 'Admin' ? 'Admin Pusat' : authState.user?.role === 'Verifikator' ? 'Verifikator' : 'Admin OPD'}
 					</Badge>
 				</div>
 
@@ -133,7 +136,7 @@
 						Unit Kerja / UNOR:
 					</span>
 					<div class="font-mono text-slate-800 dark:text-slate-200 font-semibold">
-						{authState.user?.kodeUnor || (authState.isAdmin ? 'Pusat (Tanpa batasan)' : '-')}
+						{authState.user?.kodeUnor || (authState.isAdmin || authState.isVerifikator ? 'Pusat (Tanpa batasan)' : '-')}
 					</div>
 				</div>
 			</CardContent>

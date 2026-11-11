@@ -10,6 +10,7 @@
 		submitUsulan,
 		fetchUsulanDetail,
 		updateUsulan,
+		deleteUsulanDokumen,
 		resolveDocUrl,
 		type JenisUsulan,
 		type KategoriUbah,
@@ -47,6 +48,10 @@
 	let existingStatus = $state<string | null>(null);
 	let existingDocuments = $state<UsulanDokumen[]>([]);
 	let isLoadingDetail = $state(false);
+
+	// Document deletion state
+	let docToDelete = $state<UsulanDokumen | null>(null);
+	let isDeletingDoc = $state(false);
 
 	// Multi-step Wizard
 	let currentStep = $state(1);
@@ -169,6 +174,41 @@
 		attachedFile = file;
 		if (!documentName) {
 			documentName = file.name.replace(/\.[^/.]+$/, '');
+		}
+	}
+
+	function confirmDeleteDoc(doc: UsulanDokumen) {
+		docToDelete = doc;
+	}
+
+	function cancelDeleteDoc() {
+		docToDelete = null;
+	}
+
+	async function executeDeleteDoc() {
+		if (!docToDelete || !editingUsulanId || !docToDelete.id) return;
+
+		isDeletingDoc = true;
+		try {
+			const res = await deleteUsulanDokumen(editingUsulanId, docToDelete.id);
+			if (res.success) {
+				existingDocuments = existingDocuments.filter((d) => d.id !== docToDelete?.id);
+				docToDelete = null;
+			} else {
+				alertMessage = {
+					type: 'destructive',
+					title: 'Gagal Menghapus Dokumen',
+					desc: res.message || 'Terjadi kesalahan saat menghapus dokumen.'
+				};
+			}
+		} catch (err: any) {
+			alertMessage = {
+				type: 'destructive',
+				title: 'Terjadi Kesalahan',
+				desc: err.message || 'Gagal menghapus dokumen.'
+			};
+		} finally {
+			isDeletingDoc = false;
 		}
 	}
 
@@ -872,19 +912,45 @@
 										{doc.ukuranBytes ? `• ${(doc.ukuranBytes / 1024).toFixed(1)} KB` : ''}
 									</span>
 								</div>
-								<a
-									href={resolveDocUrl(doc.pathFile)}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2 py-0.5 text-xs text-indigo-600 dark:text-indigo-300 transition-colors shrink-0 ml-2"
-								>
-									Lihat Berkas
-								</a>
+								<div class="flex items-center gap-1.5 shrink-0 ml-2">
+									<a
+										href={resolveDocUrl(doc.pathFile)}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2 py-1 text-xs text-indigo-600 dark:text-indigo-300 transition-colors"
+									>
+										Lihat Berkas
+									</a>
+									{#if isEditMode}
+										<Button
+											type="button"
+											variant="ghost"
+											size="sm"
+											class="h-7 px-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-rose-500/10 text-xs"
+											onclick={() => confirmDeleteDoc(doc)}
+											title="Hapus Dokumen"
+										>
+											<Trash2 class="h-3.5 w-3.5" />
+											<span class="sr-only">Hapus</span>
+										</Button>
+									{/if}
+								</div>
 							</div>
 						{/each}
 						<p class="text-[11px] text-slate-500 dark:text-slate-400 italic">
-							* Dokumen di atas sudah tersimpan. Anda dapat mengunggah berkas baru di bawah jika ingin menambahkan dokumen lampiran lain.
+							* Anda dapat menghapus dokumen yang salah/kadaluarsa dengan menekan ikon hapus, atau mengunggah berkas baru di bawah ini.
 						</p>
+					</div>
+				{/if}
+
+				<!-- Warning jika semua dokumen terhapus pada usulan ubah/tambah -->
+				{#if isEditMode && isDocumentRequired && (!existingDocuments || existingDocuments.length === 0) && !attachedFile}
+					<div class="flex items-start gap-2.5 rounded-lg border border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 p-3 text-xs text-rose-800 dark:text-rose-300">
+						<AlertCircle class="h-4 w-4 mt-0.5 shrink-0 text-rose-600 dark:text-rose-400" />
+						<div>
+							<span class="font-semibold">Dokumen Kosong:</span>
+							Semua dokumen pendukung lama telah dihapus. Silakan pilih dan unggah dokumen pengganti di bawah ini agar usulan dapat diajukan kembali.
+						</div>
 					</div>
 				{/if}
 
@@ -1168,4 +1234,53 @@
 			</div>
 		</CardFooter>
 	</Card>
+
+	<!-- Confirmation Modal for Deleting Document -->
+	{#if docToDelete}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+			<div class="w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
+				<div class="flex items-center gap-3">
+					<div class="rounded-full bg-rose-100 dark:bg-rose-900/30 p-2 text-rose-600 dark:text-rose-400">
+						<Trash2 class="h-5 w-5" />
+					</div>
+					<div>
+						<h3 class="text-base font-semibold text-slate-900 dark:text-white">Hapus Dokumen Pendukung</h3>
+						<p class="text-xs text-slate-500 dark:text-slate-400">Tindakan ini tidak dapat dibatalkan.</p>
+					</div>
+				</div>
+
+				<p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+					Apakah Anda yakin ingin menghapus berkas <strong class="text-slate-900 dark:text-white">"{docToDelete.namaDokumen}"</strong>?
+					Dokumen akan dihapus dari usulan ini dan dipindahkan ke tempat sampah.
+				</p>
+
+				<div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						disabled={isDeletingDoc}
+						onclick={cancelDeleteDoc}
+					>
+						Batal
+					</Button>
+					<Button
+						type="button"
+						size="sm"
+						class="bg-rose-600 hover:bg-rose-500 text-white"
+						disabled={isDeletingDoc}
+						onclick={executeDeleteDoc}
+					>
+						{#if isDeletingDoc}
+							<Loader2 class="h-3.5 w-3.5 animate-spin mr-1.5" />
+							Menghapus...
+						{:else}
+							<Trash2 class="h-3.5 w-3.5 mr-1.5" />
+							Hapus Dokumen
+						{/if}
+					</Button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>

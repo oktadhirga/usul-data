@@ -1,4 +1,4 @@
-import { db, notifikasi, users, eq, and, desc, type Notifikasi } from '@usul-data/shared';
+import { db, notifikasi, users, eq, and, or, desc, type Notifikasi } from '@usul-data/shared';
 
 export class NotificationService {
   static async getUserNotifications(userId: number, limit = 50): Promise<Notifikasi[]> {
@@ -53,7 +53,7 @@ export class NotificationService {
     const adminUsers = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.role, 'Admin'));
+      .where(or(eq(users.role, 'Admin'), eq(users.role, 'Verifikator')));
 
     for (const admin of adminUsers) {
       await this.createNotification(admin.id, judul, pesan, link);

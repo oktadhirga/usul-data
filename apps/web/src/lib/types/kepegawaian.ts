@@ -1,21 +1,14 @@
-export interface Unor {
-  id: number;
-  kodeUnor: string;
-  namaUnor: string;
-}
+import type { Unor as SharedUnor, Pegawai as SharedPegawai, UserRole } from '@usul-data/shared';
 
-export interface Pegawai {
-  id: number;
-  nip: string;
-  nama: string;
-  jabatan: string;
-  kodeUnor: string;
-  namaUnor?: string;
+export type Unor = SharedUnor;
+
+export interface Pegawai extends SharedPegawai {
+  namaUnor?: string | null;
 }
 
 export interface UserProfile {
   id: number;
   username: string;
-  role: 'Admin' | 'AdminOPD';
+  role: UserRole;
   kodeUnor: string | null;
 }

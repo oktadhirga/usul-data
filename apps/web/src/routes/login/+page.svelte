@@ -57,14 +57,23 @@
 
 	<div class="w-full max-w-md relative z-10">
 		<Card class="border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/90 shadow-2xl backdrop-blur-xl">
-			<CardHeader class="space-y-2 text-center pb-6">
-				<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-lg shadow-lg shadow-indigo-600/25 mb-2 tracking-wider">
-					AS
+			<CardHeader class="space-y-3 text-center pb-6">
+				<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-800/80 p-2 shadow-md border border-slate-200 dark:border-slate-700/50 mb-1">
+					<img
+						src="/logo-trenggalek.svg"
+						alt="Logo Pemerintah Kabupaten Trenggalek"
+						class="h-full w-full object-contain"
+					/>
 				</div>
-				<CardTitle class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-					ASN-Sync
-				</CardTitle>
-				<CardDescription class="text-slate-500 dark:text-slate-400 text-sm">
+				<div>
+					<CardTitle class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+						ASN-Sync
+					</CardTitle>
+					<p class="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mt-0.5">
+						Pemerintah Kabupaten Trenggalek
+					</p>
+				</div>
+				<CardDescription class="text-slate-500 dark:text-slate-400 text-xs">
 					Sistem Pengusulan & Sinkronisasi Data Pegawai ASN
 				</CardDescription>
 			</CardHeader>

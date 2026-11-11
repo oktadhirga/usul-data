@@ -161,7 +161,7 @@
 		const queryUnor = page.url.searchParams.get('kode_unor');
 
 		// Jika user adalah AdminOPD, otomatis batasi ke kodeUnor miliknya
-		if (!authState.isAdmin && authState.user?.kodeUnor) {
+		if (!authState.isAdmin && !authState.isVerifikator && authState.user?.kodeUnor) {
 			selectedUnor = authState.user.kodeUnor;
 			createForm.kodeUnor = authState.user.kodeUnor;
 		} else if (queryUnor) {
@@ -180,7 +180,7 @@
 			prevParamUnor = currentParam;
 		} else if (prevParamUnor !== currentParam) {
 			prevParamUnor = currentParam;
-			if (authState.isAdmin) {
+			if (authState.isAdmin || authState.isVerifikator) {
 				selectedUnor = currentParam || '';
 				loadPegawai();
 			}
@@ -199,7 +199,7 @@
 	}
 
 	function resetFilter() {
-		if (authState.isAdmin) {
+		if (authState.isAdmin || authState.isVerifikator) {
 			selectedUnor = '';
 		}
 		searchQuery = '';
@@ -329,8 +329,8 @@
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 		<div>
 			<div class="flex items-center gap-2 mb-1">
-				<Badge variant={authState.isAdmin ? 'default' : 'secondary'} class="text-xs">
-					{authState.isAdmin ? 'Akses Pusat' : `Akses Dibatasi: ${userUnorName()}`}
+				<Badge variant={authState.isAdmin || authState.isVerifikator ? 'default' : 'secondary'} class="text-xs">
+					{authState.isAdmin ? 'Akses Pusat' : authState.isVerifikator ? 'Akses Verifikator (Semua OPD)' : `Akses Dibatasi: ${userUnorName()}`}
 				</Badge>
 			</div>
 			<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -354,7 +354,7 @@
 				<span class="hidden sm:inline">Segarkan</span>
 			</Button>
 
-						{#if authState.isAdmin}
+			{#if authState.isAdmin}
 				<Button
 					size="sm"
 					class="gap-1.5 text-xs h-9 bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm cursor-pointer disabled:opacity-50"
@@ -371,10 +371,12 @@
 				</Button>
 			{/if}
 
-			<Button class="gap-1.5 text-xs h-9 bg-indigo-600 hover:bg-indigo-500 text-white" onclick={openCreateDialog}>
-				<Plus class="h-4 w-4" />
-				<span>Tambah Pegawai</span>
-			</Button>
+			{#if !authState.isVerifikator}
+				<Button class="gap-1.5 text-xs h-9 bg-indigo-600 hover:bg-indigo-500 text-white" onclick={openCreateDialog}>
+					<Plus class="h-4 w-4" />
+					<span>Tambah Pegawai</span>
+				</Button>
+			{/if}
 		</div>
 	</div>
 
@@ -401,10 +403,10 @@
 	<!-- Filter & Search Bar -->
 	<Card class="relative z-30 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">
 		<form onsubmit={handleSearchSubmit} class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-			<!-- UNOR Filter (Searchable combobox untuk Admin, terkunci untuk AdminOPD) -->
+			<!-- UNOR Filter (Searchable combobox untuk Admin/Verifikator, terkunci untuk AdminOPD) -->
 			<div class="sm:w-80">
 				<label for="filter-unor-trigger" class="sr-only">Filter Unit Organisasi</label>
-				{#if authState.isAdmin}
+				{#if authState.isAdmin || authState.isVerifikator}
 					<UnorCombobox
 						id="filter-unor-trigger"
 						bind:value={selectedUnor}
@@ -436,7 +438,7 @@
 				Cari
 			</Button>
 
-			{#if (authState.isAdmin && selectedUnor) || searchQuery}
+			{#if ((authState.isAdmin || authState.isVerifikator) && selectedUnor) || searchQuery}
 				<Button
 					type="button"
 					variant="ghost"
@@ -526,26 +528,28 @@
 										</Button>
 
 										<!-- Edit Pegawai -->
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-8 w-8 p-0 text-slate-400 hover:text-amber-400 hover:bg-slate-800"
-											onclick={() => openEditDialog(item)}
-											title="Ubah Data"
-										>
-											<Pencil class="h-3.5 w-3.5" />
-										</Button>
+										{#if !authState.isVerifikator}
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-8 w-8 p-0 text-slate-400 hover:text-amber-400 hover:bg-slate-800"
+												onclick={() => openEditDialog(item)}
+												title="Ubah Data"
+											>
+												<Pencil class="h-3.5 w-3.5" />
+											</Button>
 
-										<!-- Delete Pegawai -->
-										<Button
-											variant="ghost"
-											size="sm"
-											class="h-8 w-8 p-0 text-slate-400 hover:text-rose-400 hover:bg-slate-800"
-											onclick={() => openDeleteDialog(item)}
-											title="Hapus Data"
-										>
-											<Trash2 class="h-3.5 w-3.5" />
-										</Button>
+											<!-- Delete Pegawai -->
+											<Button
+												variant="ghost"
+												size="sm"
+												class="h-8 w-8 p-0 text-slate-400 hover:text-rose-400 hover:bg-slate-800"
+												onclick={() => openDeleteDialog(item)}
+												title="Hapus Data"
+											>
+												<Trash2 class="h-3.5 w-3.5" />
+											</Button>
+										{/if}
 									</div>
 								</TableCell>
 							</TableRow>

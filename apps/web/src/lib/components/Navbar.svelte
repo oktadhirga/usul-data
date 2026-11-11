@@ -81,6 +81,9 @@
 				{#if activeUser.role === 'Admin'}
 					<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
 					<span class="text-emerald-300 font-semibold">Admin Pusat</span>
+				{:else if activeUser.role === 'Verifikator'}
+					<span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+					<span class="text-indigo-300 font-semibold">Verifikator Pusat</span>
 				{:else}
 					<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
 					<span class="text-amber-300 font-semibold">Admin OPD ({activeUser.kodeUnor?.replace('UNOR-', '')})</span>
@@ -103,7 +106,7 @@
 						>
 							<div class="flex items-center justify-between w-full">
 								<span class="font-semibold">{user.username}</span>
-								<span class="px-1.5 py-0.5 rounded text-[10px] {user.role === 'Admin' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}">
+								<span class="px-1.5 py-0.5 rounded text-[10px] {user.role === 'Admin' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : user.role === 'Verifikator' ? 'bg-indigo-950 text-indigo-400 border border-indigo-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}">
 									{user.role}
 								</span>
 							</div>

@@ -69,8 +69,8 @@
 <svelte:window onclick={handleWindowClick} />
 
 <svelte:head>
-	<title>ASN-Sync - Sistem Pengusulan & Verifikasi Data Pegawai</title>
-	<link rel="icon" href={favicon} />
+	<title>ASN-Sync - Sistem Pengusulan & Verifikasi Data Pegawai Kab. Trenggalek</title>
+	<link rel="icon" href="/logo-trenggalek.svg" />
 </svelte:head>
 
 {#if isLoginPage}
@@ -79,11 +79,16 @@
 	<div class="h-screen min-h-screen md:min-h-0 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col md:flex-row overflow-hidden transition-colors">
 		<!-- Mobile Header -->
 		<div class="md:hidden flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-4 py-3 sticky top-0 z-40 backdrop-blur-md">
-			<div class="flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
-				<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-black text-sm tracking-wider">
-					AS
+			<div class="flex items-center gap-2.5 font-bold text-lg text-slate-900 dark:text-white">
+				<img
+					src="/logo-trenggalek.svg"
+					alt="Logo Pemkab Trenggalek"
+					class="h-8 w-8 object-contain shrink-0"
+				/>
+				<div class="leading-tight">
+					<div class="text-base font-bold text-slate-900 dark:text-white">ASN-Sync</div>
+					<div class="text-[10px] text-slate-500 font-normal">Kab. Trenggalek</div>
 				</div>
-				<span>ASN-Sync</span>
 			</div>
 			<div class="flex items-center gap-1.5">
 				<ThemeToggle />
@@ -121,12 +126,16 @@
 			<div class="space-y-6">
 				<!-- Brand Logo -->
 				<div class="flex items-center gap-3 px-2 py-1">
-					<div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white font-black text-base shadow-md shadow-indigo-600/20 tracking-wider">
-						AS
+					<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800/80 p-1.5 shadow-sm border border-slate-200 dark:border-slate-700/50 shrink-0">
+						<img
+							src="/logo-trenggalek.svg"
+							alt="Logo Kabupaten Trenggalek"
+							class="h-full w-full object-contain"
+						/>
 					</div>
-					<div>
-						<h1 class="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-none">ASN-Sync</h1>
-						<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Sistem Pengusulan & Verifikasi ASN</p>
+					<div class="min-w-0">
+						<h1 class="text-base font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate">ASN-Sync</h1>
+						<p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate font-medium">Kabupaten Trenggalek</p>
 					</div>
 				</div>
 
@@ -158,20 +167,22 @@
 						<span>Data Pegawai</span>
 					</a>
 
-					<a
-						href="/usulan"
-						onclick={() => isMobileMenuOpen = false}
-						class={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
-							page.url.pathname.startsWith('/usulan')
-								? 'bg-indigo-600 text-white shadow-sm'
-								: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white'
-						}`}
-					>
-						<FileText class="h-4 w-4" />
-						<span>Usulan Perubahan</span>
-					</a>
+					{#if !authState.isVerifikator}
+						<a
+							href="/usulan"
+							onclick={() => isMobileMenuOpen = false}
+							class={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors ${
+								page.url.pathname.startsWith('/usulan')
+									? 'bg-indigo-600 text-white shadow-sm'
+									: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white'
+							}`}
+						>
+							<FileText class="h-4 w-4" />
+							<span>Usulan Perubahan</span>
+						</a>
+					{/if}
 
-					{#if authState.isAdmin}
+					{#if authState.canVerify}
 						<a
 							href="/verifikasi"
 							onclick={() => isMobileMenuOpen = false}
@@ -278,7 +289,7 @@
 										{authState.user.username}
 									</div>
 									<div class="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
-										{authState.user.role === 'Admin' ? 'Admin Pusat' : (userUnorName() || 'Admin OPD')}
+										{authState.user.role === 'Admin' ? 'Admin Pusat' : authState.user.role === 'Verifikator' ? 'Verifikator Pusat' : (userUnorName() || 'Admin OPD')}
 									</div>
 								</div>
 								<div class="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
@@ -294,7 +305,7 @@
 											{authState.user.username}
 										</p>
 										<p class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-											{authState.user.role === 'Admin' ? 'Administrator' : (userUnorName() || 'Pengelola Unit')}
+											{authState.user.role === 'Admin' ? 'Administrator' : authState.user.role === 'Verifikator' ? 'Verifikator Pusat' : (userUnorName() || 'Pengelola Unit')}
 										</p>
 										<div class="mt-1.5">
 											<Badge variant={authState.isAdmin ? 'default' : 'secondary'} class="text-[9px] py-0 px-1.5 font-normal">

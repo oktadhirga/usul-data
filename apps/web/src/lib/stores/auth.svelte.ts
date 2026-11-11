@@ -1,7 +1,7 @@
 export interface CurrentUser {
 	id: number;
 	username: string;
-	role: 'Admin' | 'AdminOPD';
+	role: 'Admin' | 'AdminOPD' | 'Verifikator';
 	kodeUnor?: string | null;
 }
 
@@ -17,6 +17,14 @@ class AuthStore {
 
 	get isAdmin(): boolean {
 		return this.user?.role === 'Admin';
+	}
+
+	get isVerifikator(): boolean {
+		return this.user?.role === 'Verifikator';
+	}
+
+	get canVerify(): boolean {
+		return this.user?.role === 'Admin' || this.user?.role === 'Verifikator';
 	}
 
 	constructor() {

@@ -229,6 +229,22 @@ export async function deleteUsulan(
 	}
 }
 
+export async function deleteUsulanDokumen(
+	usulanId: number | string,
+	docId: number | string
+): Promise<{ success: boolean; message?: string }> {
+	try {
+		const res = await fetch(`/api/usulan/${usulanId}/dokumen/${docId}`, {
+			method: 'DELETE',
+			headers: getAuthHeaders(true),
+			credentials: 'include'
+		});
+		return await res.json();
+	} catch (err: any) {
+		return { success: false, message: err.message || 'Gagal menghapus dokumen' };
+	}
+}
+
 export async function approveUsulan(
 	id: number | string,
 	catatan?: string

@@ -188,6 +188,10 @@ export class UsulanService {
   }
 
   static async createDraft(input: CreateUsulanInput, user: AuthUser) {
+    if (user.role === 'Verifikator') {
+      throw new Error('Forbidden: Verifikator hanya berhak memeriksa dan memverifikasi usulan');
+    }
+
     if (!input.details || input.details.length === 0) {
       throw new Error('Usulan harus memiliki minimal 1 rincian perubahan');
     }
@@ -236,6 +240,10 @@ export class UsulanService {
     namaDokumen: string | undefined,
     user: AuthUser
   ) {
+    if (user.role === 'Verifikator') {
+      throw new Error('Forbidden: Verifikator tidak berhak mengunggah dokumen usulan');
+    }
+
     const existing = await this.getById(usulanId);
     if (!existing) {
       throw new Error('Usulan tidak ditemukan');
@@ -277,6 +285,10 @@ export class UsulanService {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    if (buffer.length < 4 || buffer.subarray(0, 4).toString('ascii') !== '%PDF') {
+      throw new Error('Format berkas tidak valid. Berkas bukan dokumen PDF yang sah');
+    }
+
     // Upload ke Drive Provider (Mock, Google Drive, atau Local)
     const driveProvider = createDriveProvider();
     const driveResult = await driveProvider.uploadFile({
@@ -317,6 +329,10 @@ export class UsulanService {
     },
     user: AuthUser
   ) {
+    if (user.role === 'Verifikator') {
+      throw new Error('Forbidden: Verifikator tidak berhak mengubah usulan');
+    }
+
     const existing = await this.getById(id);
     if (!existing) {
       throw new Error('Usulan tidak ditemukan');
@@ -496,13 +512,68 @@ export class UsulanService {
     };
   }
 
+  static async deleteDokumen(usulanId: number, docId: number, user: AuthUser) {
+    if (user.role === 'Verifikator') {
+      throw new Error('Forbidden: Verifikator tidak berhak menghapus dokumen usulan');
+    }
+
+    const existing = await this.getById(usulanId);
+    if (!existing) {
+      throw new Error('Usulan tidak ditemukan');
+    }
+
+    if (user.role === 'AdminOPD') {
+      if (!user.kodeUnor || existing.kodeUnor !== user.kodeUnor) {
+        throw new Error('Forbidden: Anda tidak memiliki akses untuk menghapus dokumen usulan unit lain');
+      }
+    }
+
+    if (existing.status !== 'draft' && existing.status !== 'ditolak' && existing.status !== 'dibatalkan') {
+      throw new Error(`Dokumen tidak dapat dihapus pada usulan berstatus ${existing.status}`);
+    }
+
+    const doc = existing.dokumen?.find((d) => d.id === docId);
+    if (!doc) {
+      throw new Error('Dokumen tidak ditemukan');
+    }
+
+    if (doc.driveFileId) {
+      try {
+        const driveProvider = createDriveProvider();
+        await driveProvider.trashFile(doc.driveFileId);
+      } catch (e) {
+        console.error(`Gagal memindahkan file Google Drive ${doc.driveFileId} ke sampah:`, e);
+      }
+    }
+
+    if (doc.pathFile && !doc.pathFile.startsWith('http')) {
+      const filePath = this.resolveUploadedFilePath(path.basename(doc.pathFile));
+      if (filePath && fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (e) {
+          console.error(`Gagal menghapus file berkas lokal ${filePath}:`, e);
+        }
+      }
+    }
+
+    await db
+      .delete(usulanDokumen)
+      .where(and(eq(usulanDokumen.id, docId), eq(usulanDokumen.usulanId, usulanId)));
+
+    return {
+      success: true,
+      message: 'Dokumen berhasil dihapus'
+    };
+  }
+
   static async approveUsulan(
     id: number,
     catatan: string | undefined,
     user: AuthUser
   ) {
-    if (user.role !== 'Admin') {
-      throw new Error('Forbidden: Hanya Admin yang berhak menyetujui usulan');
+    if (user.role !== 'Admin' && user.role !== 'Verifikator') {
+      throw new Error('Forbidden: Hanya Admin atau Verifikator yang berhak menyetujui usulan');
     }
 
     const existing = await this.getById(id);
@@ -582,8 +653,8 @@ export class UsulanService {
     input: { catatan: string },
     user: AuthUser
   ) {
-    if (user.role !== 'Admin') {
-      throw new Error('Forbidden: Hanya Admin yang berhak menolak usulan');
+    if (user.role !== 'Admin' && user.role !== 'Verifikator') {
+      throw new Error('Forbidden: Hanya Admin atau Verifikator yang berhak menolak usulan');
     }
 
     if (!input.catatan || !input.catatan.trim()) {

@@ -3,7 +3,7 @@ import { authState } from '$lib/stores/auth.svelte';
 export interface UserItem {
 	id: number;
 	username: string;
-	role: 'Admin' | 'AdminOPD';
+	role: 'Admin' | 'AdminOPD' | 'Verifikator';
 	kodeUnor?: string | null;
 	createdAt: string;
 	updatedAt: string;
@@ -44,7 +44,7 @@ export async function fetchUsers(): Promise<{ success: boolean; data: UserItem[]
 export async function createUser(payload: {
 	username: string;
 	password: string;
-	role?: 'Admin' | 'AdminOPD';
+	role?: 'Admin' | 'AdminOPD' | 'Verifikator';
 	kodeUnor?: string | null;
 }): Promise<{ success: boolean; message?: string; data?: any }> {
 	try {
@@ -65,7 +65,7 @@ export async function updateUser(
 	payload: {
 		username?: string;
 		password?: string;
-		role?: 'Admin' | 'AdminOPD';
+		role?: 'Admin' | 'AdminOPD' | 'Verifikator';
 		kodeUnor?: string | null;
 	}
 ): Promise<{ success: boolean; message?: string; data?: any }> {

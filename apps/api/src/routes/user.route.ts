@@ -58,7 +58,7 @@ export const userRoute = new Elysia({ prefix: '/users' })
       body: t.Object({
         username: t.String({ minLength: 3 }),
         password: t.String({ minLength: 6 }),
-        role: t.Optional(t.Union([t.Literal('Admin'), t.Literal('AdminOPD')])),
+        role: t.Optional(t.Union([t.Literal('Admin'), t.Literal('AdminOPD'), t.Literal('Verifikator')])),
         kodeUnor: t.Optional(t.Nullable(t.String()))
       })
     }
@@ -86,7 +86,7 @@ export const userRoute = new Elysia({ prefix: '/users' })
       body: t.Object({
         username: t.Optional(t.String({ minLength: 3 })),
         password: t.Optional(t.String({ minLength: 6 })),
-        role: t.Optional(t.Union([t.Literal('Admin'), t.Literal('AdminOPD')])),
+        role: t.Optional(t.Union([t.Literal('Admin'), t.Literal('AdminOPD'), t.Literal('Verifikator')])),
         kodeUnor: t.Optional(t.Nullable(t.String()))
       })
     }

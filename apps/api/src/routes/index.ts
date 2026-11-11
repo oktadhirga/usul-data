@@ -33,8 +33,8 @@ export const appRoutes = new Elysia({ prefix: '/api' })
       scopeUnor,
       isRestricted: user?.role === 'AdminOPD',
       message:
-        user?.role === 'Admin'
-          ? 'Admin Pusat: Akses seluruh data OPD'
+        user?.role === 'Admin' || user?.role === 'Verifikator'
+          ? `${user?.role}: Akses seluruh data OPD`
           : `Admin OPD: Data dibatasi untuk kode UNOR ${scopeUnor}`
     };
   });

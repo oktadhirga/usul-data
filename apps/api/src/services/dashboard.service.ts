@@ -8,6 +8,7 @@ import {
   and,
   desc,
   sql,
+  inArray,
   type UsulanStatus,
   type KategoriUbah
 } from '@usul-data/shared';
@@ -293,7 +294,7 @@ export class DashboardService {
           fieldName: usulanDetailField.fieldName
         })
         .from(usulanDetailField)
-        .where(sql`${usulanDetailField.usulanId} in (${sql.raw(usulanIds.join(','))})`);
+        .where(inArray(usulanDetailField.usulanId, usulanIds));
 
       for (const d of details) {
         const list = detailsByUsulan.get(d.usulanId) || [];

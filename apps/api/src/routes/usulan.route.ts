@@ -155,6 +155,41 @@ export const usulanRoute = new Elysia({ prefix: '/usulan' })
     }
   )
 
+  // DELETE /api/usulan/:id/dokumen/:docId - Hapus dokumen pendukung
+  .delete(
+    '/:id/dokumen/:docId',
+    async ({ params: { id, docId }, user, set }) => {
+      try {
+        if (!user) {
+          set.status = 401;
+          return { success: false, message: 'Unauthorized' };
+        }
+
+        const res = await UsulanService.deleteDokumen(
+          Number(id),
+          Number(docId),
+          user
+        );
+        return res;
+      } catch (err: any) {
+        if (err.message?.includes('Forbidden')) {
+          set.status = 403;
+        } else if (err.message?.includes('tidak ditemukan')) {
+          set.status = 404;
+        } else {
+          set.status = 400;
+        }
+        return { success: false, message: err.message ?? 'Gagal menghapus dokumen' };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.Numeric(),
+        docId: t.Numeric()
+      })
+    }
+  )
+
   // POST /api/usulan/:id/submit - Submit usulan (draft -> diajukan)
   .post(
     '/:id/submit',

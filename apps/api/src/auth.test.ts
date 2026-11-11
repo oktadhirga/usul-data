@@ -99,6 +99,7 @@ describe('Auth & RBAC Test Suite', () => {
   describe('HTTP Endpoints & Middleware Flow', () => {
     let adminToken: string;
     let opdToken: string;
+    let verifikatorToken: string;
 
     it('POST /api/auth/login returns JWT token for Admin', async () => {
       spyOn(UserService, 'getByUsername').mockResolvedValueOnce({
@@ -152,6 +153,33 @@ describe('Auth & RBAC Test Suite', () => {
       expect(data.user.role).toBe('AdminOPD');
       expect(data.user.kodeUnor).toBe('UNOR-DINKES-01');
       opdToken = data.token;
+    });
+
+    it('POST /api/auth/login returns JWT token for Verifikator', async () => {
+      spyOn(UserService, 'getByUsername').mockResolvedValueOnce({
+        id: 3,
+        username: 'verifikator',
+        passwordHash: mockAdminPasswordHash,
+        role: 'Verifikator',
+        kodeUnor: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'verifikator', password: 'admin123' })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.user.role).toBe('Verifikator');
+      expect(data.user.kodeUnor).toBeNull();
+      verifikatorToken = data.token;
     });
 
     it('GET /api/auth/me returns authenticated user profile', async () => {
@@ -211,6 +239,20 @@ describe('Auth & RBAC Test Suite', () => {
       expect(data.isRestricted).toBe(false);
     });
 
+    it('resolveUnorScope allows unrestricted data access for Verifikator', async () => {
+      const res = await app.handle(
+        new Request('http://localhost/api/scoped-data', {
+          headers: { Authorization: `Bearer ${verifikatorToken}` }
+        })
+      );
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.success).toBe(true);
+      expect(data.userRole).toBe('Verifikator');
+      expect(data.scopeUnor).toBeNull();
+      expect(data.isRestricted).toBe(false);
+    });
+
     it('Role Guard: Admin can access /api/users', async () => {
       spyOn(UserService, 'getAll').mockResolvedValueOnce([
         {
@@ -244,6 +286,44 @@ describe('Auth & RBAC Test Suite', () => {
       const data = await res.json();
       expect(data.success).toBe(false);
       expect(data.message).toContain('Forbidden');
+    });
+
+    it('Role Guard: Verifikator is forbidden from accessing /api/users (403)', async () => {
+      const res = await app.handle(
+        new Request('http://localhost/api/users', {
+          headers: { Authorization: `Bearer ${verifikatorToken}` }
+        })
+      );
+      expect(res.status).toBe(403);
+      const data = await res.json();
+      expect(data.success).toBe(false);
+      expect(data.message).toContain('Forbidden');
+    });
+
+    it('Admin can create Verifikator user without kode_unor', async () => {
+      spyOn(UserService, 'create').mockResolvedValueOnce({
+        success: true,
+        message: 'User berhasil dibuat'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({
+            username: 'verifikator_new',
+            password: 'secretpassword',
+            role: 'Verifikator'
+          })
+        })
+      );
+
+      expect(res.status).toBe(201);
+      const data = await res.json();
+      expect(data.success).toBe(true);
     });
 
     it('Admin can create AdminOPD with assigned kode_unor', async () => {

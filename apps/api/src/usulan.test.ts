@@ -9,6 +9,7 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
   let adminToken: string;
   let opdDinkesToken: string;
   let opdBappedaToken: string;
+  let verifikatorToken: string;
 
   const mockPegawaiDinkes: PegawaiWithUnor = {
     id: 10,
@@ -62,6 +63,16 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
           createdAt: new Date(),
           updatedAt: new Date()
         };
+      } else if (username === 'verifikator') {
+        return {
+          id: 4,
+          username: 'verifikator',
+          passwordHash,
+          role: 'Verifikator',
+          kodeUnor: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
       }
       return null;
     });
@@ -81,6 +92,7 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
     adminToken = await loginUser('admin');
     opdDinkesToken = await loginUser('opd_dinkes');
     opdBappedaToken = await loginUser('opd_bappeda');
+    verifikatorToken = await loginUser('verifikator');
   });
 
   describe('Create Usulan (Draft)', () => {
@@ -171,6 +183,34 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
       const body = await res.json();
       expect(body.success).toBe(true);
       expect(body.data.id).toBe(101);
+    });
+
+    it('Verifikator cannot create draft usulan (403 Forbidden)', async () => {
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${verifikatorToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            pegawaiId: 10,
+            details: [
+              {
+                jenisUsulan: 'ubah',
+                kategoriUbah: 'Data Pribadi',
+                fieldName: 'nama',
+                nilaiBaru: 'Testing'
+              }
+            ]
+          })
+        })
+      );
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.message).toContain('Verifikator hanya berhak');
     });
   });
 
@@ -601,6 +641,52 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
       expect(body.message).toContain('berhasil disetujui');
     });
 
+    it('Verifikator can approve usulan with status diajukan (200)', async () => {
+      spyOn(UsulanService, 'approveUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan berhasil disetujui dan data pegawai telah diperbarui'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/approve', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${verifikatorToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ catatan: 'Diverifikasi oleh Verifikator' })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil disetujui');
+    });
+
+    it('Verifikator can reject usulan with valid catatan (200)', async () => {
+      spyOn(UsulanService, 'rejectUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan berhasil ditolak'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/reject', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${verifikatorToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ catatan: 'Dokumen pendukung tidak sah' })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil ditolak');
+    });
+
     it('Admin cannot reject usulan without catatan (422 Unprocessable Entity)', async () => {
       const res = await app.handle(
         new Request('http://localhost/api/usulan/101/reject', {
@@ -664,6 +750,47 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
       const body = await res.json();
       expect(body.success).toBe(true);
       expect(body.data).toHaveLength(1);
+    });
+
+    it('AdminOPD can delete a document from an usulan in draft/ditolak status within their UNOR', async () => {
+      spyOn(UsulanService, 'deleteDokumen').mockResolvedValueOnce({
+        success: true,
+        message: 'Dokumen berhasil dihapus'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/dokumen/5', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`
+          }
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil dihapus');
+    });
+
+    it('Fails when deleting a document if UsulanService throws an error', async () => {
+      spyOn(UsulanService, 'deleteDokumen').mockRejectedValueOnce(
+        new Error('Forbidden: Anda tidak memiliki akses untuk menghapus dokumen usulan unit lain')
+      );
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/dokumen/5', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${opdBappedaToken}`
+          }
+        })
+      );
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.message).toContain('Forbidden');
     });
   });
 });
