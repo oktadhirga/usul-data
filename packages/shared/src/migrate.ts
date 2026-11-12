@@ -5,7 +5,8 @@ import path from 'path';
 async function runMigrations() {
   console.log('Running database migrations...');
   try {
-    const migrationsFolder = path.resolve(__dirname, '../drizzle');
+    const dir = typeof import.meta.dir !== 'undefined' ? import.meta.dir : __dirname;
+    const migrationsFolder = path.resolve(dir, '../drizzle');
     await migrate(db, { migrationsFolder });
     console.log('Migrations applied successfully!');
   } catch (error) {

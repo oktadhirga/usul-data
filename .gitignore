@@ -31,9 +31,6 @@ Thumbs.db
 !.vscode/settings.json
 .idea/
 
-# Drizzle migrations
-packages/shared/drizzle/meta/
-
 # Uploads
 uploads/*
 !uploads/.gitkeep
