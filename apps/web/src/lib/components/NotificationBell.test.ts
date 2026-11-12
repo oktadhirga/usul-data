@@ -34,8 +34,8 @@ describe('NotificationBell Component', () => {
 			success: true,
 			data: [
 				{
-					id: 'n1',
-					userId: 'u1',
+					id: 1,
+					userId: 1,
 					judul: 'Usulan Disetujui',
 					pesan: 'Usulan Anda telah disetujui',
 					link: '/usulan',
@@ -59,8 +59,8 @@ describe('NotificationBell Component', () => {
 			success: true,
 			data: [
 				{
-					id: 'n1',
-					userId: 'u1',
+					id: 1,
+					userId: 1,
 					judul: 'Usulan Disetujui',
 					pesan: 'Usulan Anda telah disetujui oleh BKD',
 					link: '/usulan',
@@ -88,8 +88,8 @@ describe('NotificationBell Component', () => {
 			success: true,
 			data: [
 				{
-					id: 'n1',
-					userId: 'u1',
+					id: 1,
+					userId: 1,
 					judul: 'Pemberitahuan Baru',
 					pesan: 'Isi pemberitahuan',
 					link: null,

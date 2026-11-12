@@ -301,6 +301,7 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
           id: 5,
           namaDokumen: 'sk_jabatan.pdf',
           pathFile: '/uploads/101_sk_jabatan.pdf',
+          driveFileId: 'local_101_sk_jabatan.pdf',
           ukuranBytes: 20480
         }
       });
