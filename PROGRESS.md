@@ -76,14 +76,22 @@ Aplikasi manajemen dan sinkronisasi usulan data kepegawaian aparatur sipil negar
   - Tabel `notifikasi` di MySQL berelasi dengan `users`.
   - UI `NotificationBell` di header dengan popover dan badge counter unread.
 
+- **Kesiapan Deployment Produksi VPS (On-Premise Virtualmin & Apache)**:
+  - Migrasi SvelteKit (`apps/web`) ke `@sveltejs/adapter-node` mandiri untuk produksi.
+  - Penyiapan `docker-compose.prod.yml` terisolasi (API: `127.0.0.1:3000`, Web: `127.0.0.1:3001`, Volume `./uploads`).
+  - Template konfigurasi Apache Reverse Proxy (`deploy/apache-asn-sync.conf`) untuk subdomain `asn-sync.bkpsdm.trenggalekkab.go.id`.
+  - Template `.env.production.example` & script migrasi database mandiri (`deploy/migrate.sh`).
+  - Workflow GitHub Actions CI/CD (`.github/workflows/deploy.yml`) untuk auto-deploy via SSH.
+  - Panduan operasional langkah demi langkah (`deploy/PANDUAN_DEPLOY_VPS.md`).
+
 ## 4. Known Issues / Technical Debt
 
-- Tidak ada technical debt kritis. Backend API Elysia telah memiliki 104 pengujian komprehensif, dan Frontend Web SvelteKit 5 telah dilengkapi dengan 27 pengujian otomatis komponen berbasis Vitest & Testing Library. Code review lima-sumbu telah dieksekusi dengan perbaikan dead code, parameter binding, dan RBAC hardening.
+- Tidak ada technical debt kritis. Backend API Elysia telah memiliki 104 pengujian komprehensif, Frontend Web SvelteKit 5 telah dilengkapi dengan 27 pengujian otomatis komponen berbasis Vitest & Testing Library. Code review lima-sumbu telah dieksekusi dengan perbaikan dead code, parameter binding, dan RBAC hardening. Seluruh build produksi (`apps/api` dan `apps/web`) telah diverifikasi sukses 100%.
 
 ## 5. Yang Sedang Dikerjakan (In Progress)
 
-- Tidak ada (Seluruh cakupan fitur integrasi Google Drive Storage telah selesai diimplementasikan di backend dan frontend serta lulus seluruh skenario pengujian)
+- Tidak ada (Persiapan deployment ke VPS on-premise selesai).
 
 ## 6. Yang Sengaja Belum Dikerjakan
 
-- Deployment pipeline / CI/CD (Dockerfile & docker-compose sudah ada namun untuk production masih perlu konfigurasi lanjut).
+- Eksekusi langsung di server VPS (menunggu input kredensial SSH / eksekusi manual oleh administrator server sesuai panduan).

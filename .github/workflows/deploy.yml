@@ -1,0 +1,32 @@
+name: Deploy to Production VPS (Manual via Runner)
+
+# CATATAN: Karena VPS berada di dalam jaringan tertutup (harus pakai VPN),
+# GitHub Actions Cloud Runner tidak dapat menjangkau port SSH server secara langsung.
+# Pembaruan di VPS disarankan menggunakan skrip cepat langsung dari terminal VPN:
+# ./deploy/update.sh
+# 
+# Workflow ini hanya aktif jika dipicu secara manual (workflow_dispatch).
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy via SSH (Memerlukan Akses Jaringan ke VPS)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Execute remote SSH commands to deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/asn-sync || cd ~/asn-sync
+            chmod +x deploy/update.sh
+            ./deploy/update.sh

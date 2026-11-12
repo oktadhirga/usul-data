@@ -1,0 +1,59 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: usul_data_api
+    restart: unless-stopped
+    ports:
+      # Hanya bind ke localhost/127.0.0.1 agar tidak bisa diakses langsung dari internet tanpa Apache
+      - "127.0.0.1:3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      MOCK_SIMPEG: ${MOCK_SIMPEG:-false}
+      SIMPEG_UNOR_URL: ${SIMPEG_UNOR_URL}
+      SIMPEG_PEGAWAI_URL: ${SIMPEG_PEGAWAI_URL}
+      SIMPEG_AUTH_USER: ${SIMPEG_AUTH_USER}
+      SIMPEG_AUTH_PASS: ${SIMPEG_AUTH_PASS}
+      MOCK_GDRIVE: ${MOCK_GDRIVE:-false}
+      GDRIVE_CLIENT_ID: ${GDRIVE_CLIENT_ID:-}
+      GDRIVE_CLIENT_SECRET: ${GDRIVE_CLIENT_SECRET:-}
+      GDRIVE_REFRESH_TOKEN: ${GDRIVE_REFRESH_TOKEN:-}
+      GDRIVE_ROOT_FOLDER_ID: ${GDRIVE_ROOT_FOLDER_ID:-}
+    volumes:
+      # Persistensi berkas upload pada host server
+      - ./uploads:/app/uploads
+      - ./uploads:/app/apps/api/uploads
+    extra_hosts:
+      # Memungkinkan kontainer menghubungi MySQL di host server (localhost VPS)
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app_network
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: usul_data_web
+    restart: unless-stopped
+    ports:
+      # Port internal frontend dipetakan ke 127.0.0.1:3001
+      - "127.0.0.1:3001:3000"
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      ORIGIN: ${APP_ORIGIN:-https://asn-sync.bkpsdm.trenggalekkab.go.id}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://asn-sync.bkpsdm.trenggalekkab.go.id}
+    depends_on:
+      - api
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
