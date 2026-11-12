@@ -9,6 +9,14 @@ const port = Number(process.env.PORT) || 3000;
 
 export const app = new Elysia()
   .use(cors())
+  .onError(({ code, error, set }) => {
+    console.error(`[API Error] [${code}]:`, error);
+    set.headers['content-type'] = 'application/json';
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Terjadi kesalahan pada server'
+    };
+  })
   .use(loggerMiddleware)
   .use(healthRoute)
   .use(uploadsRoute)

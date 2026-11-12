@@ -83,7 +83,18 @@ class AuthStore {
 				body: JSON.stringify({ username, password }),
 				credentials: 'include'
 			});
-			const data = await res.json();
+			const text = await res.text();
+			let data: any = {};
+			try {
+				data = JSON.parse(text);
+			} catch {
+				return {
+					success: false,
+					message: text.includes('Failed query')
+						? 'Database error: Tabel belum dibuat atau koneksi database bermasalah.'
+						: (text || `Terjadi kesalahan server (${res.status})`)
+				};
+			}
 			if (!res.ok || !data.success) {
 				return {
 					success: false,
