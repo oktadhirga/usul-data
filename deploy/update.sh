@@ -32,11 +32,16 @@ echo -e "\n${YELLOW}📦 [2/4] Membangun ulang kontainer Docker (Web & API)...${
 docker compose -f docker-compose.prod.yml build
 
 # 3. Jalankan kembali kontainer baru
-echo -e "\n${YELLOW}🔄 [3/4] Me-restart kontainer aplikasi...${NC}"
+echo -e "\n${YELLOW}🔄 [3/5] Me-restart kontainer aplikasi...${NC}"
 docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-# 4. Bersihkan image Docker usang/dangling
-echo -e "\n${YELLOW}🧹 [4/4] Membersihkan cache image lama...${NC}"
+# 4. Jalankan migrasi database otomatis (jika ada skema/tabel baru)
+echo -e "\n${YELLOW}🗄️ [4/5] Memeriksa dan menjalankan migrasi database...${NC}"
+chmod +x "$PROJECT_DIR/deploy/migrate.sh"
+"$PROJECT_DIR/deploy/migrate.sh"
+
+# 5. Bersihkan image Docker usang/dangling
+echo -e "\n${YELLOW}🧹 [5/5] Membersihkan cache image lama...${NC}"
 docker image prune -f
 
 echo -e "\n${GREEN}======================================================${NC}"
