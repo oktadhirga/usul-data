@@ -25,11 +25,16 @@
 		AlertCircle,
 		CheckCircle2,
 		Loader2,
+		Eye,
+		EyeOff,
 	} from "lucide-svelte";
 
 	let oldPassword = $state("");
 	let newPassword = $state("");
 	let confirmPassword = $state("");
+	let showOldPassword = $state(false);
+	let showNewPassword = $state(false);
+	let showConfirmPassword = $state(false);
 
 	let isSubmitting = $state(false);
 	let alert = $state<{
@@ -220,44 +225,95 @@
 						<Label for="oldPassword" class="text-xs"
 							>Password Saat Ini</Label
 						>
-						<Input
-							id="oldPassword"
-							type="password"
-							placeholder="Masukkan password saat ini"
-							bind:value={oldPassword}
-							required
-							disabled={isSubmitting}
-						/>
+						<div class="relative">
+							<Input
+								id="oldPassword"
+								type={showOldPassword ? "text" : "password"}
+								placeholder="Masukkan password saat ini"
+								bind:value={oldPassword}
+								class="pr-10"
+								required
+								disabled={isSubmitting}
+							/>
+							<button
+								type="button"
+								class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+								onclick={() => (showOldPassword = !showOldPassword)}
+								title={showOldPassword ? "Sembunyikan password" : "Lihat password"}
+								tabindex="-1"
+							>
+								{#if showOldPassword}
+									<EyeOff class="h-4 w-4" />
+								{:else}
+									<Eye class="h-4 w-4" />
+								{/if}
+								<span class="sr-only">{showOldPassword ? "Sembunyikan password" : "Lihat password"}</span>
+							</button>
+						</div>
 					</div>
 
 					<div class="space-y-1.5">
 						<Label for="newPassword" class="text-xs"
 							>Password Baru (Min. 6 Karakter)</Label
 						>
-						<Input
-							id="newPassword"
-							type="password"
-							placeholder="Masukkan password baru"
-							bind:value={newPassword}
-							required
-							minlength={6}
-							disabled={isSubmitting}
-						/>
+						<div class="relative">
+							<Input
+								id="newPassword"
+								type={showNewPassword ? "text" : "password"}
+								placeholder="Masukkan password baru"
+								bind:value={newPassword}
+								class="pr-10"
+								required
+								minlength={6}
+								disabled={isSubmitting}
+							/>
+							<button
+								type="button"
+								class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+								onclick={() => (showNewPassword = !showNewPassword)}
+								title={showNewPassword ? "Sembunyikan password" : "Lihat password"}
+								tabindex="-1"
+							>
+								{#if showNewPassword}
+									<EyeOff class="h-4 w-4" />
+								{:else}
+									<Eye class="h-4 w-4" />
+								{/if}
+								<span class="sr-only">{showNewPassword ? "Sembunyikan password" : "Lihat password"}</span>
+							</button>
+						</div>
 					</div>
 
 					<div class="space-y-1.5">
 						<Label for="confirmPassword" class="text-xs"
 							>Konfirmasi Password Baru</Label
 						>
-						<Input
-							id="confirmPassword"
-							type="password"
-							placeholder="Ketik ulang password baru"
-							bind:value={confirmPassword}
-							required
-							minlength={6}
-							disabled={isSubmitting}
-						/>
+						<div class="relative">
+							<Input
+								id="confirmPassword"
+								type={showConfirmPassword ? "text" : "password"}
+								placeholder="Ketik ulang password baru"
+								bind:value={confirmPassword}
+								class="pr-10"
+								required
+								minlength={6}
+								disabled={isSubmitting}
+							/>
+							<button
+								type="button"
+								class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+								onclick={() => (showConfirmPassword = !showConfirmPassword)}
+								title={showConfirmPassword ? "Sembunyikan password" : "Lihat password"}
+								tabindex="-1"
+							>
+								{#if showConfirmPassword}
+									<EyeOff class="h-4 w-4" />
+								{:else}
+									<Eye class="h-4 w-4" />
+								{/if}
+								<span class="sr-only">{showConfirmPassword ? "Sembunyikan password" : "Lihat password"}</span>
+							</button>
+						</div>
 					</div>
 				</CardContent>
 
