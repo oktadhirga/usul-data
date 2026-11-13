@@ -29,7 +29,9 @@
 		AlertCircle,
 		CheckCircle2,
 		Building2,
-		Loader2
+		Loader2,
+		Eye,
+		EyeOff
 	} from 'lucide-svelte';
 
 	let users = $state<UserItem[]>([]);
@@ -41,6 +43,7 @@
 
 	// Create dialog states
 	let isCreateOpen = $state(false);
+	let showCreatePassword = $state(false);
 	let createForm = $state({
 		username: '',
 		password: '',
@@ -51,6 +54,7 @@
 
 	// Edit dialog states
 	let isEditOpen = $state(false);
+	let showEditPassword = $state(false);
 	let editingUser = $state<UserItem | null>(null);
 	let editForm = $state({
 		username: '',
@@ -116,6 +120,7 @@
 	);
 
 	function openCreateDialog() {
+		showCreatePassword = false;
 		createForm = {
 			username: '',
 			password: '',
@@ -156,6 +161,7 @@
 
 	function openEditDialog(u: UserItem) {
 		editingUser = u;
+		showEditPassword = false;
 		editForm = {
 			username: u.username,
 			password: '',
@@ -417,15 +423,32 @@
 
 			<div class="space-y-1.5">
 				<Label for="c-password" class="text-xs">Password Awal (Min. 6 Karakter)</Label>
-				<Input
-					id="c-password"
-					type="password"
-					placeholder="Minimal 6 karakter"
-					bind:value={createForm.password}
-					required
-					minlength={6}
-					disabled={isCreating}
-				/>
+				<div class="relative">
+					<Input
+						id="c-password"
+						type={showCreatePassword ? "text" : "password"}
+						placeholder="Minimal 6 karakter"
+						bind:value={createForm.password}
+						class="pr-10"
+						required
+						minlength={6}
+						disabled={isCreating}
+					/>
+					<button
+						type="button"
+						class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+						onclick={() => (showCreatePassword = !showCreatePassword)}
+						title={showCreatePassword ? "Sembunyikan password" : "Lihat password"}
+						tabindex="-1"
+					>
+						{#if showCreatePassword}
+							<EyeOff class="h-4 w-4" />
+						{:else}
+							<Eye class="h-4 w-4" />
+						{/if}
+						<span class="sr-only">{showCreatePassword ? "Sembunyikan password" : "Lihat password"}</span>
+					</button>
+				</div>
 			</div>
 
 			<div class="space-y-1.5">
@@ -511,14 +534,31 @@
 				<Label for="e-password" class="text-xs">
 					Ganti Password Baru <span class="text-slate-500 font-normal">(Kosongkan jika tidak ingin mengubah)</span>
 				</Label>
-				<Input
-					id="e-password"
-					type="password"
-					placeholder="Minimal 6 karakter baru"
-					bind:value={editForm.password}
-					minlength={6}
-					disabled={isUpdating}
-				/>
+				<div class="relative">
+					<Input
+						id="e-password"
+						type={showEditPassword ? "text" : "password"}
+						placeholder="Minimal 6 karakter baru"
+						bind:value={editForm.password}
+						class="pr-10"
+						minlength={6}
+						disabled={isUpdating}
+					/>
+					<button
+						type="button"
+						class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+						onclick={() => (showEditPassword = !showEditPassword)}
+						title={showEditPassword ? "Sembunyikan password" : "Lihat password"}
+						tabindex="-1"
+					>
+						{#if showEditPassword}
+							<EyeOff class="h-4 w-4" />
+						{:else}
+							<Eye class="h-4 w-4" />
+						{/if}
+						<span class="sr-only">{showEditPassword ? "Sembunyikan password" : "Lihat password"}</span>
+					</button>
+				</div>
 			</div>
 
 			<div class="space-y-1.5">

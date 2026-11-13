@@ -596,40 +596,6 @@ export class UsulanService {
       })
       .where(eq(usulanPerubahan.id, id));
 
-    // 2. Memicu trigger pembaruan data master pegawai sesuai rincian field
-    const details = existing.details || [];
-    const pegawaiUpdatePayload: Partial<{
-      nama: string;
-      nip: string;
-      jabatan: string;
-      kodeUnor: string;
-    }> = {};
-
-    for (const detail of details) {
-      // Catatan: Untuk jenis usulan 'hapus', tidak ada tindakan penghapusan fisik/soft delete (biarkan apa adanya)
-      if (detail.jenisUsulan === 'ubah' || detail.jenisUsulan === 'tambah') {
-        if (detail.nilaiBaru !== null && detail.nilaiBaru !== undefined) {
-          const fieldNorm = detail.fieldName.trim().toLowerCase();
-          if (['nama', 'nama lengkap', 'nama_lengkap'].includes(fieldNorm)) {
-            pegawaiUpdatePayload.nama = detail.nilaiBaru;
-          } else if (['nip', 'nomor induk pegawai'].includes(fieldNorm)) {
-            pegawaiUpdatePayload.nip = detail.nilaiBaru;
-          } else if (['jabatan'].includes(fieldNorm)) {
-            pegawaiUpdatePayload.jabatan = detail.nilaiBaru;
-          } else if (['kode_unor', 'kodeunor', 'unor', 'unit kerja', 'unit organisasi'].includes(fieldNorm)) {
-            pegawaiUpdatePayload.kodeUnor = detail.nilaiBaru;
-          }
-        }
-      }
-    }
-
-    if (Object.keys(pegawaiUpdatePayload).length > 0) {
-      await db
-        .update(pegawai)
-        .set(pegawaiUpdatePayload)
-        .where(eq(pegawai.id, existing.pegawaiId));
-    }
-
     try {
       const nip = existing.nipPegawai || existing.pegawaiId;
       await NotificationService.notifyUnor(
@@ -644,7 +610,119 @@ export class UsulanService {
 
     return {
       success: true,
-      message: 'Usulan berhasil disetujui dan data pegawai telah diperbarui'
+      message: 'Usulan berhasil disetujui'
+    };
+  }
+
+  static async completeUsulan(
+    id: number,
+    catatan: string | undefined,
+    user: AuthUser
+  ) {
+    if (user.role !== 'Admin' && user.role !== 'Verifikator') {
+      throw new Error('Forbidden: Hanya Admin atau Verifikator yang berhak menyelesaikan usulan');
+    }
+
+    const existing = await this.getById(id);
+    if (!existing) {
+      throw new Error('Usulan tidak ditemukan');
+    }
+
+    if (existing.status !== 'disetujui') {
+      throw new Error('Hanya usulan berstatus disetujui yang dapat diselesaikan');
+    }
+
+    const appendNote = catatan && catatan.trim() ? catatan.trim() : null;
+    const finalNote = appendNote
+      ? (existing.catatanVerifikasi ? `${existing.catatanVerifikasi} | [Selesai]: ${appendNote}` : `[Selesai]: ${appendNote}`)
+      : existing.catatanVerifikasi;
+
+    await db
+      .update(usulanPerubahan)
+      .set({
+        status: 'selesai',
+        catatanVerifikasi: finalNote
+      })
+      .where(eq(usulanPerubahan.id, id));
+
+    try {
+      const nip = existing.nipPegawai || existing.pegawaiId;
+      await NotificationService.notifyUnor(
+        existing.kodeUnor,
+        'Usulan Selesai',
+        `Usulan data (${nip}) telah selesai diperbarui di SIASN/SIMPEG.`,
+        '/usulan'
+      );
+    } catch (notifErr) {
+      console.error('Gagal mengirim notifikasi penyelesaian usulan:', notifErr);
+    }
+
+    return {
+      success: true,
+      message: 'Usulan berhasil diselesaikan'
+    };
+  }
+
+  static async bulkCompleteUsulan(
+    ids: number[],
+    catatan: string | undefined,
+    user: AuthUser
+  ) {
+    if (user.role !== 'Admin' && user.role !== 'Verifikator') {
+      throw new Error('Forbidden: Hanya Admin atau Verifikator yang berhak menyelesaikan usulan');
+    }
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error('Daftar ID usulan tidak boleh kosong');
+    }
+
+    const existingList = await db
+      .select({
+        id: usulanPerubahan.id,
+        status: usulanPerubahan.status,
+        kodeUnor: usulanPerubahan.kodeUnor,
+        catatanVerifikasi: usulanPerubahan.catatanVerifikasi
+      })
+      .from(usulanPerubahan)
+      .where(inArray(usulanPerubahan.id, ids));
+
+    const eligible = existingList.filter((u) => u.status === 'disetujui');
+    if (eligible.length === 0) {
+      throw new Error('Tidak ada usulan berstatus disetujui yang valid untuk diselesaikan');
+    }
+
+    const eligibleIds = eligible.map((u) => u.id);
+
+    await db
+      .update(usulanPerubahan)
+      .set({
+        status: 'selesai'
+      })
+      .where(inArray(usulanPerubahan.id, eligibleIds));
+
+    // Grouping notifikasi per UNOR agar tidak spamming pesan
+    const unorCountMap = new Map<string, number>();
+    for (const item of eligible) {
+      unorCountMap.set(item.kodeUnor, (unorCountMap.get(item.kodeUnor) || 0) + 1);
+    }
+
+    for (const [kodeUnor, count] of unorCountMap.entries()) {
+      try {
+        await NotificationService.notifyUnor(
+          kodeUnor,
+          'Usulan Selesai',
+          `${count} usulan data telah selesai diperbarui di SIASN/SIMPEG.`,
+          '/usulan'
+        );
+      } catch (notifErr) {
+        console.error('Gagal mengirim notifikasi bulk complete:', notifErr);
+      }
+    }
+
+    return {
+      success: true,
+      count: eligibleIds.length,
+      message: `Berhasil menyelesaikan ${eligibleIds.length} usulan`
     };
   }
 

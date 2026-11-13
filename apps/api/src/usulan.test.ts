@@ -793,5 +793,99 @@ describe('Fitur Usulan Ubah Data Pegawai Test Suite', () => {
       expect(body.success).toBe(false);
       expect(body.message).toContain('Forbidden');
     });
+
+    it('Admin can complete usulan with status disetujui (200)', async () => {
+      spyOn(UsulanService, 'completeUsulan').mockResolvedValueOnce({
+        success: true,
+        message: 'Usulan berhasil diselesaikan'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/complete', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ catatan: 'Telah dimutakhirkan di SIASN BKN' })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.message).toContain('berhasil diselesaikan');
+    });
+
+    it('Admin can bulk complete multiple usulan (200)', async () => {
+      spyOn(UsulanService, 'bulkCompleteUsulan').mockResolvedValueOnce({
+        success: true,
+        count: 2,
+        message: 'Berhasil menyelesaikan 2 usulan'
+      });
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/bulk-complete', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ids: [101, 102],
+            catatan: 'Pembaruan data massal SIASN/SIMPEG'
+          })
+        })
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.success).toBe(true);
+      expect(body.count).toBe(2);
+      expect(body.message).toContain('Berhasil menyelesaikan 2 usulan');
+    });
+
+    it('AdminOPD cannot complete usulan (403)', async () => {
+      spyOn(UsulanService, 'completeUsulan').mockRejectedValueOnce(
+        new Error('Forbidden: Hanya Admin atau Verifikator yang berhak menyelesaikan usulan')
+      );
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/101/complete', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      );
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.message).toContain('Forbidden');
+    });
+
+    it('AdminOPD cannot bulk complete usulan (403)', async () => {
+      spyOn(UsulanService, 'bulkCompleteUsulan').mockRejectedValueOnce(
+        new Error('Forbidden: Hanya Admin atau Verifikator yang berhak menyelesaikan usulan')
+      );
+
+      const res = await app.handle(
+        new Request('http://localhost/api/usulan/bulk-complete', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${opdDinkesToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ids: [101, 102] })
+        })
+      );
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body.success).toBe(false);
+      expect(body.message).toContain('Forbidden');
+    });
   });
 });

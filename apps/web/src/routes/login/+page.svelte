@@ -7,10 +7,11 @@
 	import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '$lib/components/ui/card';
 	import { Alert, AlertTitle, AlertDescription } from '$lib/components/ui/alert';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import { Lock, User, AlertCircle, Loader2 } from 'lucide-svelte';
+	import { Lock, User, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-svelte';
 
 	let username = $state('');
 	let password = $state('');
+	let showPassword = $state(false);
 	let errorMessage = $state('');
 	let isSubmitting = $state(false);
 
@@ -119,14 +120,28 @@
 							</div>
 							<Input
 								id="password"
-								type="password"
+								type={showPassword ? 'text' : 'password'}
 								placeholder="Masukkan password"
-								class="pl-9"
+								class="pl-9 pr-10"
 								bind:value={password}
 								autocomplete="current-password"
 								required
 								disabled={isSubmitting}
 							/>
+							<button
+								type="button"
+								class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+								onclick={() => (showPassword = !showPassword)}
+								title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
+								tabindex="-1"
+							>
+								{#if showPassword}
+									<EyeOff class="h-4 w-4" />
+								{:else}
+									<Eye class="h-4 w-4" />
+								{/if}
+								<span class="sr-only">{showPassword ? 'Sembunyikan password' : 'Lihat password'}</span>
+							</button>
 						</div>
 					</div>
 				</CardContent>

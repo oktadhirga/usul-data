@@ -1,6 +1,6 @@
 import { authState } from '$lib/stores/auth.svelte';
 
-export type UsulanStatus = 'draft' | 'diajukan' | 'dibatalkan' | 'disetujui' | 'ditolak';
+export type UsulanStatus = 'draft' | 'diajukan' | 'dibatalkan' | 'disetujui' | 'ditolak' | 'selesai';
 export type JenisUsulan = 'tambah' | 'ubah' | 'hapus';
 export type KategoriUbah =
 	| 'Data Pribadi'
@@ -276,5 +276,42 @@ export async function rejectUsulan(
 		return await res.json();
 	} catch (err: any) {
 		return { success: false, message: err.message || 'Gagal menolak usulan' };
+	}
+}
+
+export async function completeUsulan(
+	id: number | string,
+	catatan?: string
+): Promise<{ success: boolean; message?: string }> {
+	try {
+		const res = await fetch(`/api/usulan/${id}/complete`, {
+			method: 'POST',
+			headers: getAuthHeaders(true),
+			body: JSON.stringify({ catatan: catatan?.trim() || undefined }),
+			credentials: 'include'
+		});
+		return await res.json();
+	} catch (err: any) {
+		return { success: false, message: err.message || 'Gagal menyelesaikan usulan' };
+	}
+}
+
+export async function bulkCompleteUsulan(
+	ids: (number | string)[],
+	catatan?: string
+): Promise<{ success: boolean; count?: number; message?: string }> {
+	try {
+		const res = await fetch('/api/usulan/bulk-complete', {
+			method: 'POST',
+			headers: getAuthHeaders(true),
+			body: JSON.stringify({
+				ids: ids.map((id) => Number(id)),
+				catatan: catatan?.trim() || undefined
+			}),
+			credentials: 'include'
+		});
+		return await res.json();
+	} catch (err: any) {
+		return { success: false, message: err.message || 'Gagal menyelesaikan usulan terpilih' };
 	}
 }

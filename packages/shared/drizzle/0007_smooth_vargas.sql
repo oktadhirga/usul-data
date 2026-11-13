@@ -1,0 +1,1 @@
+ALTER TABLE `usulan_perubahan` MODIFY COLUMN `status` enum('draft','diajukan','dibatalkan','disetujui','ditolak','selesai') NOT NULL DEFAULT 'draft';

@@ -33,6 +33,7 @@ export interface UnorStatItem {
   total: number;
   diajukan: number;
   disetujui: number;
+  selesai: number;
   ditolak: number;
   draft: number;
   dibatalkan: number;
@@ -49,6 +50,7 @@ export interface MonthlyStatItem {
   total: number;
   diajukan: number;
   disetujui: number;
+  selesai: number;
   ditolak: number;
 }
 
@@ -57,6 +59,7 @@ export interface DashboardStatsResponse {
     total: number;
     diajukan: number;
     disetujui: number;
+    selesai: number;
     ditolak: number;
     draft: number;
     dibatalkan: number;
@@ -114,6 +117,7 @@ export class DashboardService {
       diajukan: 0,
       dibatalkan: 0,
       disetujui: 0,
+      selesai: 0,
       ditolak: 0
     };
 
@@ -128,6 +132,7 @@ export class DashboardService {
       total,
       diajukan: summaryMap['diajukan'] || 0,
       disetujui: summaryMap['disetujui'] || 0,
+      selesai: summaryMap['selesai'] || 0,
       ditolak: summaryMap['ditolak'] || 0,
       draft: summaryMap['draft'] || 0,
       dibatalkan: summaryMap['dibatalkan'] || 0
@@ -136,6 +141,7 @@ export class DashboardService {
     const byStatus: StatusCount[] = [
       { status: 'diajukan', count: summary.diajukan },
       { status: 'disetujui', count: summary.disetujui },
+      { status: 'selesai', count: summary.selesai },
       { status: 'ditolak', count: summary.ditolak },
       { status: 'draft', count: summary.draft },
       { status: 'dibatalkan', count: summary.dibatalkan }
@@ -149,6 +155,7 @@ export class DashboardService {
         total: sql<number>`count(*)`.as('total'),
         diajukan: sql<number>`sum(case when ${usulanPerubahan.status} = 'diajukan' then 1 else 0 end)`.as('diajukan'),
         disetujui: sql<number>`sum(case when ${usulanPerubahan.status} = 'disetujui' then 1 else 0 end)`.as('disetujui'),
+        selesai: sql<number>`sum(case when ${usulanPerubahan.status} = 'selesai' then 1 else 0 end)`.as('selesai'),
         ditolak: sql<number>`sum(case when ${usulanPerubahan.status} = 'ditolak' then 1 else 0 end)`.as('ditolak'),
         draft: sql<number>`sum(case when ${usulanPerubahan.status} = 'draft' then 1 else 0 end)`.as('draft'),
         dibatalkan: sql<number>`sum(case when ${usulanPerubahan.status} = 'dibatalkan' then 1 else 0 end)`.as('dibatalkan')
@@ -165,6 +172,7 @@ export class DashboardService {
       total: Number(r.total) || 0,
       diajukan: Number(r.diajukan) || 0,
       disetujui: Number(r.disetujui) || 0,
+      selesai: Number(r.selesai) || 0,
       ditolak: Number(r.ditolak) || 0,
       draft: Number(r.draft) || 0,
       dibatalkan: Number(r.dibatalkan) || 0
@@ -201,25 +209,27 @@ export class DashboardService {
         total: sql<number>`count(*)`.as('total'),
         diajukan: sql<number>`sum(case when ${usulanPerubahan.status} = 'diajukan' then 1 else 0 end)`.as('diajukan'),
         disetujui: sql<number>`sum(case when ${usulanPerubahan.status} = 'disetujui' then 1 else 0 end)`.as('disetujui'),
+        selesai: sql<number>`sum(case when ${usulanPerubahan.status} = 'selesai' then 1 else 0 end)`.as('selesai'),
         ditolak: sql<number>`sum(case when ${usulanPerubahan.status} = 'ditolak' then 1 else 0 end)`.as('ditolak')
       })
       .from(usulanPerubahan)
       .where(and(...monthlyConditions))
       .groupBy(sql`MONTH(${usulanPerubahan.createdAt})`);
 
-    const monthlyMap = new Map<number, { total: number; diajukan: number; disetujui: number; ditolak: number }>();
+    const monthlyMap = new Map<number, { total: number; diajukan: number; disetujui: number; selesai: number; ditolak: number }>();
     for (const r of monthlyRaw) {
       monthlyMap.set(Number(r.bulan), {
         total: Number(r.total) || 0,
         diajukan: Number(r.diajukan) || 0,
         disetujui: Number(r.disetujui) || 0,
+        selesai: Number(r.selesai) || 0,
         ditolak: Number(r.ditolak) || 0
       });
     }
 
     const monthlyTrend: MonthlyStatItem[] = [];
     for (let m = 1; m <= 12; m++) {
-      const data = monthlyMap.get(m) || { total: 0, diajukan: 0, disetujui: 0, ditolak: 0 };
+      const data = monthlyMap.get(m) || { total: 0, diajukan: 0, disetujui: 0, selesai: 0, ditolak: 0 };
       monthlyTrend.push({
         bulan: m,
         namaBulan: BULAN_NAMES[m - 1],

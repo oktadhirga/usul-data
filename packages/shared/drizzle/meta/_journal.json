@@ -50,6 +50,13 @@
       "when": 1794363942440,
       "tag": "0006_free_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1794537817562,
+      "tag": "0007_smooth_vargas",
+      "breakpoints": true
     }
   ]
 }

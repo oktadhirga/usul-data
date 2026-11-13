@@ -11,6 +11,7 @@ export interface UnorStatItem {
 	total: number;
 	diajukan: number;
 	disetujui: number;
+	selesai: number;
 	ditolak: number;
 	draft: number;
 	dibatalkan: number;
@@ -27,6 +28,7 @@ export interface MonthlyStatItem {
 	total: number;
 	diajukan: number;
 	disetujui: number;
+	selesai: number;
 	ditolak: number;
 }
 
@@ -35,6 +37,7 @@ export interface DashboardStats {
 		total: number;
 		diajukan: number;
 		disetujui: number;
+		selesai: number;
 		ditolak: number;
 		draft: number;
 		dibatalkan: number;
