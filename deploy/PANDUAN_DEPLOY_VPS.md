@@ -243,6 +243,10 @@ Karena VPS Anda berada di dalam jaringan tertutup yang mewajibkan **koneksi VPN*
   ```bash
   ./deploy/migrate.sh
   ```
+- **Menjalankan Feeder Akun Pengguna OPD:**
+  ```bash
+  chmod +x deploy/feed_users.sh && ./deploy/feed_users.sh
+  ```
 - **Cek Error Log Apache:**
   ```bash
   sudo tail -f /var/log/httpd/asn-sync_ssl_error.log

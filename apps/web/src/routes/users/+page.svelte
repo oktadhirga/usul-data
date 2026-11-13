@@ -299,7 +299,7 @@
 			<Table>
 				<TableHeader>
 					<TableRow class="hover:bg-transparent border-b border-slate-200 dark:border-slate-800">
-						<TableHead class="w-16">ID</TableHead>
+						<TableHead class="w-16">No</TableHead>
 						<TableHead>Username</TableHead>
 						<TableHead>Role</TableHead>
 						<TableHead>Kode UNOR</TableHead>
@@ -322,9 +322,9 @@
 							</TableCell>
 						</TableRow>
 					{:else}
-						{#each filteredUsers as u}
+						{#each filteredUsers as u, index (u.id)}
 							<TableRow class="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-								<TableCell class="font-mono text-xs text-slate-400">#{u.id}</TableCell>
+								<TableCell class="font-mono text-xs text-slate-400">{index + 1}</TableCell>
 								<TableCell class="font-medium text-slate-900 dark:text-white">
 									<div class="flex items-center gap-2">
 										<div class="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">

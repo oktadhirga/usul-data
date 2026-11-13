@@ -16,7 +16,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run src/migrate.ts",
     "db:push": "drizzle-kit push",
-    "db:seed": "bun run src/seed.ts"
+    "db:seed": "bun run src/seed.ts",
+    "db:feed-users": "bun run src/feed-users.ts"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
