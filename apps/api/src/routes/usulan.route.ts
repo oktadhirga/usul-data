@@ -368,7 +368,7 @@ export const usulanRoute = new Elysia({ prefix: '/usulan' })
     }
   )
 
-  // POST /api/usulan/:id/reject - Tolak usulan perubahan data (Admin Pusat only)
+  // POST /api/usulan/:id/reject - Tolak usulan perubahan data (Admin Pusat & Verifikator)
   .post(
     '/:id/reject',
     async ({ params: { id }, body, user, set }) => {
@@ -400,6 +400,76 @@ export const usulanRoute = new Elysia({ prefix: '/usulan' })
       body: t.Object({
         catatan: t.String({ minLength: 1 })
       })
+    }
+  )
+
+  // POST /api/usulan/bulk-complete - Selesaikan usulan terpilih secara massal (Admin & Verifikator)
+  .post(
+    '/bulk-complete',
+    async ({ body, user, set }) => {
+      try {
+        if (!user) {
+          set.status = 401;
+          return { success: false, message: 'Unauthorized' };
+        }
+
+        const res = await UsulanService.bulkCompleteUsulan(
+          body.ids,
+          body.catatan,
+          user
+        );
+        return res;
+      } catch (err: any) {
+        if (err.message?.includes('Forbidden')) {
+          set.status = 403;
+        } else {
+          set.status = 400;
+        }
+        return { success: false, message: err.message ?? 'Gagal menyelesaikan usulan terpilih' };
+      }
+    },
+    {
+      body: t.Object({
+        ids: t.Array(t.Numeric(), { minItems: 1 }),
+        catatan: t.Optional(t.String())
+      })
+    }
+  )
+
+  // POST /api/usulan/:id/complete - Selesaikan usulan perubahan data (Admin & Verifikator)
+  .post(
+    '/:id/complete',
+    async ({ params: { id }, body, user, set }) => {
+      try {
+        if (!user) {
+          set.status = 401;
+          return { success: false, message: 'Unauthorized' };
+        }
+
+        const res = await UsulanService.completeUsulan(
+          Number(id),
+          body?.catatan,
+          user
+        );
+        return res;
+      } catch (err: any) {
+        if (err.message?.includes('Forbidden')) {
+          set.status = 403;
+        } else {
+          set.status = 400;
+        }
+        return { success: false, message: err.message ?? 'Gagal menyelesaikan usulan' };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.Numeric()
+      }),
+      body: t.Optional(
+        t.Object({
+          catatan: t.Optional(t.String())
+        })
+      )
     }
   );
 

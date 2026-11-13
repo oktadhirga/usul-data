@@ -7,6 +7,8 @@
 		fetchUsulanDetail,
 		approveUsulan,
 		rejectUsulan,
+		completeUsulan,
+		bulkCompleteUsulan,
 		resolveDocUrl,
 		type UsulanItem,
 		type UsulanStatus,
@@ -98,6 +100,17 @@
 	let rejectError = $state<string | null>(null);
 	let isRejecting = $state(false);
 
+	// Single Complete Modal states
+	let isCompleteOpen = $state(false);
+	let completeCatatan = $state("");
+	let isCompleting = $state(false);
+
+	// Multi-select & Bulk Complete states
+	let selectedIds = $state<number[]>([]);
+	let isBulkCompleteOpen = $state(false);
+	let bulkCompleteCatatan = $state("");
+	let isBulkCompleting = $state(false);
+
 	const kategoriList: KategoriUbah[] = [
 		"Data Pribadi",
 		"Data Keluarga",
@@ -114,6 +127,9 @@
 	);
 	const totalDisetujui = $derived(
 		usulanList.filter((u) => u.status === "disetujui").length,
+	);
+	const totalSelesai = $derived(
+		usulanList.filter((u) => u.status === "selesai").length,
 	);
 	const totalDitolak = $derived(
 		usulanList.filter((u) => u.status === "ditolak").length,
@@ -143,6 +159,36 @@
 			currentPage * itemsPerPage,
 		),
 	);
+
+	// Multi-select helpers for usulan with status 'disetujui'
+	const disetujuiInCurrentPage = $derived(
+		paginatedList.filter((item) => item.status === "disetujui"),
+	);
+
+	const isAllPageSelected = $derived(
+		disetujuiInCurrentPage.length > 0 &&
+			disetujuiInCurrentPage.every((item) => selectedIds.includes(item.id)),
+	);
+
+	function toggleSelectAllPage() {
+		const pageDisetujuiIds = disetujuiInCurrentPage.map((item) => item.id);
+		if (isAllPageSelected) {
+			selectedIds = selectedIds.filter(
+				(id) => !pageDisetujuiIds.includes(id),
+			);
+		} else {
+			const set = new Set([...selectedIds, ...pageDisetujuiIds]);
+			selectedIds = Array.from(set);
+		}
+	}
+
+	function toggleSelectItem(id: number) {
+		if (selectedIds.includes(id)) {
+			selectedIds = selectedIds.filter((i) => i !== id);
+		} else {
+			selectedIds = [...selectedIds, id];
+		}
+	}
 
 	function formatWibDate(dateString?: string | null): string {
 		if (!dateString) return "-";
@@ -179,6 +225,11 @@
 				return {
 					label: "Disetujui",
 					class: "bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30",
+				};
+			case "selesai":
+				return {
+					label: "Selesai (Terupdate)",
+					class: "bg-teal-50 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 border-teal-300 dark:border-teal-500/40",
 				};
 			case "ditolak":
 				return {
@@ -329,6 +380,74 @@
 		}
 	}
 
+	function confirmComplete() {
+		completeCatatan = "";
+		isCompleteOpen = true;
+	}
+
+	async function handleComplete() {
+		if (!currentDetail) return;
+		isCompleting = true;
+		alertMessage = null;
+
+		const res = await completeUsulan(currentDetail.id, completeCatatan);
+		isCompleting = false;
+		isCompleteOpen = false;
+
+		if (res.success) {
+			alertMessage = {
+				type: "success",
+				title: "Usulan Selesai",
+				desc:
+					res.message ||
+					"Usulan berhasil ditandai selesai (terupdate di SIASN/SIMPEG).",
+			};
+			selectedIds = selectedIds.filter((id) => id !== currentDetail?.id);
+			await loadUsulan();
+			await openDetail(currentDetail.id);
+		} else {
+			alertMessage = {
+				type: "destructive",
+				title: "Gagal Menyelesaikan Usulan",
+				desc: res.message || "Terjadi kesalahan saat menyelesaikan usulan.",
+			};
+		}
+	}
+
+	function openBulkCompleteModal() {
+		if (selectedIds.length === 0) return;
+		bulkCompleteCatatan = "";
+		isBulkCompleteOpen = true;
+	}
+
+	async function handleBulkComplete() {
+		if (selectedIds.length === 0) return;
+		isBulkCompleting = true;
+		alertMessage = null;
+
+		const res = await bulkCompleteUsulan(selectedIds, bulkCompleteCatatan);
+		isBulkCompleting = false;
+		isBulkCompleteOpen = false;
+
+		if (res.success) {
+			alertMessage = {
+				type: "success",
+				title: "Berhasil Menyelesaikan Massal",
+				desc:
+					res.message ||
+					`Sebanyak ${selectedIds.length} usulan berhasil ditandai selesai.`,
+			};
+			selectedIds = [];
+			await loadUsulan();
+		} else {
+			alertMessage = {
+				type: "destructive",
+				title: "Gagal Menyelesaikan Massal",
+				desc: res.message || "Terjadi kesalahan saat memproses usulan terpilih.",
+			};
+		}
+	}
+
 	onMount(async () => {
 		if (authState.isInitialized && !authState.canVerify) {
 			goto("/usulan");
@@ -397,7 +516,7 @@
 	{/if}
 
 	<!-- Statistics Counters -->
-	<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 		<Card
 			class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm"
 		>
@@ -442,6 +561,30 @@
 					class="h-12 w-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400"
 				>
 					<CheckCircle2 class="h-6 w-6" />
+				</div>
+			</CardContent>
+		</Card>
+
+		<Card
+			class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm"
+		>
+			<CardContent class="p-5 flex items-center justify-between">
+				<div>
+					<p
+						class="text-xs font-medium uppercase tracking-wider text-teal-600 dark:text-teal-400"
+					>
+						Selesai (Terupdate)
+					</p>
+					<h3
+						class="text-2xl font-black text-slate-900 dark:text-white mt-1"
+					>
+						{totalSelesai}
+					</h3>
+				</div>
+				<div
+					class="h-12 w-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-600 dark:text-teal-400"
+				>
+					<CheckCheck class="h-6 w-6" />
 				</div>
 			</CardContent>
 		</Card>
@@ -512,6 +655,7 @@
 						>
 						<option value="all">Semua Status</option>
 						<option value="disetujui">Disetujui</option>
+						<option value="selesai">Selesai (Terupdate)</option>
 						<option value="ditolak">Ditolak</option>
 						<option value="draft">Draft</option>
 						<option value="dibatalkan">Dibatalkan</option>
@@ -597,6 +741,17 @@
 							<TableRow
 								class="border-b border-slate-200 dark:border-slate-800 hover:bg-transparent"
 							>
+								<TableHead class="w-10 py-3.5 px-3">
+									{#if disetujuiInCurrentPage.length > 0}
+										<input
+											type="checkbox"
+											checked={isAllPageSelected}
+											onchange={toggleSelectAllPage}
+											class="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+											title="Pilih semua usulan disetujui di halaman ini"
+										/>
+									{/if}
+								</TableHead>
 								<TableHead
 									class="text-slate-600 dark:text-slate-400 font-semibold text-xs py-3.5 w-14"
 									>No</TableHead
@@ -633,6 +788,17 @@
 								<TableRow
 									class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
 								>
+									<TableCell class="w-10 py-3.5 px-3">
+										{#if item.status === "disetujui"}
+											<input
+												type="checkbox"
+												checked={selectedIds.includes(item.id)}
+												onchange={() => toggleSelectItem(item.id)}
+												class="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+												title="Centang untuk selesaikan massal"
+											/>
+										{/if}
+									</TableCell>
 									<TableCell
 										class="text-xs font-mono text-slate-400"
 									>
@@ -1113,11 +1279,61 @@
 							Setujui (Approve)
 						</Button>
 					</div>
+				{:else if currentDetail.status === "disetujui"}
+					<div class="flex items-center gap-2">
+						<Button
+							class="bg-teal-600 hover:bg-teal-500 text-white font-medium text-xs shadow-sm gap-1.5"
+							onclick={confirmComplete}
+						>
+							<CheckCheck class="h-3.5 w-3.5" />
+							Selesaikan Usulan (Terupdate)
+						</Button>
+					</div>
 				{/if}
 			</div>
 		{/if}
 	</div>
 </Dialog>
+
+<!-- Floating / Sticky Action Bar for Multi-select Bulk Actions -->
+{#if selectedIds.length > 0}
+	<div
+		class="fixed bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none"
+	>
+		<div
+			class="pointer-events-auto bg-slate-900 dark:bg-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-4 max-w-xl w-full justify-between animate-in fade-in slide-in-from-bottom-4 duration-200"
+		>
+			<div class="flex items-center gap-2.5">
+				<span
+					class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white"
+				>
+					{selectedIds.length}
+				</span>
+				<span class="text-xs sm:text-sm font-medium text-slate-200">
+					Usulan Disetujui Terpilih
+				</span>
+			</div>
+			<div class="flex items-center gap-2">
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => (selectedIds = [])}
+					class="text-xs h-8 bg-transparent text-slate-300 hover:text-white border-slate-600 hover:bg-slate-700/60"
+				>
+					Batal
+				</Button>
+				<Button
+					size="sm"
+					onclick={openBulkCompleteModal}
+					class="text-xs h-8 bg-teal-600 hover:bg-teal-500 text-white font-semibold gap-1.5 shadow-sm"
+				>
+					<CheckCheck class="h-3.5 w-3.5" />
+					Selesaikan ({selectedIds.length})
+				</Button>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Modal Konfirmasi Setujui (Approve) -->
 <Dialog
@@ -1145,14 +1361,10 @@
 		</div>
 
 		<p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-			Dengan menyetujui usulan ini, status akan diubah menjadi <span
+			Dengan menyetujui usulan ini, status berkas akan diubah menjadi <span
 				class="text-emerald-600 dark:text-emerald-400 font-semibold"
 				>Disetujui</span
-			>
-			dan rincian perubahan field akan
-			<span class="underline"
-				>secara otomatis memicu pembaruan data master pegawai</span
-			>.
+			> (Dokumen Valid). Anda dapat melanjutkan pembaruan data secara resmi di sistem SIASN/SIMPEG, lalu menandai usulan sebagai Selesai.
 		</p>
 
 		<div class="space-y-1.5">
@@ -1189,6 +1401,144 @@
 				{:else}
 					<CheckCircle2 class="h-3.5 w-3.5 mr-1.5" />
 					Ya, Setujui Sekarang
+				{/if}
+			</Button>
+		</div>
+	</div>
+</Dialog>
+
+<!-- Modal Konfirmasi Selesai Satuan (Single Complete) -->
+<Dialog
+	bind:open={isCompleteOpen}
+	onclose={() => {
+		isCompleteOpen = false;
+	}}
+	class="max-w-md"
+>
+	<div class="p-6 space-y-4">
+		<div class="flex items-center gap-3">
+			<div
+				class="h-10 w-10 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0"
+			>
+				<CheckCheck class="h-5 w-5" />
+			</div>
+			<div>
+				<h3 class="text-base font-bold text-slate-900 dark:text-white">
+					Tandai Usulan Selesai?
+				</h3>
+				<p class="text-xs text-slate-500 dark:text-slate-400">
+					Pegawai: {currentDetail?.namaPegawai} ({currentDetail?.nipPegawai || "-"})
+				</p>
+			</div>
+		</div>
+
+		<p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+			Tindakan ini menyatakan bahwa pemutakhiran data pegawai telah <span class="font-semibold text-teal-600 dark:text-teal-400">selesai diproses</span> di SIASN BKN / SIMPEG Trenggalek. Notifikasi penyelesaian akan dikirimkan ke Admin OPD.
+		</p>
+
+		<div class="space-y-1.5">
+			<Label class="text-xs text-slate-600 dark:text-slate-400"
+				>Catatan Penyelesaian (Opsional)</Label
+			>
+			<Input
+				type="text"
+				placeholder="Contoh: Telah diupdate di SIASN per tanggal hari ini"
+				bind:value={completeCatatan}
+				class="text-xs"
+			/>
+		</div>
+
+		<div
+			class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800"
+		>
+			<Button
+				variant="outline"
+				class="text-xs"
+				disabled={isCompleting}
+				onclick={() => (isCompleteOpen = false)}
+			>
+				Batal
+			</Button>
+			<Button
+				class="bg-teal-600 hover:bg-teal-500 text-white font-medium text-xs"
+				disabled={isCompleting}
+				onclick={handleComplete}
+			>
+				{#if isCompleting}
+					<Loader2 class="h-3.5 w-3.5 mr-1.5 animate-spin" />
+					Menyelesaikan...
+				{:else}
+					<CheckCheck class="h-3.5 w-3.5 mr-1.5" />
+					Tandai Selesai
+				{/if}
+			</Button>
+		</div>
+	</div>
+</Dialog>
+
+<!-- Modal Konfirmasi Selesai Massal (Bulk Complete) -->
+<Dialog
+	bind:open={isBulkCompleteOpen}
+	onclose={() => {
+		isBulkCompleteOpen = false;
+	}}
+	class="max-w-md"
+>
+	<div class="p-6 space-y-4">
+		<div class="flex items-center gap-3">
+			<div
+				class="h-10 w-10 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0"
+			>
+				<CheckCheck class="h-5 w-5" />
+			</div>
+			<div>
+				<h3 class="text-base font-bold text-slate-900 dark:text-white">
+					Selesaikan {selectedIds.length} Usulan Terpilih?
+				</h3>
+				<p class="text-xs text-slate-500 dark:text-slate-400">
+					Aksi massal untuk usulan yang telah disetujui.
+				</p>
+			</div>
+		</div>
+
+		<p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+			Seluruh <span class="font-bold text-slate-900 dark:text-white">{selectedIds.length} usulan</span> yang dicentang akan ditandai berstatus <span class="font-semibold text-teal-600 dark:text-teal-400">Selesai (Terupdate)</span> dan notifikasi akan dikirimkan ke OPD masing-masing.
+		</p>
+
+		<div class="space-y-1.5">
+			<Label class="text-xs text-slate-600 dark:text-slate-400"
+				>Catatan Bersama (Opsional)</Label
+			>
+			<Input
+				type="text"
+				placeholder="Contoh: Pembaruan massal di SIASN BKN"
+				bind:value={bulkCompleteCatatan}
+				class="text-xs"
+			/>
+		</div>
+
+		<div
+			class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800"
+		>
+			<Button
+				variant="outline"
+				class="text-xs"
+				disabled={isBulkCompleting}
+				onclick={() => (isBulkCompleteOpen = false)}
+			>
+				Batal
+			</Button>
+			<Button
+				class="bg-teal-600 hover:bg-teal-500 text-white font-medium text-xs"
+				disabled={isBulkCompleting}
+				onclick={handleBulkComplete}
+			>
+				{#if isBulkCompleting}
+					<Loader2 class="h-3.5 w-3.5 mr-1.5 animate-spin" />
+					Memproses Massal...
+				{:else}
+					<CheckCheck class="h-3.5 w-3.5 mr-1.5" />
+					Ya, Selesaikan Semua ({selectedIds.length})
 				{/if}
 			</Button>
 		</div>

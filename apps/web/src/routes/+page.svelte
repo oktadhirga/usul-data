@@ -268,6 +268,7 @@
 							<option value="all">Semua Status</option>
 							<option value="diajukan">Menunggu Verifikasi</option>
 							<option value="disetujui">Disetujui</option>
+							<option value="selesai">Selesai (Terupdate)</option>
 							<option value="ditolak">Ditolak</option>
 							<option value="draft">Draft</option>
 							<option value="dibatalkan">Dibatalkan</option>
@@ -308,8 +309,8 @@
 		</div>
 	{/if}
 
-	<!-- 5 Summary KPI Cards -->
-	<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+	<!-- 6 Summary KPI Cards -->
+	<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
 		<!-- Card 1: Total Usulan -->
 		<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition">
 			<div class="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition"></div>
@@ -325,7 +326,7 @@
 						{stats?.summary.total ?? 0}
 					{/if}
 				</div>
-				<p class="text-[11px] text-slate-500 mt-1">Keseluruhan pengajuan</p>
+				<p class="text-[11px] text-slate-500 mt-1">Semua pengajuan</p>
 			</CardContent>
 		</Card>
 
@@ -344,7 +345,7 @@
 					{/if}
 				</div>
 				<div class="flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-500/80 mt-1">
-					<span>{calculatePercentage(stats?.summary.diajukan ?? 0, stats?.summary.total ?? 0)} dari total</span>
+					<span>{calculatePercentage(stats?.summary.diajukan ?? 0, stats?.summary.total ?? 0)} antrean</span>
 				</div>
 			</CardContent>
 		</Card>
@@ -364,12 +365,32 @@
 					{/if}
 				</div>
 				<div class="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-500/80 mt-1">
-					<span>{calculatePercentage(stats?.summary.disetujui ?? 0, stats?.summary.total ?? 0)} selesai</span>
+					<span>{calculatePercentage(stats?.summary.disetujui ?? 0, stats?.summary.total ?? 0)} valid</span>
 				</div>
 			</CardContent>
 		</Card>
 
-		<!-- Card 4: Ditolak -->
+		<!-- Card 4: Selesai (Terupdate) -->
+		<Card class="border-teal-200 dark:border-teal-900/30 bg-teal-50/60 dark:bg-teal-950/20 relative overflow-hidden group hover:border-teal-300 dark:hover:border-teal-700/40 transition">
+			<CardHeader class="pb-1.5 flex flex-row items-center justify-between">
+				<CardTitle class="text-xs font-semibold text-teal-700 dark:text-teal-400/90 uppercase">Selesai</CardTitle>
+				<Check class="h-4 w-4 text-teal-600 dark:text-teal-400" />
+			</CardHeader>
+			<CardContent>
+				<div class="text-3xl font-black text-teal-600 dark:text-teal-300 tracking-tight">
+					{#if isLoadingStats}
+						<div class="h-8 w-12 bg-teal-200 dark:bg-slate-800 rounded animate-pulse"></div>
+					{:else}
+						{stats?.summary.selesai ?? 0}
+					{/if}
+				</div>
+				<div class="flex items-center gap-1 text-[11px] text-teal-600 dark:text-teal-500/80 mt-1">
+					<span>{calculatePercentage(stats?.summary.selesai ?? 0, stats?.summary.total ?? 0)} terupdate</span>
+				</div>
+			</CardContent>
+		</Card>
+
+		<!-- Card 5: Ditolak -->
 		<Card class="border-rose-200 dark:border-rose-900/30 bg-rose-50/60 dark:bg-rose-950/20 relative overflow-hidden group hover:border-rose-300 dark:hover:border-rose-700/40 transition">
 			<CardHeader class="pb-1.5 flex flex-row items-center justify-between">
 				<CardTitle class="text-xs font-semibold text-rose-700 dark:text-rose-400/90 uppercase">Ditolak</CardTitle>
@@ -389,7 +410,7 @@
 			</CardContent>
 		</Card>
 
-		<!-- Card 5: Draft & Batal -->
+		<!-- Card 6: Draft & Batal -->
 		<Card class="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition col-span-2 sm:col-span-1">
 			<CardHeader class="pb-1.5 flex flex-row items-center justify-between">
 				<CardTitle class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Draft / Batal</CardTitle>

@@ -245,6 +245,8 @@
 				return "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30";
 			case "disetujui":
 				return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30";
+			case "selesai":
+				return "bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-500/30";
 			case "ditolak":
 				return "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30";
 			case "dibatalkan":
@@ -262,6 +264,8 @@
 				return "Diajukan";
 			case "disetujui":
 				return "Disetujui";
+			case "selesai":
+				return "Selesai (Terupdate)";
 			case "ditolak":
 				return "Ditolak";
 			case "dibatalkan":
@@ -414,7 +418,7 @@
 
 				<!-- Status Filter Pills/Select -->
 				<div class="flex flex-wrap items-center gap-1.5 flex-1">
-					{#each [{ value: "all", label: "Semua" }, { value: "draft", label: "Draft" }, { value: "diajukan", label: "Diajukan" }, { value: "disetujui", label: "Disetujui" }, { value: "ditolak", label: "Ditolak" }, { value: "dibatalkan", label: "Dibatalkan" }] as opt}
+					{#each [{ value: "all", label: "Semua" }, { value: "draft", label: "Draft" }, { value: "diajukan", label: "Diajukan" }, { value: "disetujui", label: "Disetujui" }, { value: "selesai", label: "Selesai" }, { value: "ditolak", label: "Ditolak" }, { value: "dibatalkan", label: "Dibatalkan" }] as opt}
 						<button
 							type="button"
 							class={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${

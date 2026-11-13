@@ -3,7 +3,7 @@ import { relations } from 'drizzle-orm';
 import { unor } from './unor';
 import { pegawai } from './pegawai';
 
-export const usulanStatusEnum = ['draft', 'diajukan', 'dibatalkan', 'disetujui', 'ditolak'] as const;
+export const usulanStatusEnum = ['draft', 'diajukan', 'dibatalkan', 'disetujui', 'ditolak', 'selesai'] as const;
 export type UsulanStatus = (typeof usulanStatusEnum)[number];
 
 export const jenisUsulanEnum = ['tambah', 'ubah', 'hapus'] as const;
